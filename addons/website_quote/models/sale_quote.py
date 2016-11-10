@@ -77,15 +77,31 @@ class SaleQuoteLine(models.Model):
         if self.product_id and self.product_uom_id:
             self.price_unit = self.product_id.uom_id._compute_price(self.product_id.lst_price, self.product_uom_id)
 
+    def _quote_line_translation(self, product_id):
+        Translation = self.env['ir.translation']
+        product_tmpl_id = self.env['product.product'].browse(product_id).product_tmpl_id.id
+        for quote_line in self:
+            quote_translation = Translation.search([('name', '=', 'sale.quote.line,name'), ('res_id', '=', quote_line.id), ('type','=', 'model')])
+            if not quote_translation:
+                product_translation = Translation.search([('name', '=', 'product.template,name'), ('res_id', '=', product_tmpl_id), ('type','=', 'model')])
+                for translation in product_translation:
+                    translation.copy(default={'name': 'sale.quote.line,name', 'res_id': quote_line.id})
+
     @api.model
     def create(self, values):
         values = self._inject_quote_description(values)
-        return super(SaleQuoteLine, self).create(values)
+        quote_line = super(SaleQuoteLine, self).create(values)
+        if values.get('product_id'):
+            quote_line._quote_line_translation(values['product_id'])
+        return quote_line
 
     @api.multi
     def write(self, values):
         values = self._inject_quote_description(values)
-        return super(SaleQuoteLine, self).write(values)
+        res = super(SaleQuoteLine, self).write(values)
+        if values.get('product_id'):
+            self._quote_line_translation(values['product_id'])
+        return res
 
     def _inject_quote_description(self, values):
         values = dict(values or {})
