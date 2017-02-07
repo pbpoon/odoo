@@ -44,7 +44,6 @@ class TestPurchaseOrder(AccountingTestCase):
 
 
     def test_00_purchase_order_flow(self):
-
         # Ensure product_id_2 doesn't have res_partner_1 as supplier
         if self.partner_id in self.product_id_2.seller_ids.mapped('name'):
             id_to_remove = self.product_id_2.seller_ids.filtered(lambda r: r.name == self.partner_id).ids[0] if self.product_id_2.seller_ids.filtered(lambda r: r.name == self.partner_id) else False
@@ -72,7 +71,7 @@ class TestPurchaseOrder(AccountingTestCase):
             price_unit = seller.currency_id.compute(price_unit, self.po.currency_id)
         self.assertEqual(price_unit, 250.0, 'Purchase: the price of the product for the supplier should be 250.0.')
 
-        self.assertEqual(self.po.picking_count, 1, 'Purchase: one picking should be created"')
+        self.assertEqual(self.po.picking_count, 1, 'Purchase: one picking should be created')
         self.picking = self.po.picking_ids[0]
         self.picking.force_assign()
         self.picking.move_line_ids.write({'qty_done': 5.0})
