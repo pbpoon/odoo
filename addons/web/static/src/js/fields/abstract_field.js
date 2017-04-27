@@ -39,6 +39,7 @@ var AbstractField = Widget.extend({
     jsLibs: [],
     events: {
         'keydown': '_onKeydown',
+        'keyup': '_onKeyup'
     },
     custom_events: {
         navigation_move: '_onNavigationMove',
@@ -501,6 +502,13 @@ var AbstractField = Widget.extend({
     _onNavigationMove: function (ev) {
         ev.data.target = this;
     },
+    _onKeyup: function(event) {
+        if (event.which === $.ui.keyCode.ESCAPE) {
+            this._onKeyupEscape();
+        }
+    },
+    _onKeyupEscape: function() {
+    }
 });
 
 return AbstractField;

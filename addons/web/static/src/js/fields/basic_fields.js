@@ -910,6 +910,7 @@ var FieldText = InputField.extend(TranslatableFieldMixin, {
  * Displays a handle to modify the sequence.
  */
 var HandleWidget = AbstractField.extend({
+    no_tabindex: true,
     className: 'o_row_handle fa fa-arrows ui-sortable-handle',
     tagName: 'span',
     description: "",
@@ -1086,6 +1087,7 @@ var UrlWidget = InputField.extend({
 });
 
 var AbstractFieldBinary = AbstractField.extend({
+    no_tabindex: true,
     events: _.extend({}, AbstractField.prototype.events, {
         'change .o_input_file': 'on_file_change',
         'click .o_select_file_button': function () {
@@ -1312,6 +1314,7 @@ var FieldBinaryFile = AbstractFieldBinary.extend({
 });
 
 var PriorityWidget = AbstractField.extend({
+    no_tabindex: true,
     // the current implementation of this widget makes it
     // only usable for fields of type selection
     className: "o_priority",
@@ -1594,6 +1597,7 @@ var FavoriteWidget = AbstractField.extend({
 });
 
 var LabelSelection = AbstractField.extend({
+    no_tabindex: true,
     supportedFieldTypes: ['selection'],
 
     //--------------------------------------------------------------------------
@@ -1616,6 +1620,7 @@ var LabelSelection = AbstractField.extend({
 });
 
 var FieldBooleanButton = AbstractField.extend({
+    no_tabindex: true,
     className: 'o_stat_info',
     supportedFieldTypes: ['boolean'],
 
@@ -1724,6 +1729,7 @@ var BooleanToggle = FieldBoolean.extend({
 });
 
 var StatInfo = AbstractField.extend({
+    no_tabindex: true,
     supportedFieldTypes: ['integer', 'float'],
 
     //--------------------------------------------------------------------------
@@ -1768,6 +1774,7 @@ var StatInfo = AbstractField.extend({
 });
 
 var FieldPercentPie = AbstractField.extend({
+    no_tabindex: true,
     template: 'FieldPercentPie',
     supportedFieldTypes: ['integer'],
 
@@ -1833,6 +1840,7 @@ var FieldPercentPie = AbstractField.extend({
  * - title: title of the bar, displayed on top of the bar --> not translated,  use parameter "title" instead
  */
 var FieldProgressBar = AbstractField.extend({
+    no_tabindex: true,
     template: "ProgressBar",
     events: {
         'change input': 'on_change_input',
@@ -1977,6 +1985,7 @@ var FieldProgressBar = AbstractField.extend({
  * switching between a green bullet / gray bullet.
 */
 var FieldToggleBoolean = AbstractField.extend({
+    no_tabindex: true,
     template: "toggle_button",
     events: {
         'click': '_onToggleButton'
@@ -2173,6 +2182,7 @@ var JournalDashboardGraph = AbstractField.extend({
  * not allow to).
  */
 var FieldDomain = AbstractField.extend({
+    no_tabindex: true,
     /**
      * Fetches the number of records which are matched by the domain (if the
      * domain is not server-valid, the value is false) and the model the
@@ -2393,6 +2403,7 @@ var FieldDomain = AbstractField.extend({
  * for editing XML and Python.
  */
 var AceEditor = DebouncedField.extend({
+    no_tabindex: true,
     template: "AceEditor",
     jsLibs: [
         '/web/static/lib/ace/ace.odoo-custom.js',
