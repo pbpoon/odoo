@@ -79,7 +79,12 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
             confirm_callback: def.resolve.bind(def, true),
             cancel_callback: def.reject.bind(def),
         });
-        dialog.on('closed', def, def.reject);
+        dialog.on('closed', def, function () {
+            _.delay(function () {
+                core.bus.trigger('dialog_closed');
+            }, 100);
+            def.reject();
+        });
         return def;
     },
     /**
@@ -224,9 +229,10 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @private
      * @param {Object} attrs the attrs of the button clicked
      * @param {Object} [record] the current state of the view
+     * @param {Function} callback to execute when button action is performed
      * @returns {Deferred}
      */
-    _callButtonAction: function (attrs, record) {
+    _callButtonAction: function (attrs, record, callback) {
         var self = this;
         var def = $.Deferred();
         var reload = function () {
@@ -246,7 +252,15 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
             },
             on_closed: function (reason) {
                 if (!_.isObject(reason)) {
-                    reload(reason);
+                    reload(reason).then(function () {
+                        if (callback) {
+                            callback.apply(self, ['next']);
+                        }
+                    });
+                } else {
+                    if (callback) {
+                        callback.apply(self, ['current']);
+                    }
                 }
             },
             on_fail: function (reason) {

@@ -53,6 +53,10 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
      */
     on_attach_callback: function() {
         this.is_in_DOM = true;
+        // Set focus to search view once it is added in DOM
+        if (this.searchview) {
+            this.searchview.setInputFocus();
+        }
         var controller = this.active_view && this.active_view.controller;
         if (controller && this.active_view.controller.on_attach_callback) {
             this.active_view.controller.on_attach_callback();
@@ -365,8 +369,11 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         view_descr.searchview_hidden = View.prototype.searchview_hidden;
         var view = new View(view_descr.fields_view, params);
         return view.getController(this).then(function(controller) {
-            controller.on('history_back', this, function() {
-                if (self.action_manager) self.action_manager.trigger('history_back');
+            controller.on('history_back', this, function (ev) {
+                ev.stopPropagation();
+                if (self.action_manager) {
+                    self.action_manager.trigger('history_back');
+                }
             });
             controller.on("change:title", this, function() {
                 if (self.action_manager && !self.flags.headless) {
