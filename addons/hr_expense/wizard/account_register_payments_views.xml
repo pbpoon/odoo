@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_from_invoices_inherit_hr_expense" model="ir.ui.view">
+        <field name="name">account.register.payments.wizard.inherited</field>
+        <field name="model">account.register.payments</field>
+        <field name="inherit_id" ref="account.view_account_payment_from_invoices"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <data>
+                <field name="partner_id" position="attributes">
+                    <attribute name="invisible">False</attribute>
+                    <attribute name="required">True</attribute>
+                    <attribute name="readonly">True</attribute>
+                </field>
+                <field name="journal_id" position="attributes">
+                    <attribute name="default_focus">1</attribute>
+                </field>
+                <field name="payment_date" position="after">
+                    <field name="expense_sheet_id" invisible="1"/>
+                </field>
+                <field name="currency_id" position="replace"/>
+                <xpath expr="//field[@name='amount']" position="replace">
+                    <label for="amount"/>
+                    <div name="amount_div" class="o_row">
+                        <field name="amount"/>
+                        <field name="currency_id" options="{'no_create': True, 'no_open': True}" groups="base.group_multi_currency"/>
+                   </div>
+                </xpath>
+            </data>
+        </field>
+    </record>
+    <!-- Expenses -->
+    <record id="account_register_payments_wizard_action" model="ir.actions.act_window">
+        <field name="name">Register Payment</field>
+        <field name="res_model">account.register.payments</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="hr_expense.view_account_payment_from_invoices_inherit_hr_expense"/>
+        <field name="target">new</field>
+        <field name="context">{'default_expense_sheet_id': active_id}</field>
+    </record>
+</odoo>
