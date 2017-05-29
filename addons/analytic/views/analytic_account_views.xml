@@ -23,7 +23,15 @@
                         </div>
                         <group>
                             <field name="name"/>
+                            <field name="active_analytic_distribution" groups="analytic.group_analytic_accounting"/>
                         </group>
+                        <field name="analytic_distribution_ids" nolabel="1" widget="one2many_list"
+                            attrs="{'invisible': [('active_analytic_distribution', '=', False)]}" groups="analytic.group_analytic_accounting">
+                            <tree string="Analytic Distribution" editable="bottom">
+                                <field name="account_id"/>
+                                <field name="percentage"/>
+                            </tree>
+                        </field>
                     </sheet>
                 </form>
             </field>
@@ -41,6 +49,47 @@
             </field>
         </record>
 
+        <record id="account_analytic_category_form_view" model="ir.ui.view">
+            <field name="name">account.analytic.category.form</field>
+            <field name="model">account.analytic.category</field>
+            <field name="arch" type="xml">
+                <form string="Analytic Accounts Categories">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="parent_id"/>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="account_analytic_category_tree_view" model="ir.ui.view">
+            <field name="name">account.analytic.category.tree</field>
+            <field name="model">account.analytic.category</field>
+            <field name="arch" type="xml">
+                <tree string="Analytic Accounts Categories">
+                    <field name="display_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="account_analytic_category_action" model="ir.actions.act_window">
+            <field name="name">Analytic Accounts Categories</field>
+            <field name="res_model">account.analytic.category</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a new category.
+              </p>
+            </field>
+        </record>
+
+
         <record id="view_account_analytic_line_tree" model="ir.ui.view">
             <field name="name">account.analytic.line.tree</field>
             <field name="model">account.analytic.line</field>
@@ -56,7 +105,7 @@
                 </tree>
             </field>
         </record>
-        
+
         <record model="ir.actions.act_window" id="account_analytic_line_action">
             <field name="context">{'search_default_group_date': 1, 'default_account_id': active_id}</field>
             <field name="domain">[('account_id','=', active_id)]</field>
@@ -111,7 +160,8 @@
                                 <field name="partner_id"/>
                             </group>
                             <group>
-                                <field name="tag_ids" widget="many2many_tags"/>
+                                <field name="tag_ids" widget="many2many_tags" groups="analytic.group_analytic_tags"/>
+                                <field name="category_id"/>
                                 <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
                                 <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                             </group>
@@ -279,7 +329,7 @@
                 <pivot string="Analytic Entries" >
                     <field name="account_id" type="row"/>
                     <field name="unit_amount" type="measure"/>
-                    <field name="amount" type="measure"/>
+                    <field name="amount_user_currency" type="measure"/>
                 </pivot>
             </field>
         </record>

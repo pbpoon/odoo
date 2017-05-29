@@ -16,6 +16,8 @@ class AccountAnalyticLine(models.Model):
     move_id = fields.Many2one('account.move.line', string='Move Line', ondelete='cascade', index=True)
     code = fields.Char(size=8)
     ref = fields.Char(string='Ref.')
+    company_currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True,
+        help='Utility field to express amount currency')
 
     @api.v8
     @api.onchange('product_id', 'product_uom_id', 'unit_amount', 'currency_id')
