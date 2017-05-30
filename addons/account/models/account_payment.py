@@ -133,6 +133,8 @@ class account_register_payments(models.TransientModel):
         # Check for selected invoices ids
         if not active_ids:
             raise UserError(_("Programming error: wizard action executed without active_ids in context."))
+        if not rec.get('invoice_ids'):
+            return rec
 
         invoices = self.env['account.invoice'].browse(active_ids)
 
@@ -210,10 +212,20 @@ class account_register_payments(models.TransientModel):
 
         :return: a list of payment values (dictionary).
         '''
+        if not self.invoice_ids:
+            return []
         if self.multi:
             groups = self._groupby_invoices()
             return [self._prepare_payment_vals(invoices) for invoices in groups.values()]
         return [self._prepare_payment_vals(self.invoice_ids)]
+
+    def _create_payments(self):
+        Payment = self.env['account.payment']
+        payments = Payment
+        for payment_vals in self.get_payments_vals():
+            payments += Payment.create(payment_vals)
+        payments.post()
+        return payments
 
     @api.multi
     def create_payments(self):
@@ -225,11 +237,7 @@ class account_register_payments(models.TransientModel):
 
         :return: The ir.actions.act_window to show created payments.
         '''
-        Payment = self.env['account.payment']
-        payments = Payment
-        for payment_vals in self.get_payments_vals():
-            payments += Payment.create(payment_vals)
-        payments.post()
+        payments = self._create_payments()
         return {
             'name': _('Payments'),
             'domain': [('id', 'in', payments.ids), ('state', '=', 'posted')],

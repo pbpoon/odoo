@@ -290,18 +290,19 @@
             <field name="model">account.register.payments</field>
             <field name="arch" type="xml">
                 <form string="Register Payment">
-                    <field name="payment_type" invisible="1"/>
-                    <field name="partner_type" invisible="1"/>
-                    <field name="partner_id" invisible="1"/>
                     <group>
                         <group>
+                            <field name="payment_type" invisible="1"/>
+                            <field name="invoice_ids" invisible="1"/>
+                            <field name="partner_type" invisible="1"/>
+                            <field name="partner_id" invisible="1"/>
                             <field name="journal_id" widget="selection"/>
                             <field name="hide_payment_method" invisible="1"/>
                             <field name="payment_method_id" widget="radio" attrs="{'invisible': [('hide_payment_method', '=', True)]}"/>
                             <field name="payment_method_code" invisible="1"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="multi" invisible="1"/>
-                            <field name="amount" attrs="{'readonly': [('multi', '=', True)]}"/>
+                            <field name="amount" force_save="1" attrs="{'readonly': [('multi', '=', True)]}"/>
                         </group>
                         <group>
                             <field name="payment_date"/>
@@ -325,6 +326,9 @@
             multi="True"
             target="new"
             key2="client_action_multi"
+            context="{
+                'default_invoice_ids': [(6, 0, active_ids)]
+            }"
         />
 
         <!-- Action confirm_payments for multi -->
