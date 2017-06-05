@@ -218,6 +218,19 @@
     </t>
 </template>
 
+<template id="website.403">
+    <t t-call="website_forum.layout">
+        <div class="text-center text-muted">
+            <p class="css_editable_hidden" groups="!base.group_erp_manager">
+                <h1>No forum post yet.</h1>
+            </p>
+            <p class="css_editable_hidden" groups="base.group_erp_manager">
+                <h2>This forum has been archived.</h2>
+            </p>
+        </div>
+    </t>
+</template>
+
 <!-- Template use to edit the welcome_message -->
 <template id="edit_welcome_message">
     <t t-call="website.layout">
@@ -383,11 +396,13 @@
         <div class="container">
             <h1 class="mb32">Our forums</h1>
             <div class="row">
+                <div t-if="not forums" class="well">No forum post yet.</div>
                 <div t-foreach="forums" t-as="forum" class="col-sm-3 text-center mb32">
                     <a t-attf-href="/forum/#{ slug(forum) }">
                         <div class="fa fa-5x fa-comment mb16"/>
                         <div t-field="forum.name"/>
                     </a>
+                    <span t-if="not forum.website_published" class="label label-danger">unpublished</span>
                 </div>
             </div>
         </div>

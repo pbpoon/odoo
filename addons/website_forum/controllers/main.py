@@ -117,6 +117,9 @@ class WebsiteForum(http.Controller):
     def questions(self, forum, tag=None, page=1, filters='all', sorting=None, search='', post_type=None, **post):
         Post = request.env['forum.post']
 
+        if not forum.active:
+            return request.render("website.403")
+
         domain = [('forum_id', '=', forum.id), ('parent_id', '=', False), ('state', '=', 'active')]
         if search:
             domain += ['|', ('name', 'ilike', search), ('content', 'ilike', search)]
