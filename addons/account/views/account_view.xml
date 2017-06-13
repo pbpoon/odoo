@@ -1468,6 +1468,7 @@
                             <field name="line_ids" widget="one2many_list"
                               context="{'line_ids': line_ids, 'journal_id': journal_id }">
                                 <tree editable="bottom" string="Journal Items">
+                                    <field name="tax_line_id" invisible="1"/>
                                     <field name="account_id" domain="[('company_id', '=', parent.company_id), ('deprecated', '=', False)]"/>
                                     <field name="partner_id"
                                         domain="['|', ('parent_id', '=', False), ('is_company', '=', True)]"/>
@@ -1480,6 +1481,8 @@
                                     <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                                     <field name="debit" sum="Total Debit"/>
                                     <field name="credit" sum="Total Credit"/>
+                                    <field name="tax_ids" string="Tax Applied" widget="many2many_tags"
+                                           options="{'no_create': True}"/>
                                     <field name="date_maturity" required="0" invisible="context.get('view_no_maturity', False)"/>
                                 </tree>
                             </field>
