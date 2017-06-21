@@ -63,7 +63,7 @@ var Action = core.Class.extend({
     /**
      * Not implemented for client actions
      */
-    setScrollTop: function() {
+    setScrollPosition: function() {
     },
     /**
      * Stores the DOM fragment of the action
@@ -76,8 +76,8 @@ var Action = core.Class.extend({
      * Not implemented for client actions
      * @return {int} the number of pixels the webclient is scrolled when leaving the action
      */
-    getScrollTop: function() {
-        return 0;
+    getScrollPosition: function() {
+        return {top: 0, left: 0};
     },
     /**
      * @return {Object} the description of the action
@@ -176,9 +176,9 @@ var ViewManagerAction = WidgetAction.extend({
      * @param {Function} [callback] the callback
      * @param {int} [scrollTop] the number of pixels to scroll
      */
-    set_on_reverse_breadcrumb: function(callback, scrollTop) {
+    set_on_reverse_breadcrumb: function(callback, scroll) {
         this._super(callback);
-        this.setScrollTop(scrollTop);
+        this.setScrollPosition(scroll);
     },
     /**
      * Sets the scroll position of the widgets's active_view
@@ -188,11 +188,11 @@ var ViewManagerAction = WidgetAction.extend({
      * @override
      * @param {integer} [scrollTop] the number of pixels to scroll
      */
-    setScrollTop: function (scrollTop) {
+    setScrollPosition: function (scroll) {
         var activeView = this.widget.active_view;
         var viewController = activeView && activeView.controller;
         if (viewController) {
-            viewController.setScrollTop(scrollTop);
+            viewController.setScrollPosition(scroll);
         }
     },
     /**
@@ -208,10 +208,10 @@ var ViewManagerAction = WidgetAction.extend({
      * @returns {integer} the number of pixels the webclient is currently
      *  scrolled
      */
-    getScrollTop: function () {
+    getScrollPosition: function () {
         var activeView = this.widget.active_view;
         var viewController = activeView && activeView.controller;
-        return viewController ? viewController.getScrollTop() : 0;
+        return viewController ? viewController.getScrollPosition() : {top: 0, left: 0};
     },
     /**
      * @return {Array} array of Objects that will be interpreted to display the breadcrumbs
@@ -284,7 +284,8 @@ var ActionManager = Widget.extend({
         // Listen to event "DOM_updated" to restore the scroll position
         core.bus.on('DOM_updated', this, function() {
             if (this.inner_action) {
-                this.trigger_up('scrollTo', {offset: this.inner_action.getScrollTop() || 0});
+                var scrollPosition = this.inner_action.getScrollPosition();
+                this.trigger_up('scrollTo', {offset: scrollPosition.top || 0, offset_left: scrollPosition.left});
             }
         });
 
@@ -334,7 +335,7 @@ var ActionManager = Widget.extend({
 
         // Set on_reverse_breadcrumb callback on previous inner_action
         if (this.webclient && old_action) {
-            old_action.set_on_reverse_breadcrumb(options.on_reverse_breadcrumb, this.webclient.getScrollTop());
+            old_action.set_on_reverse_breadcrumb(options.on_reverse_breadcrumb, this.webclient.getScrollPosition());
         }
 
         // Update action_stack (must be done before appendTo to properly
@@ -387,9 +388,9 @@ var ActionManager = Widget.extend({
             self.inner_widget = old_widget;
         });
     },
-    setScrollTop: function(scrollTop) {
+    setScrollPosition: function(scroll) {
         if (this.inner_action) {
-            this.inner_action.setScrollTop(scrollTop);
+            this.inner_action.setScrollPosition(scroll);
         }
     },
     get_breadcrumbs: function () {

@@ -334,7 +334,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         if (old_view && old_view !== this.active_view) {
             // Store the scroll position
             if (this.action_manager && this.action_manager.webclient) {
-                old_view.controller.setScrollTop(this.action_manager.webclient.getScrollTop());
+                old_view.controller.setScrollPosition(this.action_manager.webclient.getScrollPosition());
             }
             // Do not detach ui-autocomplete elements to let jquery-ui garbage-collect them
             var $to_detach = this.$el.contents().not('.ui-autocomplete');
@@ -344,7 +344,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         // If the user switches from a multi-record to a mono-record view,
         // the action manager should be scrolled to the top.
         if (old_view && old_view.controller.multi_record === true && view_controller.multi_record === false) {
-            view_controller.setScrollTop(0);
+            view_controller.setScrollPosition({top: 0, left: 0});
         }
 
         // Append the view fragment to this.$el

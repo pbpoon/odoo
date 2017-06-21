@@ -99,8 +99,8 @@ var AbstractController = Widget.extend({
      * @see setScrollTop
      * @returns {number}
      */
-    getScrollTop: function () {
-        return this.scrollTop;
+    getScrollPosition: function () {
+        return {top: this.scrollTop, left: this.scrollLeft};
     },
     /**
      * Returns a title that may be displayed in the breadcrumb area.  For
@@ -172,8 +172,9 @@ var AbstractController = Widget.extend({
      * @see getScrollTop
      * @param {number} scrollTop
      */
-    setScrollTop: function (scrollTop) {
-        this.scrollTop = scrollTop;
+    setScrollPosition: function (scroll) {
+        this.scrollTop = scroll.top;
+        this.scrollLeft = scroll.left || 0;
     },
     /**
      * This is the main entry point for the controller.  Changes from the search

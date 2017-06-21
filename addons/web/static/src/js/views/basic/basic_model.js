@@ -32,6 +32,7 @@ odoo.define('web.BasicModel', function (require) {
  *      id: {integer},
  *      isOpen: {boolean},
  *      loadMoreOffset: {integer},
+ *      loadMorelimit: {integer},
  *      limit: {integer},
  *      model: {string,
  *      offset: {integer},
@@ -3061,6 +3062,7 @@ var BasicModel = AbstractModel.extend({
             isOpen: params.isOpen,
             limit: type === 'record' ? 1 : params.limit,
             loadMoreOffset: 0,
+            loadMorelimit: type === 'record' ? 1 : params.limit,
             model: params.modelName,
             offset: params.offset || (type === 'record' ? _.indexOf(res_ids, res_id) : 0),
             openGroupByDefault: params.openGroupByDefault,
@@ -3504,6 +3506,7 @@ var BasicModel = AbstractModel.extend({
                         groupedBy: list.groupedBy.slice(1),
                         orderedBy: list.orderedBy,
                         limit: list.limit,
+                        lastLimit: list.limit,
                         openGroupByDefault: list.openGroupByDefault,
                         parentID: list.id,
                         type: 'list',
@@ -3523,6 +3526,12 @@ var BasicModel = AbstractModel.extend({
                             // Also keep data if we only reload groups' own data
                             delete updatedProps.data;
                         }
+                        _.extend(newGroup, _.pick(oldGroup, 'limit', 'isOpen', 'offset', 'lastLimit'));
+                        // if the group is open and contains subgroups, also
+                        // restore its data to keep internal state of sub-groups
+                        if (newGroup.isOpen && newGroup.groupedBy.length) {
+                            newGroup.data = oldGroup.data;
+                        }
                         _.extend(oldGroup, updatedProps);
                         newGroup = oldGroup;
                     } else if (!newGroup.openGroupByDefault) {
@@ -3532,6 +3541,9 @@ var BasicModel = AbstractModel.extend({
                     }
                     list.data.push(newGroup.id);
                     list.count += newGroup.count;
+                    if (newGroup.lastLimit) {
+                        newGroup.limit = newGroup.lastLimit;
+                    }
                     if (newGroup.isOpen && newGroup.count > 0) {
                         defs.push(self._load(newGroup, options));
                     }

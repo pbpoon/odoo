@@ -150,8 +150,10 @@ var KanbanModel = BasicModel.extend({
     loadMore: function (groupID) {
         var group = this.localData[groupID];
         var offset = group.loadMoreOffset + group.limit;
+        group.lastLimit = (group.lastLimit || group.limit) + group.limit;
         return this.reload(group.id, {
             loadMoreOffset: offset,
+            limit: group.loadMorelimit,
         });
     },
     /**
