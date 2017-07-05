@@ -11,6 +11,7 @@ from datetime import datetime
 from werkzeug.exceptions import Forbidden
 
 from odoo import api, fields, models, modules, tools, SUPERUSER_ID, _
+from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import pycompat, misc
 
@@ -151,7 +152,7 @@ class Forum(models.Model):
     def _compute_website_url(self):
         super(Forum, self)._compute_website_url()
         for forum in self:
-            forum.website_url = "/forum/%s-%s" % (forum.name, forum.id)
+            forum.website_url = "/forum/%s" % (slug(forum))
 
     @api.model
     def create(self, values):
@@ -159,6 +160,7 @@ class Forum(models.Model):
 
     @api.multi
     def write(self, vals):
+        # archiving a forum unpublish it too
         if 'active' in vals and not vals.get('active'):
             vals['website_published'] = vals.get('active')
         res = super(Forum, self).write(vals)
