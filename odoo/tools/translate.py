@@ -138,7 +138,7 @@ TRANSLATED_ELEMENTS = {
     'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'del', 'dfn', 'em',
     'font', 'i', 'ins', 'kbd', 'keygen', 'mark', 'math', 'meter', 'output',
     'progress', 'q', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub',
-    'sup', 'time', 'u', 'var', 'wbr', 'text',
+    'sup', 'time', 'u', 'var', 'wbr', 'text', 'img',
 }
 
 # which attributes must be translated
@@ -222,8 +222,12 @@ def translate_xml_node(node, callback, parse, serialize):
         if avoid_pattern.match(node.text or ""):
             result.text = node.text
         else:
-            todo.text = node.text
-        todo_has_text = nonspace(todo.text)
+            if node.tag == 'img':
+                todo.text = ''
+                todo_has_text = True
+            else:
+                todo.text = node.text
+                todo_has_text = nonspace(todo.text)
 
         # process children recursively
         for child in node:

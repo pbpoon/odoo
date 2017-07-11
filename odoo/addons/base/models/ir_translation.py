@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import logging
+import re
 from collections import defaultdict
 from difflib import get_close_matches
 
@@ -467,7 +468,7 @@ class IrTranslation(models.Model):
                     discarded += trans
                 elif trans.src not in terms:
                     matches = get_close_matches(trans.src, terms, 1, 0.9)
-                    if matches:
+                    if matches and not (re.match('(.+?)?<img.*?>(.+?)?</img>', trans.src)):
                         trans.write({'src': matches[0], 'state': trans.state})
                     else:
                         outdated += trans
@@ -538,22 +539,23 @@ class IrTranslation(models.Model):
     def _check_value(self):
         for trans in self.with_context(lang=None):
             if trans.type == 'model' and trans.value:
-                mname, fname = trans.name.split(',')
-                record = trans.env[mname].browse(trans.res_id)
-                field = record._fields[fname]
-                if callable(field.translate):
+                if trans.src and not re.match('(.+)?<img.*?>(.+)?</img>', trans.src):
+                    mname, fname = trans.name.split(',')
+                    record = trans.env[mname].browse(trans.res_id)
+                    field = record._fields[fname]
                     src = trans.src
-                    val = trans.value.strip()
-                    # check whether applying (src -> val) then (val -> src)
-                    # gives the original value back
-                    value0 = field.translate(lambda term: None, record[fname])
-                    value1 = field.translate({src: val}.get, value0)
-                    # don't check the reverse if no translation happened
-                    if value0 == value1:
-                        continue
-                    value2 = field.translate({val: src}.get, value1)
-                    if value2 != value0:
-                        raise ValidationError(_("Translation is not valid:\n%s") % val)
+                    if callable(field.translate):
+                        val = trans.value.strip()
+                        # check whether applying (src -> val) then (val -> src)
+                        # gives the original value back
+                        value0 = field.translate(lambda term: None, record[fname])
+                        value1 = field.translate({src: val}.get, value0)
+                        # don't check the reverse if no translation happened
+                        if value0 == value1:
+                            continue
+                        value2 = field.translate({val: src}.get, value1)
+                        if value2 != value0:
+                            raise ValidationError(_("Translation is not valid:\n%s") % val)
 
     @api.model
     def create(self, vals):
