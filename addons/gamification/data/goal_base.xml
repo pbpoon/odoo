@@ -207,7 +207,8 @@
                         </tr> 
                         <tr>
                             <td align="center">
-                                Powered by <a target="_blank" href="https://www.odoo.com">Odoo</a>.
+                                Powered by <a target="_blank" href="https://www.odoo.com">Odoo</a>.<br/>
+                                <a href="${ctx['button_unfollow']['url']}" style="text-decoration: none !important;">${ctx['button_unfollow']['title']}</a>
                             </td>
                         </tr>
                     </table>
