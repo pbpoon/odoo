@@ -16,7 +16,6 @@ if (!config.device.isMobile) {
 
 ChatAction.include({
     template: 'mail.client_action_mobile',
-    need_control_panel: false, // in mobile, we use a custom control panel
     events: _.extend(ChatAction.prototype.events, {
         'click .o_mail_mobile_tab': '_onMobileTabClicked',
         'click .o_channel_inbox_item': '_onMobileInboxButtonClicked',
@@ -124,14 +123,6 @@ ChatAction.include({
         }
     },
     /**
-     * @private
-     */
-    _toggleSearchView: function () {
-        this.searchviewDisplayed = !this.searchviewDisplayed;
-        this.searchview.$el.toggleClass('o_hidden', !this.searchviewDisplayed);
-        this.$buttons.toggleClass('o_hidden', this.searchviewDisplayed);
-    },
-    /**
      * Overrides to toggle the visibility of the tabs when a message is unselected
      *
      * @override
@@ -202,10 +193,6 @@ ChatAction.include({
             self.$buttons.find('.o_mail_chat_button_' + type).removeClass('o_hidden');
             self.$buttons.find('.o_mail_chat_button_mark_read').toggleClass('o_hidden', type !== 'channel_inbox');
             self.$buttons.find('.o_mail_chat_button_unstar_all').toggleClass('o_hidden', type !== 'channel_starred');
-            self.$('.o_enable_searchview').toggleClass('o_hidden', !inInbox);
-            if (!inInbox && self.searchviewDisplayed) {
-                self._toggleSearchView(); // close the searchview when leaving Inbox
-            }
 
             // update Inbox page buttons
             if (inInbox) {
@@ -222,17 +209,6 @@ ChatAction.include({
             type = type === 'channel_starred' ? 'channel_inbox' : type;
             self.$('.o_mail_mobile_tab[data-type=' + type + ']').addClass('active');
         });
-    },
-    /**
-     * @override
-     */
-    _updateControlPanel: function () {
-        this.$buttons.appendTo(this.$('.o_mail_chat_mobile_control_panel'));
-        this.searchview.$el.appendTo(this.$('.o_mail_chat_mobile_control_panel'));
-        var $enable_searchview = $('<button/>', {type: 'button'})
-            .addClass('o_enable_searchview btn fa fa-search')
-            .on('click', this._toggleSearchView.bind(this));
-        $enable_searchview.insertAfter(this.searchview.$el);
     },
 
     //--------------------------------------------------------------------------
