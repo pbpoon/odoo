@@ -23,6 +23,18 @@
                                                 <label for="paperformat_id" string="Format" class="col-xs-3 col-md-3 o_light_label"/>
                                                 <field name="paperformat_id" class="oe_inline" required="1"/>
                                             </div>
+                                            <label string="Address Justification Mode"/>
+                                            <div class="row mt8">
+                                                <div class="col-md-2 col-xs-2 o_light_label">
+                                                    <field name="address_justification" widget="radio" />
+                                                </div>
+                                                <div class="col-md-4 col-xs-4 ml16 panel panel-default" attrs="{'invisible': [('address_justification', '!=', 'left')]} ">
+                                                    <i class="fa fa-minus fa-4x text-muted"/>
+                                                </div>
+                                                <div class="col-md-4 col-xs-4 ml16 panel panel-default" attrs="{'invisible': [('address_justification', '!=', 'right')]} ">
+                                                    <i class="fa fa-minus fa-4x pull-right text-muted"/>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
