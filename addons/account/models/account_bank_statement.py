@@ -83,6 +83,28 @@ class AccountBankStatement(models.Model):
         for bank_stmt in self:
             bank_stmt.is_difference_zero = float_is_zero(bank_stmt.difference, precision_digits=bank_stmt.currency_id.decimal_places)
 
+    @api.depends('date', 'balance_start', 'balance_end_real')
+    def _compute_is_valid_balance_start(self):
+        domain = [('journal_id.type', '=', 'bank')]
+        for bank_stmt in self:
+            record_id = self.env.context.get('record_id')
+            # Wierd behaviour, if I edit the already saved record and modify any of it's fields from depends then it converts `bank_stmt` into NewId() recordset
+            # without entering into edit mode, it gives regular recordset, that is why id is passed from view side in field context
+            if record_id or isinstance(bank_stmt.id, pycompat.integer_types):
+                previous_stmt = self.search(domain + [('date', '=', bank_stmt.date), ('id', '<', record_id or bank_stmt.id)], limit=1)
+                if not previous_stmt:
+                    previous_stmt = self.search(domain + [('date', '<', bank_stmt.date), ('id', '!=', record_id or bank_stmt.id)], limit=1)
+            else:
+                # Since you are here it simply means you have NewID() recordset in `bank_stmt` and you are in creation mode
+                previous_stmt = self.search(domain + [('date', '<=', bank_stmt.date)], limit=1)
+            precision = bank_stmt.currency_id.decimal_places or bank_stmt.company_id.currency_id.decimal_places
+            balance_start = float_repr(float_round(bank_stmt.balance_start, precision_digits=precision), precision_digits=precision)
+            previous_statement_balance_end_real = float_repr(float_round(previous_stmt.balance_end_real, precision_digits=precision), precision_digits=precision)
+            if not previous_stmt or bank_stmt.journal_id.type != 'bank' or previous_statement_balance_end_real == balance_start:
+                bank_stmt.is_valid_balance_start = True
+            else:
+                bank_stmt.is_valid_balance_start = False
+
     @api.one
     @api.depends('journal_id')
     def _compute_currency(self):
@@ -158,6 +180,9 @@ class AccountBankStatement(models.Model):
     cashbox_start_id = fields.Many2one('account.bank.statement.cashbox', string="Starting Cashbox")
     cashbox_end_id = fields.Many2one('account.bank.statement.cashbox', string="Ending Cashbox")
     is_difference_zero = fields.Boolean(compute='_is_difference_zero', string='Is zero', help="Check if difference is zero.")
+    # Technical field to show warning message on form view if starting balance is not matched with ending balance of previous statement.
+    is_valid_balance_start = fields.Boolean(compute='_compute_is_valid_balance_start', string="Valid Starting Balance",
+        help="If True, it indicates the `Starting Balance` of current statement has matched with the `Ending Balance` of previous statement, False otherwise.")
 
     @api.onchange('journal_id')
     def onchange_journal_id(self):
