@@ -37,6 +37,7 @@ class ResConfigSettings(models.TransientModel):
     module_account_reports = fields.Boolean("Dynamic Reports")
     module_account_reports_followup = fields.Boolean("Enable payment followup management")
     module_l10n_us_check_printing = fields.Boolean("Allow check printing and deposits")
+    module_l10n_ca_cheque_printing = fields.Boolean("Allow Canadian cheque printing and deposits", default=False)
     module_account_batch_deposit = fields.Boolean(string='Use batch deposit',
         help='This allows you to group received checks before you deposit them to the bank.\n'
              '-This installs the module account_batch_deposit.')
@@ -113,6 +114,16 @@ class ResConfigSettings(models.TransientModel):
                              'Modify your taxes first before disabling this setting.')
             }
         return res
+
+    @api.onchange('module_l10n_ca_cheque_printing')
+    def _onchange_l10_ca_cheque_printing(self):
+        if self.module_l10n_ca_cheque_printing and self.module_l10n_us_check_printing:
+            self.module_l10n_us_check_printing = False
+
+    @api.onchange('module_l10n_us_check_printing')
+    def _onchange_l10_us_check_printing(self):
+        if self.module_l10n_ca_cheque_printing and self.module_l10n_us_check_printing:
+            self.module_l10n_ca_cheque_printing = False
 
     @api.model
     def create(self, values):
