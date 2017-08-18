@@ -257,7 +257,7 @@ class TestHeavyMailPerformance(TransactionCase):
         customer_id = self.customer.id
         user_id = self.user_portal.id
 
-        with self.assertQueryCount(admin=315, emp=380):  # test_mail only: 298 - 359
+        with self.assertQueryCount(admin=319, emp=384):  # test_mail only: 298 - 359
             rec = self.env['mail.test.full'].create({
                 'name': 'Test',
                 'umbrella_id': umbrella_id,

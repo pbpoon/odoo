@@ -172,7 +172,13 @@ class MailComposer(models.TransientModel):
                 partner_ids += [(4, parent.author_id.id)]
             result['partner_ids'] = partner_ids
         elif values.get('model') and values.get('res_id'):
-            doc_name_get = self.env[values.get('model')].browse(values.get('res_id')).name_get()
+            record = self.env[values.get('model')].browse(values.get('res_id'))
+            doc_name_get = record.name_get()
+            if not values.get('template_id'):
+                partner_ids = [(4, follower.id) for follower in record.message_follower_ids.mapped('partner_id') - self.env.user.partner_id]
+                if self._context.get('default_partner_ids'):
+                    partner_ids += [(4, follower) for follower in self._context['default_partner_ids']]
+                result['partner_ids'] = partner_ids
             result['record_name'] = doc_name_get and doc_name_get[0][1] or ''
             subject = tools.ustr(result['record_name'])
 

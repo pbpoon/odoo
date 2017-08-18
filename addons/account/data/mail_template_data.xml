@@ -13,7 +13,7 @@
             <field name="model_id" ref="account.model_account_invoice"/>
             <field name="auto_delete" eval="True"/>
             <field name="report_template" ref="account_invoices"/>
-            <field name="report_name">Invoice_${(object.number or '').replace('/','_')}_${object.state == 'draft' and 'draft' or ''}</field>
+            <field name="report_name">${(object.number or '').replace('/','-')}${object.state == 'draft' and '_Invoice-draft' or ''}</field>
             <field name="lang">${object.partner_id.lang}</field>
             <field name="body_html" type="html">
 <div>
@@ -26,7 +26,7 @@
     (<i>${object.partner_id.parent_id.name}</i>)
 % endif
 ,</p>
-<p>Here is, in attachment, your 
+<p>Here is, your
 % if object.number:
 invoice <strong>${object.number}</strong>
 % else:
@@ -53,7 +53,7 @@ from ${object.company_id.name}.
     <p>Please remit payment at your earliest convenience.</p>
 % endif
 
-<p>Thank you,</p>
+<p>Best Regards,</p>
 <p style="color:#888888">
 % if object.user_id and object.user_id.signature:
     ${object.user_id.signature | safe}

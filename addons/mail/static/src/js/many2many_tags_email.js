@@ -51,11 +51,35 @@ BasicModel.include({
 });
 
 var FieldMany2ManyTagsEmail = M2MTags.extend({
+    events: _.extend({}, M2MTags.prototype.events, {
+        'focusin input': '_onFocusIn',
+        'focusout input': '_onFocusOut',
+        'click': '_onClick',
+    }),
     fieldsToFetch: _.extend({}, M2MTags.prototype.fieldsToFetch, {
         email: {type: 'char'},
     }),
     specialData: "_setInvalidMany2ManyTagsEmail",
 
+    /**
+     * @constructor
+     * @override
+     */
+    init: function () {
+        this._super.apply(this, arguments);
+        this.moreThreshold = this.nodeOptions.more_threshold;
+    },
+
+    /**
+     * @constructor
+     * @override
+     */
+    start: function () {
+        var self = this;
+        return this._super.apply(this, arguments).then(function () {
+            self._onFocusOut();
+        });
+    },
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
@@ -124,8 +148,48 @@ var FieldMany2ManyTagsEmail = M2MTags.extend({
             def.resolve();
         }
         return def.then(function () {
-            return _super.apply(self, arguments);
+            return _super.apply(self, arguments).then(function () {
+                self.$moreText && self._onFocusOut();
+            });
         });
+    },
+
+    //--------------------------------------------------------------------------
+    // Handlers
+    //--------------------------------------------------------------------------
+
+    /**
+     * @private
+     */
+    _onClick: function () {
+        this.activate();
+    },
+
+    /**
+     * @private
+     */
+    _onFocusIn: function () {
+        if (this.$moreText) {
+            this.$moreText.remove();
+            this.$moreBadges.removeClass('hidden');
+        }
+    },
+
+    /**
+     * @private
+     */
+    _onFocusOut: function () {
+        if (this.moreThreshold && this.$('.badge').length > this.moreThreshold && !$(this.$el).is(':hover')) {
+            this.$moreBadges = this.$(_.str.sprintf('.badge:gt(%d)', this.moreThreshold - 1)).addClass('hidden');
+            var names = _.map(this.$moreBadges, function (badge) {
+                return badge.textContent.trim();
+            });
+            this.$moreText = $('<span />', {
+                class: 'more ml8 mr8',
+                title: names.join('\n'),
+                text: _.str.sprintf('%d %s', this.$('.badge').length - this.moreThreshold, _t('More'))
+            }).insertAfter(this.$('.badge').last());
+        }
     },
 });
 

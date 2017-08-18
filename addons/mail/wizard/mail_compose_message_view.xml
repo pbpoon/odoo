@@ -6,7 +6,7 @@
             <field name="model">mail.compose.message</field>
             <field name="groups_id" eval="[(4,ref('base.group_user'))]"/>
             <field name="arch" type="xml">
-                <form string="Compose Email">
+                <form string="Compose Email" class="o_mail_compose_message">
                     <group>
                         <!-- truly invisible fields for control and options -->
                         <field name="composition_mode" invisible="1"/>
@@ -52,8 +52,8 @@
                                 <span attrs="{'invisible': [('use_active_domain', '=', True)]}">the selected records</span>
                                 <span attrs="{'invisible': [('use_active_domain', '=', False)]}">the current search filter</span>.
                             </span>
-                            <span attrs="{'invisible':['|', ('model', '=', False), ('composition_mode', '=', 'mass_mail')]}">Followers of the document and</span>
                             <field name="partner_ids" widget="many2many_tags_email" placeholder="Add contacts to notify..."
+                                options="{'more_threshold': 5}"
                                 context="{'force_email':True, 'show_email':True}"
                                 attrs="{'invisible': [('composition_mode', '!=', 'comment')]}"/>
                         </div>

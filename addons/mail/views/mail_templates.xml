@@ -38,6 +38,7 @@
                 <link rel="stylesheet" href="/mail/static/src/less/thread.less" type="text/less"/>
                 <link rel="stylesheet" href="/mail/static/src/less/systray.less" type="text/less"/>
                 <link rel="stylesheet" href="/mail/static/src/less/mail_activity.less"/>
+                <link rel="stylesheet" href="/mail/static/src/less/mail_compose_message.less" type="text/less"/>
             </xpath>
         </template>
 
