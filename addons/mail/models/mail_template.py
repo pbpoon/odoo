@@ -397,7 +397,8 @@ class MailTemplate(models.Model):
             return results
         self.ensure_one()
 
-        langs = self.render_template(self.lang, self.model, res_ids)
+        lang = self.env.context.get('template_preview_lang', self.lang)
+        langs = self.render_template(lang, self.model, res_ids)
         for res_id, lang in langs.items():
             if lang:
                 template = self.with_context(lang=lang)
