@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_compose_message_wizard_form_inherit_portal" model="ir.ui.view">
+        <field name="name">mail.compose.message.wizard.inherited</field>
+        <field name="model">mail.compose.message</field>
+        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+        <field name="mode">primary</field>
+        <field name="priority">14</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email_from']" position="before">
+                <field name="share_link" readonly="1" widget="CopyClipboardChar" options="{'string': 'Copy Link'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mail_share_document_action" model="ir.actions.act_window">
+        <field name="name">Share Document</field>
+        <field name="res_model">mail.compose.message</field>
+        <field name="src_model">mail.compose.message</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context" eval="{
+            'mail_post_autofollow': True,
+            'default_subtype_id': ref('mail.mt_note'),
+            'default_template_id': ref('portal.mail_template_share_document_portal')}"
+            />
+    </record>
+</odoo>
