@@ -1779,7 +1779,7 @@ QUnit.module('Views', {
             "the records should be correctly fetched");
 
         // reload
-        envIDs = [1, 2, 4]; // first group is limited again to 2 records
+        // All ids are same after reload
         kanban.reload();
         assert.strictEqual(kanban.$('.o_kanban_group:eq(1) .o_kanban_record').length, 3,
             "there should be 3 records in the column after reload");
