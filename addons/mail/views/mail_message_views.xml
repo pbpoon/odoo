@@ -125,7 +125,7 @@
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_message_search"/>
         </record>
-        
+
         <!-- Add menu entry in Settings/Email -->
         <menuitem name="Messages" id="menu_mail_message" parent="base.menu_email" action="action_view_mail_message"/>
 
@@ -143,19 +143,59 @@
                         <t t-name="kanban-box">
                             <div class="oe_kanban_global_click">
                                 <div class="oe_kanban_vignette">
-                                    <div class="oe_attachment">
-                                        <div class="oe_name">
-                                            <field name="name"/>
-                                        </div>
-                                        <div t-if="record.type.raw_value == 'binary'">
-                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
-                                                <t t-set="webimage" t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
-                                                <div t-if="!webimage" class="o_image" t-att-data-mimetype="record.mimetype.value"/>
-                                                <div t-if="webimage" class="o_attachment_image">
+                                    <div class="oe_name">
+                                        <field name="name"/>
+                                    </div>
+                                    <div t-if="record.type.raw_value == 'binary'">
+                                        <t t-set="type" t-value="record.mimetype.value.split('/').shift()"/>
+                                        <t t-if="type == 'image'">
+                                            <div class="o_attachment_image">
+                                                <div class="o_attachment_preview">
                                                     <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
+                                                    <div class="o_image_overlay" t-att-title="record.name.raw_value">
+                                                        <div>
+                                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1" class="o_download_content" title="Download this image">
+                                                                <i class="fa fa-2x fa-arrow-circle-o-down"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </div>
+                                        </t>
+                                        <t t-elif="type == 'video'">
+                                            <div class="o_attachment_image">
+                                                <div class="o_image o_attachment_preview" t-att-data-mimetype="record.mimetype.value">
+                                                    <div class="o_image_overlay" t-att-title="record.name.raw_value">
+                                                        <div>
+                                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1" class="o_download_content" title="Download this video">
+                                                                <i class="fa fa-2x fa-arrow-circle-o-down"></i>
+                                                            </a>
+                                                            <a class="o_attachment_play">
+                                                                <i t-attf-class="fa fa-2x fa-play-circle" title="Play this video"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <t t-elif="record.mimetype.value == 'application/pdf'">
+                                            <div class="o_attachment_image">
+                                                <div class="o_image o_attachment_preview" t-att-data-mimetype="record.mimetype.value">
+                                                    <div class="o_image_overlay" t-att-title="record.name.raw_value">
+                                                        <div>
+                                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1" class="o_download_content" title="Download this document">
+                                                                <i class="fa fa-2x fa-arrow-circle-o-down"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
+                                                <div class="o_image" t-att-data-mimetype="record.mimetype.value"/>
                                             </a>
-                                        </div>
+                                        </t>
                                     </div>
                                 </div>
                             </div>

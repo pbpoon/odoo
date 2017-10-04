@@ -27,6 +27,7 @@
                 <script type="text/javascript" src="/mail/static/src/js/window_manager.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/activity.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/chat_mixin.js"></script>
+                <script type="text/javascript" src="/mail/static/src/js/ir_attachment_preview.js"></script>
 
                 <link rel="stylesheet" href="/mail/static/src/less/announcement.less"/>
                 <link rel="stylesheet" href="/mail/static/src/less/client_action.less" type="text/less"/>
@@ -38,6 +39,7 @@
                 <link rel="stylesheet" href="/mail/static/src/less/thread.less" type="text/less"/>
                 <link rel="stylesheet" href="/mail/static/src/less/systray.less" type="text/less"/>
                 <link rel="stylesheet" href="/mail/static/src/less/mail_activity.less"/>
+                <link rel="stylesheet" href="/mail/static/src/less/ir_attachment_preview.less"/>
             </xpath>
         </template>
 
