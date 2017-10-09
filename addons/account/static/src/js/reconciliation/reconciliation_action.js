@@ -12,7 +12,7 @@ var core = require('web.core');
  * Widget used as action for 'account.bank.statement' reconciliation
  */
 var StatementAction = Widget.extend(ControlPanelMixin, {
-    title: core._t('Bank reconciliation'),
+    title: core._t('Bank Reconciliation'),
     template: 'reconciliation',
     custom_events: {
         change_mode: '_onAction',
