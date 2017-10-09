@@ -6,6 +6,7 @@ var ajax = require('web.ajax');
 var core = require('web.core');
 var Widget = require('web.Widget');
 var rpc = require('web.rpc');
+var session = require('web.session');
 
 var qweb = core.qweb;
 var _t = core._t;
@@ -20,7 +21,10 @@ var _t = core._t;
 var PortalChatter = Widget.extend({
     template: 'portal.chatter',
     events: {
-        "click .o_portal_chatter_pager_btn": '_onClickPager'
+        'change input[type=file]': "_onAttachmentChange",
+        "click .o_attachment_delete": "_onAttachmentDelete",
+        "click .o_portal_chatter_pager_btn": '_onClickPager',
+        "click button.filepicker": '_onClickFilePicker',
     },
 
     init: function(parent, options){
@@ -42,6 +46,18 @@ var PortalChatter = Widget.extend({
         this.set('pager', {});
         this.set('domain', this.options['domain']);
         this._current_page = this.options['pager_start'];
+        this.set('attachment_ids', []);
+        this.fileupload_id = _.uniqueId('o_chat_fileupload');
+    },
+    /**
+     * @override
+     */
+    start: function () {
+        this.$attachment_button = this.$(".o_composer_button_add_attachment");
+
+        $(window).on(this.fileupload_id, this._onAttachmentLoaded.bind(this));
+        this.on("change:attachment_ids", this, this._renderAttachments);
+        return this._super.apply(this, arguments);
     },
     willStart: function(){
         var self = this;
@@ -124,7 +140,9 @@ var PortalChatter = Widget.extend({
      * @returns {Deferred}
      */
     _loadTemplates: function(){
-        return ajax.loadXML('/portal/static/src/xml/portal_chatter.xml', qweb);
+        var def1 = ajax.loadXML('/portal/static/src/xml/portal_chatter.xml', qweb);
+        var def2 = ajax.loadXML('/mail/static/src/xml/attachment.xml', qweb);
+        return $.when(def1, def2);
     },
     _messageFetchPrepareParams: function(){
         var self = this;
@@ -189,6 +207,12 @@ var PortalChatter = Widget.extend({
             "pages": pages
         };
     },
+    /**
+     * @private
+     */
+    _renderAttachments: function () {
+        this.$('.o_composer_attachments_list').html(qweb.render('portal.Chatter.Attachments', {attachments: this.get('attachment_ids')}));
+    },
     _renderMessages: function(){
         this.$('.o_portal_chatter_messages').html(qweb.render("portal.chatter_messages", {widget: this}));
     },
@@ -203,12 +227,93 @@ var PortalChatter = Widget.extend({
     // Handlers
     //--------------------------------------------------------------------------
 
+    /**
+     * @private
+     */
+    _onAttachmentChange: function (ev) {
+        var files = ev.target.files,
+            attachments = this.get('attachment_ids');
+
+        this.$('form.o_form_binary_form').submit();
+        this.$attachment_button.prop('disabled', true);
+        var upload_attachments = _.map(files, function (file) {
+            return {
+                'id': 0,
+                'name': file.name,
+                'filename': file.name,
+                'url': '',
+                'upload': true,
+                'mimetype': '',
+            };
+        });
+        attachments = attachments.concat(upload_attachments);
+        this.set('attachment_ids', attachments);
+    },
+    /**
+     * @private
+     */
+    _onAttachmentDelete: function (ev) {
+        ev.stopPropagation();
+        var attachment_id = $(ev.target).data("id");
+
+        if (attachment_id) {
+            var attachments = this.get('attachment_ids');
+            this._rpc({
+                model: 'ir.attachment',
+                method: 'unlink',
+                args: [attachment_id],
+            });
+            attachments = _.reject(attachments, {'id': attachment_id});
+            this.set('attachment_ids', attachments);
+            document.getElementById('attachments').setAttribute("value", _.pluck(attachments, 'id'));
+        }
+    },
+    /**
+     * @private
+     */
+    _onAttachmentLoaded: function (ev) {
+        var attachments = this.get('attachment_ids'),
+            files = Array.prototype.slice.call(arguments, 1);
+
+        _.each(files, function (file) {
+            if (file.error || !file.id) {
+                this.do_warn(file.error);
+                attachments = _.filter(attachments, function (attachment) { return !attachment.upload; });
+            } else {
+                var attachment = _.findWhere(attachments, {filename: file.filename, upload: true});
+                if (attachment) {
+                    attachments = _.without(attachments, attachment);
+                    attachments.push({
+                        'id': file.id,
+                        'name': file.name || file.filename,
+                        'filename': file.filename,
+                        'mimetype': file.mimetype,
+                        'url': session.url('/web/content', {'id': file.id, download: true}),
+                    });
+                }
+            }
+        }.bind(this));
+
+        this.set('attachment_ids', attachments);
+        document.getElementById('attachments').setAttribute("value", _.pluck(attachments, 'id'));
+        this.$attachment_button.prop('disabled', false);
+    },
     _onChangeDomain: function(){
         var self = this;
         this.messageFetch().then(function(){
             var p = self._current_page;
             self.set('pager', self._pager(p));
         });
+    },
+    /**
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onClickFilePicker: function (ev) {
+        var filepicker = this.$('input[type=file]');
+        if (!_.isEmpty(filepicker)) {
+            filepicker[0].click();
+        }
     },
     /**
      * @private
