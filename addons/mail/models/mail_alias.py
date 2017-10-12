@@ -63,7 +63,7 @@ class Alias(models.Model):
         help="Optional ID of a thread (record) to which all incoming messages will be attached, even "
              "if they did not reply to it. If set, this will disable the creation of new records completely.")
     alias_domain = fields.Char('Alias domain', compute='_get_alias_domain',
-                               default=lambda self: self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain"))
+                               default=lambda self: self.env.user.company_id.alias_domain)
     alias_parent_model_id = fields.Many2one(
         'ir.model', 'Parent Model',
         help="Parent model holding the alias. The model holding the alias reference "
@@ -79,16 +79,16 @@ class Alias(models.Model):
              "- everyone: everyone can post\n"
              "- partners: only authenticated partners\n"
              "- followers: only followers of the related document or members of following channels\n")
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.user.company_id)
 
     _sql_constraints = [
-        ('alias_unique', 'UNIQUE(alias_name)', 'Unfortunately this email alias is already used, please choose a unique one')
+        ('alias_unique', 'UNIQUE(alias_name, company_id)', 'Unfortunately this email alias is already used, please choose a unique one')
     ]
 
     @api.multi
     def _get_alias_domain(self):
-        alias_domain = self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
         for record in self:
-            record.alias_domain = alias_domain
+            record.alias_domain = record.company_id.alias_domain
 
     @api.one
     @api.constrains('alias_defaults')
@@ -150,7 +150,7 @@ class Alias(models.Model):
         sequence = None
         while True:
             new_name = "%s%s" % (name, sequence) if sequence is not None else name
-            domain = [('alias_name', '=', new_name)]
+            domain = [('alias_name', '=', new_name), ('company_id', '=', self.env.user.company_id.id)]
             if alias_ids:
                 domain += [('id', 'not in', alias_ids)]
             if not self.search(domain):

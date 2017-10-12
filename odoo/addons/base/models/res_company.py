@@ -75,6 +75,7 @@ class Company(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique (name)', 'The company name must be unique !')
     ]
+    alias_domain = fields.Char()
 
     @api.model_cr
     def init(self):

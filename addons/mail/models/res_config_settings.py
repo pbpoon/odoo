@@ -14,7 +14,7 @@ class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     fail_counter = fields.Integer('Fail Mail', readonly=True)
-    alias_domain = fields.Char('Alias Domain', help="If you have setup a catch-all email domain redirected to "
+    alias_domain = fields.Char('Alias Domain', related='company_id.alias_domain', help="If you have setup a catch-all email domain redirected to "
                                "the Odoo server, enter the domain name here.")
 
     @api.model

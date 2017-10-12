@@ -14,15 +14,14 @@ class ResConfigSettings(models.TransientModel):
     module_web_clearbit = fields.Boolean("Customer Autocomplete")
 
     def _find_default_lead_alias_id(self):
-        alias = self.env.ref('crm.mail_alias_lead_info', False)
-        if not alias:
-            alias = self.env['mail.alias'].search([
-                ('alias_model_id.model', '=', 'crm.lead'),
-                ('alias_force_thread_id', '=', False),
-                ('alias_parent_model_id.model', '=', 'crm.team'),
-                ('alias_parent_thread_id', '=', False),
-                ('alias_defaults', '=', '{}')
-            ], limit=1)
+        alias = self.env['mail.alias'].search([
+            ('alias_model_id.model', '=', 'crm.lead'),
+            ('alias_force_thread_id', '=', False),
+            ('alias_parent_model_id.model', '=', 'crm.team'),
+            ('alias_parent_thread_id', '=', False),
+            ('alias_defaults', '=', '{}'),
+            ('company_id', '=', self.env.user.company_id.id)
+        ], limit=1)
         return alias
 
     @api.onchange('group_use_lead')

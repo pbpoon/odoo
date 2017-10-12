@@ -3,6 +3,7 @@
 <data noupdate="1">
     <record id="main_company" model="res.company">
         <field name="name">YourCompany</field>
+        <field name="alias_domain">yourcompany.example.com</field>
         <field name="external_report_layout">standard</field>
     </record>
 </data>
