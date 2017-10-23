@@ -155,9 +155,11 @@ class Web_Editor(http.Controller):
                 'type': 'url',
                 'url': url,
                 'public': True,
-                'res_model': 'ir.ui.view',
+                'res_id': kwargs.get('res_model', 'ir.ui.view') != 'ir.ui.view' and kwargs.get('res_id') or None,
+                'res_model': kwargs.get('res_model', 'ir.ui.view'),
             })
-            uploads += attachment.read(['name', 'mimetype', 'checksum', 'url'])
+            attachment.generate_access_token()
+            uploads += attachment.read(['name', 'mimetype', 'checksum', 'url', 'res_id', 'res_model', 'access_token'])
         else:                                                  # images provided
             try:
                 attachments = request.env['ir.attachment']
@@ -180,10 +182,12 @@ class Web_Editor(http.Controller):
                         'datas': base64.b64encode(data),
                         'datas_fname': c_file.filename,
                         'public': True,
-                        'res_model': 'ir.ui.view',
+                        'res_id': kwargs.get('res_model', 'ir.ui.view') != 'ir.ui.view' and kwargs.get('res_id') or None,
+                        'res_model': kwargs.get('res_model', 'ir.ui.view'),
                     })
+                    attachment.generate_access_token()
                     attachments += attachment
-                uploads += attachments.read(['name', 'mimetype', 'checksum', 'url'])
+                uploads += attachments.read(['name', 'mimetype', 'checksum', 'url', 'res_id', 'res_model', 'access_token'])
             except Exception as e:
                 logger.exception("Failed to upload image to attachment")
                 message = pycompat.text_type(e)

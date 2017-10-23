@@ -113,6 +113,13 @@ class TestMailMessage(TestMail):
         self.assertNotIn(u'Ernest Employee <e.e@example.com>', self.email_to_list)
         self.assertIn(u'test@example.com', self.email_to_list)
 
+    def test_mail_message_base64_image(self):
+        msg = self.env['mail.message'].sudo(self.user_employee).create({
+            'body': 'taratata <img src="data:image/png;base64,iV/+OkI=" width="2">',
+        })
+        self.assertEqual(len(msg.attachment_ids), 1)
+        self.assertEqual(msg.body, '<p>taratata <img src="/web/image/%s?access_token=%s" alt="image0" width="2"></p>' % (msg.attachment_ids[0].id, msg.attachment_ids[0].access_token))
+
 
 class TestMailMessageAccess(TestMail):
 
