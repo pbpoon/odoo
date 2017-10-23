@@ -60,6 +60,12 @@ class MrpBom(models.Model):
         default=lambda self: self.env['res.company']._company_default_get('mrp.bom'),
         required=True)
 
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        if self.product_id:
+            for line in self.bom_line_ids:
+                line.attribute_value_ids = False
+
     @api.constrains('product_id', 'product_tmpl_id', 'bom_line_ids')
     def _check_product_recursion(self):
         for bom in self:
@@ -178,9 +184,9 @@ class MrpBomLine(models.Model):
         return self.env['product.uom'].search([], limit=1, order='id').id
 
     product_id = fields.Many2one(
-        'product.product', 'Product', required=True)
+        'product.product', 'Component', required=True)
     product_qty = fields.Float(
-        'Product Quantity', default=1.0,
+        'Quantity', default=1.0,
         digits=dp.get_precision('Product Unit of Measure'), required=True)
     product_uom_id = fields.Many2one(
         'product.uom', 'Product Unit of Measure',
@@ -200,7 +206,7 @@ class MrpBomLine(models.Model):
         'mrp.bom', 'Parent BoM',
         index=True, ondelete='cascade', required=True)
     attribute_value_ids = fields.Many2many(
-        'product.attribute.value', string='Variants',
+        'product.attribute.value', string='Apply on Variants',
         help="BOM Product Variants needed form apply this line.")
     operation_id = fields.Many2one(
         'mrp.routing.workcenter', 'Consumed in Operation',
