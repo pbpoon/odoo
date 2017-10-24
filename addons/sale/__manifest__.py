@@ -9,12 +9,13 @@
     'description': """
 This module contains all the common features of Sales Management and eCommerce.
     """,
-    'depends': ['sales_team', 'account', 'portal'],
+    'depends': ['sales_team', 'account', 'portal', 'digest'],
     'data': [
         'data/ir_sequence_data.xml',
         'data/sale_data.xml',
         'report/sale_report.xml',
         'data/mail_template_data.xml',
+        'data/digest_data.xml',
         'report/sale_report_views.xml',
         'report/sale_report_templates.xml',
         'report/invoice_report_templates.xml',
@@ -30,6 +31,7 @@ This module contains all the common features of Sales Management and eCommerce.
         'views/sale_portal_templates.xml',
         'views/sale_layout_category_view.xml',
         'views/res_config_settings_views.xml',
+        'views/digest_views.xml',
     ],
     'demo': [
         'data/sale_demo.xml',

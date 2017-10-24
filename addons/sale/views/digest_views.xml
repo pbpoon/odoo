@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="digest_view_form_inherit_sale_order" model="ir.ui.view">
+    <field name="name">digest.view.form.inherit.sale.order</field>
+    <field name="model">digest.digest</field>
+    <field name="inherit_id" ref="digest.digest_view_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//group[@name='kpi_general']" position="after">
+        <group name="kpi_sales" string="Sales">
+          <field name="kpi_sale_total"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>
