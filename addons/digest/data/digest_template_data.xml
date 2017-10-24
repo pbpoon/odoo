@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record id="digest_mail_template" model="mail.template">
+      <field name="name">Digest Template</field>
+      <field name="model_id" ref="digest.model_digest_digest"/>
+      <field name="auto_delete" eval="True"/>
+      <field name="email_to">${ctx['email_to']|safe}</field>
+      <field name="email_from">${user.email}</field>
+      <field name="subject">${object.name}</field>
+      <field name="body_html" type="xml">
+        <table style="height:100%;width:100%;border-spacing:0;margin:0;padding:0;background-color:#fff;font-family:Helvetica,Arial,Verdana,sans-serif;">
+          <tr>
+            <td align="center" valign="top" style="border-collapse:collapse;margin:0;padding:0">
+              <table style="width:600px;border-spacing:0;margin:0;padding:0;background-color:#ffffff;border-top-color: #e7e7e7; border-top-style: solid;border-top-width: 1px;border-left-color: #e7e7e7; border-left-style: solid;border-left-width: 1px;border-right-color: #e7e7e7; border-right-style: solid;border-right-width: 1px;border-top-style-right-radius:4px;border-top-style-left-radius:4px;color:#6e7172;font-size:15px;line-height:23px;text-align:left">
+                <tr>
+                  <td style="border-collapse:collapse;padding-top:10px;padding-right:40px;padding-bottom:10px;padding-left:40px; text-align:left">
+                    <div style="margin-top:20px;color:#222222;font-size:27px;font-weight:500;line-height:32px">${object.name}</div>
+                    <div style="color:#aaaaaa;font-size:20px; margin-top:6px;">${datetime.date.today().strftime('%B %d, %Y')}</div>
+                  </td>
+                  <td style="text-align: right;padding: 10px 40px 10px 40px;">
+                    <a href="/web" style="padding: 5px 10px; font-size: 12px; line-height: 18px; color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius:3px">Connect to your Odoo</a>
+                  </td>
+                </tr>
+              </table>
+              % set data = object.compute_kpis()
+              % set kpis = data.yesterday.keys()
+              % for kpi in kpis:
+              <table style="border-spacing:0; width:600px;">
+                <tr>
+                  <td style="border-collapse:collapse;background-color:#ffffff;border-left-color: #e7e7e7; border-left-style: solid;border-left-width: 1px;border-right-color: #e7e7e7; border-right-style: solid;border-right-width: 1px;line-height:21px;padding-top:0;padding-right:20px;padding-bottom:10px;padding-left:20px;text-align:left">
+                    <br />
+                    <div style="color:#3d466e;font-size:18px;font-weight:500;line-height:23px">
+                      ${object.fields_get()[kpi]['string']}
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-collapse:collapse;margin:0;padding:0">
+                    <table style="width:100%;border-spacing:0;background-color:#f9f9f9;border-right-color: #e7e7e7; border-right-style: solid;border-right-width: 1px;border-bottom-style:1px solid #ebebeb;border-left-color: #e7e7e7; border-left-style: solid;border-left-width: 1px;">
+                      <tr>
+                        <td style="border-collapse:collapse;margin:0;padding:0">
+                          <table style="width:199px;border-spacing:0;border-top-color: #e8842e; border-top-style: solid;border-top-width: 2px;">
+                            <tr>
+                              <td style="border-collapse:collapse;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px;text-align:center">
+                                <span style="color:#e8842e;font-size:35px;font-weight:bold;text-decoration:none;line-height:36px">${data['yesterday'][kpi]}</span>
+                                <br />
+                                <span style="color:#888888;display:inline-block;font-size:12px;line-height:18px;margin-bottom:12px;text-transform:uppercase">Yesterday</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                        <td style="border-collapse:collapse;margin:0;padding:0">
+                          <table style="width:199px;border-spacing:0;margin:0;padding:0;border-top-color: #3e54ff; border-top-style: solid;border-top-width: 2px;">
+                            <tr>
+                              <td style="border-collapse:collapse;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px;text-align:center">
+                                <span style="color:#3e54ff;font-size:35px;font-weight:bold;text-decoration:none;line-height:36px">${data['lastweek'][kpi]}</span>
+                                <br />
+                                <span style="color:#888888;display:inline-block;font-size:12px;line-height:18px;margin-bottom:12px;text-transform:uppercase">So far this week</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                        <td style="border-collapse:collapse;margin:0;padding:0">
+                          <table style="width:199px;border-spacing:0;margin:0;padding:0;border-top-color: #e8842e; border-top-style: solid;border-top-width: 2px;">
+                            <tr>
+                              <td style="border-collapse:collapse;margin:0;padding:0;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px;text-align:center">
+                                <span style="color:#e8842e;font-size:35px;font-weight:bold;text-decoration:none;line-height:36px">${data['lastmonth'][kpi]}</span>
+                                <br />
+                                <span style="color:#888888;display:inline-block;font-size:12px;line-height:18px;margin-bottom:12px;text-transform:uppercase">So far this month</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              % endfor
+              <table style="border-left-color: #e7e7e7; border-left-style: solid;border-left-width: 1px;border-bottom-color: #e7e7e7; border-bottom-style: solid;border-bottom-width: 3px;border-right-color: #e7e7e7; border-right-style: solid;border-right-width: 1px;color:#6e7172;font-size:15px;width:600px;">
+                <tr>
+                  <td style="border-collapse:collapse;margin:0;padding:0;padding-top:10px;padding-right:40px;padding-bottom:10px;padding-left:40px">
+                    <div style="margin-top:29px;">Thank you,</div>
+                    <div>The Odoo Team</div>
+                    <div style="margin-top:20px;">
+                      <strong>Do you want to see other KPIs in this email? Edit this digest <a href="/web#view_type=form&amp;model=digest.digest&amp;id=${object.id}" target="_blank">here</a>.
+                    </strong>
+                  </div>
+                  <br />
+                  <p style="font-size: 11px; margin-top: 10px;">
+                    <strong>Sent by <a href="https://www.odoo.com" style="text-decoration:none; color: #875A7B;">Odoo</a></strong>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </field>
+  </record>
+</data>
+</odoo>
