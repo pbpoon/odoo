@@ -645,6 +645,14 @@ class ResourceCalendarAttendance(models.Model):
     hour_to = fields.Float(string='Work to', required=True)
     calendar_id = fields.Many2one("resource.calendar", string="Resource's Calendar", required=True, ondelete='cascade')
 
+    @api.constrains('hour_to', 'hour_from')
+    def _verify_hours(self):
+        for rec in self:
+            if rec.hour_from > 24 or rec.hour_to > 24:
+                raise ValidationError(_("Please enter hours between 1 to 24"))
+            if (rec.hour_to - rec.hour_from) <= 0:
+                raise ValidationError(_("Please use 24 hours format!"))
+
 
 class ResourceResource(models.Model):
     _name = "resource.resource"
