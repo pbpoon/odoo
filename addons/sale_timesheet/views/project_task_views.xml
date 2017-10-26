@@ -22,6 +22,9 @@
             <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
+                <xpath expr="//button[@id='subtask_stat_button']" position="attributes">
+                    <attribute name="context">{'project_id': subtask_project_id, 'name': name, 'partner_id': partner_id, 'default_sale_line_id': sale_line_id}</attribute>
+                </xpath>
                 <xpath expr="//button[@name='toggle_active']" position="before">
                     <button type="object" name="action_view_so"
                             class="oe_stat_button" icon="fa-dollar"

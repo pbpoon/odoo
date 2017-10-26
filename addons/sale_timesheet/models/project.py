@@ -77,6 +77,11 @@ class ProjectTask(models.Model):
             self.sudo().mapped('timesheet_ids').write({
                 'so_line': values['sale_line_id']
             })
+            # Change SO line of subtask if parent task SO line is updated
+            child_ids = self.filtered(lambda task: not task.parent_id).mapped('child_ids')
+            if child_ids:
+                child_ids.write({'sale_line_id': values['sale_line_id']})
+
         return result
 
     @api.multi
