@@ -65,9 +65,13 @@ class PosConfig(models.Model):
 
     name = fields.Char(string='Point of Sale Name', index=True, required=True, help="An internal identification of the point of sale.")
     is_installed_account_accountant = fields.Boolean(compute="_compute_is_installed_account_accountant")
+    # journal_ids = fields.Many2many(
+    #     'account.journal', 'pos_config_journal_rel',
+    #     'pos_config_id', 'journal_id', string='Available Payment Methods',
+    #     domain="[('journal_user', '=', True ), ('type', 'in', ['bank', 'cash'])]",)
     journal_ids = fields.Many2many(
         'account.journal', 'pos_config_journal_rel',
-        'pos_config_id', 'journal_id', string='Available Payment Methods',
+        'pos_config_id', 'journal_id', related='company_id.journal_ids', string='Available Payment Methods',
         domain="[('journal_user', '=', True ), ('type', 'in', ['bank', 'cash'])]",)
     picking_type_id = fields.Many2one('stock.picking.type', string='Operation Type')
     use_existing_lots = fields.Boolean(related='picking_type_id.use_existing_lots')
@@ -79,6 +83,15 @@ class PosConfig(models.Model):
         domain=[('type', '=', 'sale')],
         help="Accounting journal used to post sales entries.",
         default=_default_sale_journal)
+    # journal_id = fields.Many2one(
+    #     'account.journal', related='company_id.journal_id', string='Sales Journal',
+    #     domain=[('type', '=', 'sale')],
+    #     help="Accounting journal used to post sales entries.")
+    # invoice_journal_id = fields.Many2one(
+    #     'account.journal', string='Invoice Journal',
+    #     related='company_id.invoice_journal_id',
+    #     domain=[('type', '=', 'sale')],
+    #     help="Accounting journal used to create invoices.")
     invoice_journal_id = fields.Many2one(
         'account.journal', string='Invoice Journal',
         domain=[('type', '=', 'sale')],
@@ -97,16 +110,16 @@ class PosConfig(models.Model):
         help='The receipt will automatically be printed at the end of each order.')
     iface_print_skip_screen = fields.Boolean(string='Skip Preview Screen', default=True,
         help='The receipt screen will be skipped if the receipt can be printed automatically.')
-    iface_precompute_cash = fields.Boolean(string='Prefill Cash Payment',
+    iface_precompute_cash = fields.Boolean(related='company_id.iface_precompute_cash', string='Prefill Cash Payment',
         help='The payment input will behave similarily to bank payment input, and will be prefilled with the exact due amount.')
-    iface_tax_included = fields.Selection([('subtotal', 'Tax-Excluded Prices'), ('total', 'Tax-Included Prices')], "Tax Display", default='subtotal', required=True)
+    iface_tax_included = fields.Selection([('subtotal', 'Tax-Excluded Prices'), ('total', 'Tax-Included Prices')], "Tax Display", related="company_id.iface_tax_included", required=True)
     iface_start_categ_id = fields.Many2one('pos.category', string='Initial Category',
         help='The point of sale will display this product category by default. If no category is specified, all available products will be shown.')
     iface_display_categ_images = fields.Boolean(string='Display Category Pictures',
         help="The product categories will be displayed with pictures.")
-    restrict_price_control = fields.Boolean(string='Restrict Price Modifications to Managers',
+    restrict_price_control = fields.Boolean(related='company_id.restrict_price_control', string='Restrict Price Modifications to Managers',
         help="Only users with Manager access rights for PoS app can modify the product prices on orders.")
-    cash_control = fields.Boolean(string='Cash Control', help="Check the amount of the cashbox at opening and closing.")
+    cash_control = fields.Boolean(related='company_id.cash_control', string='Cash Control', help="Check the amount of the cashbox at opening and closing.")
     receipt_header = fields.Text(string='Receipt Header', help="A short text that will be inserted as a header in the printed receipt.")
     receipt_footer = fields.Text(string='Receipt Footer', help="A short text that will be inserted as a footer in the printed receipt.")
     proxy_ip = fields.Char(string='IP Address', size=45,
@@ -130,9 +143,9 @@ class PosConfig(models.Model):
     pos_session_duration = fields.Char(compute='_compute_current_session_user')
     group_by = fields.Boolean(string='Group Journal Items', default=True,
         help="Check this if you want to group the Journal Items by Product while closing a Session.")
-    pricelist_id = fields.Many2one('product.pricelist', string='Default Pricelist', required=True, default=_default_pricelist,
+    pricelist_id = fields.Many2one('product.pricelist', related='company_id.pricelist_id', default=_default_pricelist, string='Default Pricelist', required=True,
         help="The pricelist used if no customer is selected or if the customer has no Sale Pricelist configured.")
-    available_pricelist_ids = fields.Many2many('product.pricelist', string='Available Pricelists', default=_default_pricelist,
+    available_pricelist_ids = fields.Many2many('product.pricelist', related='company_id.available_pricelist_ids', default=_default_pricelist, string='Available Pricelists',
         help="Make several pricelists available in the Point of Sale. You can also apply a pricelist to specific customers from their contact form (in Sales tab). To be valid, this pricelist must be listed here as an available pricelist. Otherwise the default pricelist will apply.")
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.user.company_id)
     barcode_nomenclature_id = fields.Many2one('barcode.nomenclature', string='Barcode Nomenclature',
@@ -144,27 +157,28 @@ class PosConfig(models.Model):
     iface_tipproduct = fields.Boolean(string="Product tips")
     tip_product_id = fields.Many2one('product.product', string='Tip Product',
         help="This product is used as reference on customer receipts.")
-    fiscal_position_ids = fields.Many2many('account.fiscal.position', string='Fiscal Positions', help='This is useful for restaurants with onsite and take-away services that imply specific tax rates.')
-    default_fiscal_position_id = fields.Many2one('account.fiscal.position', string='Default Fiscal Position')
-    default_cashbox_lines_ids = fields.One2many('account.cashbox.line', 'default_pos_id', string='Default Balance')
-    sale_tax_id = fields.Many2one('account.tax', string="Default Sale Tax", related='company_id.account_sale_tax_id')
+    fiscal_position_ids = fields.Many2many('account.fiscal.position', string='Fiscal Positions', help='This is useful for restaurants with onsite and take-away services that imply specific tax rates.', related="company_id.fiscal_position_ids")
+    default_fiscal_position_id = fields.Many2one('account.fiscal.position', string='Default Fiscal Position', related='company_id.default_fiscal_position_id')
+    default_cashbox_lines_ids = fields.One2many('account.cashbox.line', 'default_pos_id', related='company_id.default_cashbox_lines_ids', string='Default Balance')
     customer_facing_display_html = fields.Html(string='Customer facing display content', translate=True, default=_compute_default_customer_html)
-    use_pricelist = fields.Boolean("Use a pricelist.")
+    # use_pricelist = fields.Boolean("Use a pricelist.")
+    use_pricelist = fields.Boolean("Use a pricelist.", related='company_id.use_pricelist')
     group_sale_pricelist = fields.Boolean("Use pricelists to adapt your price per customers",
                                           implied_group='product.group_sale_pricelist',
+                                          related='company_id.group_sale_pricelist',
                                           help="""Allows to manage different prices based on rules per category of customers.
                     Example: 10% for retailers, promotion of 5 EUR on this product, etc.""")
-    group_pricelist_item = fields.Boolean("Show pricelists to customers",
+    group_pricelist_item = fields.Boolean("Show pricelists to customers", related='company_id.group_pricelist_item',
                                           implied_group='product.group_pricelist_item')
-    tax_regime = fields.Boolean("Tax Regime")
-    tax_regime_selection = fields.Boolean("Tax Regime Selection value")
+    tax_regime = fields.Boolean("Tax Regime", related="company_id.tax_regime")
+    tax_regime_selection = fields.Boolean("Tax Regime Selection value", related="company_id.tax_regime_selection")
     barcode_scanner = fields.Boolean("Barcode Scanner")
     start_category = fields.Boolean("Set Start Category")
     module_account_invoicing = fields.Boolean(string='Invoicing', help='Enables invoice generation from the Point of Sale.')
     module_pos_restaurant = fields.Boolean("Is a Bar/Restaurant")
-    module_pos_discount = fields.Boolean("Global Discounts")
-    module_pos_loyalty = fields.Boolean("Loyalty Program")
-    module_pos_mercury = fields.Boolean(string="Integrated Card Payments", help="The transactions are processed by Vantiv. Set your Vantiv credentials on the related payment journal.")
+    module_pos_discount = fields.Boolean("Global Discounts", related='company_id.module_pos_discount')
+    module_pos_loyalty = fields.Boolean("Loyalty Program", related='company_id.module_pos_loyalty')
+    module_pos_mercury = fields.Boolean(related='company_id.module_pos_mercury', string="Integrated Card Payments", help="The transactions are processed by Vantiv. Set your Vantiv credentials on the related payment journal.")
     module_pos_reprint = fields.Boolean(string="Reprint Receipt")
     is_posbox = fields.Boolean("PosBox")
     is_header_or_footer = fields.Boolean("Header & Footer")
@@ -237,23 +251,23 @@ class PosConfig(models.Model):
         if self.invoice_journal_id and self.invoice_journal_id.company_id.id != self.company_id.id:
             raise ValidationError(_("The invoice journal and the point of sale must belong to the same company"))
 
-    @api.constrains('company_id', 'journal_ids')
-    def _check_company_payment(self):
-        if self.env['account.journal'].search_count([('id', 'in', self.journal_ids.ids), ('company_id', '!=', self.company_id.id)]):
-            raise ValidationError(_("The company of a payment method is different than the one of point of sale"))
+    # @api.constrains('company_id', 'journal_ids')
+    # def _check_company_payment(self):
+    #     if self.env['account.journal'].search_count([('id', 'in', self.journal_ids.ids), ('company_id', '!=', self.company_id.id)]):
+    #         raise ValidationError(_("The company of a payment method is different than the one of point of sale"))
 
-    @api.constrains('pricelist_id', 'available_pricelist_ids', 'journal_id', 'invoice_journal_id', 'journal_ids')
+    @api.constrains('journal_id', 'invoice_journal_id')
     def _check_currencies(self):
-        if self.pricelist_id not in self.available_pricelist_ids:
-            raise ValidationError(_("The default pricelist must be included in the available pricelists."))
-        if any(self.available_pricelist_ids.mapped(lambda pricelist: pricelist.currency_id != self.currency_id)):
-            raise ValidationError(_("All available pricelists must be in the same currency as the company or"
-                                    " as the Sales Journal set on this point of sale if you use"
-                                    " the Accounting application."))
+        # if self.pricelist_id not in self.available_pricelist_ids:
+        #     raise ValidationError(_("The default pricelist must be included in the available pricelists."))
+        # if any(self.available_pricelist_ids.mapped(lambda pricelist: pricelist.currency_id != self.currency_id)):
+        #     raise ValidationError(_("All available pricelists must be in the same currency as the company or"
+        #                             " as the Sales Journal set on this point of sale if you use"
+        #                             " the Accounting application."))
         if self.invoice_journal_id.currency_id and self.invoice_journal_id.currency_id != self.currency_id:
             raise ValidationError(_("The invoice journal must be in the same currency as the Sales Journal or the company currency if that is not set."))
-        if any(self.journal_ids.mapped(lambda journal: journal.currency_id and journal.currency_id != self.currency_id)):
-            raise ValidationError(_("All payment methods must be in the same currency as the Sales Journal or the company currency if that is not set."))
+        # if any(self.journal_ids.mapped(lambda journal: journal.currency_id and journal.currency_id != self.currency_id)):
+        #     raise ValidationError(_("All payment methods must be in the same currency as the Sales Journal or the company currency if that is not set."))
 
     @api.onchange('iface_print_via_proxy')
     def _onchange_iface_print_via_proxy(self):
@@ -264,24 +278,24 @@ class PosConfig(models.Model):
         if self.picking_type_id.default_location_src_id.usage == 'internal' and self.picking_type_id.default_location_dest_id.usage == 'customer':
             self.stock_location_id = self.picking_type_id.default_location_src_id.id
 
-    @api.onchange('use_pricelist')
-    def _onchange_use_pricelist(self):
+    # @api.onchange('use_pricelist')
+    # def _onchange_use_pricelist(self):
         """
         If the 'pricelist' box is unchecked, we reset the pricelist_id to stop
         using a pricelist for this posbox. 
         """
-        if not self.use_pricelist:
-            self.pricelist_id = self._default_pricelist()
-        else:
-            self.update({
-                'group_sale_pricelist': True,
-                'group_pricelist_item': True,
-            })
+        # if not self.use_pricelist:
+        #     self.pricelist_id = self._default_pricelist()
+        # else:
+        #     self.update({
+        #         'group_sale_pricelist': True,
+        #         'group_pricelist_item': True,
+        #     })
 
-    @api.onchange('available_pricelist_ids')
-    def _onchange_available_pricelist_ids(self):
-        if self.pricelist_id not in self.available_pricelist_ids:
-            self.pricelist_id = False
+    # @api.onchange('available_pricelist_ids')
+    # def _onchange_available_pricelist_ids(self):
+    #     if self.pricelist_id not in self.available_pricelist_ids:
+    #         self.pricelist_id = False
 
     @api.onchange('iface_scan_via_proxy')
     def _onchange_iface_scan_via_proxy(self):
@@ -307,15 +321,15 @@ class PosConfig(models.Model):
             self.iface_print_via_proxy = False
             self.iface_customer_facing_display = False
 
-    @api.onchange('tax_regime')
-    def _onchange_tax_regime(self):
-        if not self.tax_regime:
-            self.default_fiscal_position_id = False
+    # @api.onchange('tax_regime')
+    # def _onchange_tax_regime(self):
+    #     if not self.tax_regime:
+    #         self.default_fiscal_position_id = False
 
-    @api.onchange('tax_regime_selection')
-    def _onchange_tax_regime_selection(self):
-        if not self.tax_regime_selection:
-            self.fiscal_position_ids = [(5, 0, 0)]
+    # @api.onchange('tax_regime_selection')
+    # def _onchange_tax_regime_selection(self):
+    #     if not self.tax_regime_selection:
+    #         self.fiscal_position_ids = [(5, 0, 0)]
 
     @api.onchange('start_category')
     def _onchange_start_category(self):
@@ -359,6 +373,7 @@ class PosConfig(models.Model):
         pos_config = super(PosConfig, self).create(values)
         pos_config.sudo()._check_modules_to_install()
         pos_config.sudo()._check_groups_implied()
+        # pos_config.sudo()._set_global_value(values)
         # If you plan to add something after this, use a new environment. The one above is no longer valid after the modules install.
         return pos_config
 
@@ -369,10 +384,23 @@ class PosConfig(models.Model):
             if not facing_display:
                 vals['customer_facing_display_html'] = self._compute_default_customer_html()
         result = super(PosConfig, self).write(vals)
-        self.sudo()._set_fiscal_position()
+        # self.sudo()._set_fiscal_position()
         self.sudo()._check_modules_to_install()
         self.sudo()._check_groups_implied()
+        # if not self.env.context.get('set_global', False):
+        #     self.sudo()._set_global_value(vals)
         return result
+
+    def _set_global_value(self, vals):
+        global_fields = ['use_pricelist', 'module_pos_mercury', 'module_pos_restaurant', 'module_pos_discount', 'module_pos_reprint', 'module_pos_loyalty']
+        result = {}
+        for global_field in global_fields:
+            if global_field in vals.keys():
+                result[global_field] = vals[global_field]
+        if result:
+            records = self.search([])
+            for record in records:
+                record.with_context(set_global=True).write(result)
 
     @api.multi
     def unlink(self):
