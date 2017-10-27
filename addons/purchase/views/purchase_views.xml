@@ -269,7 +269,7 @@
                             <field name="notes" class="oe_inline" placeholder="Define your terms and conditions ..."/>
                             <div class="oe_clear"/>
                         </page>
-                        <page string="Deliveries &amp; Invoices">
+                        <page string="Other Information">
                             <group>
                                 <group>
                                     <label for="date_planned"/>
