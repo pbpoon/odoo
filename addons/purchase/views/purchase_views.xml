@@ -152,8 +152,8 @@
             <field name="arch" type="xml">
                 <form string="Purchase Order">
                 <header>
-                    <button name="action_rfq_send" states="draft" string="Send RFQ by Email" type="object" context="{'send_rfq':True}" class="oe_highlight"/>
-                    <button name="action_rfq_send" states="sent" string="Re-Send RFQ by Email" type="object" context="{'send_rfq':True}"/>
+                    <button name="action_rfq_send" states="draft" string="Send by Email" type="object" context="{'send_rfq':True}" class="oe_highlight"/>
+                    <button name="action_rfq_send" states="sent" string="Re-Send by Email" type="object" context="{'send_rfq':True}"/>
                     <button name="print_quotation" string="Print RFQ" type="object" states="draft" class="oe_highlight" groups="base.group_user"/>
                     <button name="print_quotation" string="Print RFQ" type="object" states="sent" groups="base.group_user"/>
                     <button name="button_confirm" type="object" states="draft" string="Confirm Order" id="draft_confirm"/>
