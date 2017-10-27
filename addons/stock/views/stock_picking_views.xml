@@ -669,20 +669,20 @@
                                                 <div t-if="record.count_picking_ready.raw_value > 0" class="row">
                                                 </div>
 
-                                                <div t-if="record.count_picking_waiting.raw_value > 0" class="row">
+                                                <div t-if="record.count_picking_ready.raw_value > 0" class="row">
                                                     <div class="col-xs-9">
-                                                        <a name="get_action_picking_tree_waiting" type="object">
-                                                            Waiting
+                                                        <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_ready" type="object">
+                                                            Ready
                                                         </a>
                                                     </div>
                                                     <div class="col-xs-3">
-                                                        <field name="count_picking_waiting"/>
+                                                        <field name="count_picking_ready"/>
                                                     </div>
                                                 </div>
 
                                                 <div t-if="record.count_picking_late.raw_value > 0" class="row">
                                                     <div class="col-xs-9">
-                                                        <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_late" type="object">
+                                                        <a name="get_action_picking_tree_late" type="object">
                                                             Late
                                                         </a>
                                                     </div>
