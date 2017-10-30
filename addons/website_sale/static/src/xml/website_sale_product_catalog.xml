@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+    <t t-name="website_sale.product_catalog">
+        <div class="row product_grid" contenteditable="false">
+            <t t-foreach="widget.products" t-as="product">
+                <div t-attf-class="col-md-#{widget.size} product-item" t-att-data-product-id="product.id">
+                    <div class="col-item">
+                        <div class="product-image">
+                            <a href="#">
+                                <img t-attf-src="/web/image/product.template/#{product.id}/image/300x300" class="img img-responsive o_not_editable"/>
+                            </a>
+                        </div>
+                        <hr/>
+                        <div class="product-details">
+                            <div>
+                                <strong>
+                                    <p>
+                                        <t t-esc="product.name"/>
+                                        <span class="pull-right">
+                                            <t t-esc="product.website_price"/>
+                                        </span>
+                                    </p>
+                                </strong>
+                            </div>
+                            <div class="product-description" t-if="product.description_sale">
+                                <a>
+                                    <t t-raw="widget._formatDescriptionValue(product.description_sale)"/>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <a class="text-center text-primary item o_add_to_cart">
+                                <i class="fa fa-shopping-cart fa-lg" aria-hidden="true"></i> Add to cart
+                            </a>
+                            <a class="text-center item o_wish_list text-gamma">
+                                <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
+                            </a>
+                            <a class="text-center item o_compare">
+                                <i class="fa fa-exchange fa-lg" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</template>
