@@ -38,4 +38,26 @@
     </xpath>
 
 </template>
+
+<!-- External snippets -->
+<template id="remove_external_snippets" inherit_id="website.external_snippets">
+    <xpath expr="//t[@t-install='website_sale']" position="replace"/>
+</template>
+
+<template  id="register_s_product_catalog" inherit_id="website.snippets" name="Product Catalog">
+    <xpath expr="//div[@id='snippet_feature']//t[@t-snippet][last()]" position="after">
+        <t t-snippet="website_sale.s_product_catalog" t-thumbnail="/website/static/src/img/blocks/product_catalog.png"/>
+    </xpath>
+</template>
+
+<!-- Snippets -->
+<template id="s_product_catalog" name="Product Catalog">
+    <section class="s_product_catalog">
+        <div class="container">
+            <h1 class="text-center">Our New Products</h1>
+            <h3 class="text-center text-muted">Shop with us now!</h3>
+        </div>
+    </section>
+</template>
+
 </odoo>
