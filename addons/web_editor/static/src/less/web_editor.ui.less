@@ -949,7 +949,7 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
 
     .note-color {
         .dropdown-toggle {
-            width: auto;
+            width: auto !important;
         }
         .o_foreground_toggle > button:before {
             font-family: FontAwesome;
@@ -960,7 +960,27 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
             content: '\f0c3';
         }
         .dropdown-menu {
-            min-width: 353px!important;
+            min-width: 180px !important;
+            div .btn {
+                height: auto;
+                width: 50%;
+                border-top: 0px;
+                color: @o-we-color-text-light;
+                background-color: lighten(@o-we-color-dark, 5%);
+                &.active {
+                    background-color: transparent;
+                    box-shadow: none;
+                    &::before {
+                        font-family: FontAwesome;
+                        content: '\f00c';
+                        margin-right: 3px;
+                        color: @odoo-brand-optional;
+                    }
+                }
+            }
+            li .btn-group {
+                margin: 0 5px !important;
+            }
         }
     }
 }

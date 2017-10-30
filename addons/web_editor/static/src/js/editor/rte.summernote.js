@@ -74,6 +74,17 @@ renderer.createPalette = function ($container, options) {
         var className = 'text-' + $el.data('color');
         $el.attr('data-event', 'foreColor').attr('data-value', className).addClass('bg-' + $el.data('color'));
     });
+
+    var $color = $container.find('.note-color');
+    var $colorSection = $color.find('.dropdown-menu li .btn-group');
+    $color.find('[data-event="highlightColor"], [data-event="textColor"]').on('click', function (event) {
+        event.stopPropagation();
+        var isTextColor = $(this).data('event') === 'textColor';
+        $color.find('[data-event="textColor"]').toggleClass('active', isTextColor);
+        $color.find('[data-event="highlightColor"]').toggleClass('active', !isTextColor);
+        $colorSection.filter(':even').toggleClass('hidden', isTextColor);
+        $colorSection.filter(':odd').toggleClass('hidden', !isTextColor);
+    });
 };
 
 var fn_tplPopovers = renderer.tplPopovers;
@@ -238,7 +249,7 @@ eventHandler.modules.popover.button.update = function ($container, oStyle) {
 
         } else {
 
-            $container.find('.hidden:not(.only_fa)').removeClass("hidden");
+            $container.find('.hidden:not(.only_fa, .note-color .btn-group, .note-recent-color)').removeClass("hidden");
             $container.find('.only_fa').addClass("hidden");
             var width = ($(oStyle.image).attr('style') || '').match(/(^|;|\s)width:\s*([0-9]+%)/);
             if (width) {
@@ -959,9 +970,7 @@ $.summernote.lang.odoo = {
     },
     color: {
       recent: _t('Recent Color'),
-      more: _t('More Color'),
-      background: _t('Background Color'),
-      foreground: _t('Font Color'),
+      more: _t('Color'),
       transparent: _t('Transparent'),
       setTransparent: _t('Set transparent'),
       reset: _t('Reset'),

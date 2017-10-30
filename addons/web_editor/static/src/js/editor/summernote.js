@@ -928,6 +928,39 @@ renderer.tplButtonInfo.fontsize = function (lang, options) {
     });
 };
 
+renderer.tplButtonInfo.color = function (lang, options) {
+    var colorButtonLabel = '<i class="' + options.iconPrefix + options.icons.color.recent + '" id="colors_preview"></i>';
+    // We have to put recent color button because foreground and background color click event going to update recent color value
+    // so, it's give error in browser console
+    var recentColorButton = renderer.getTemplate().button(colorButtonLabel, {
+        className: 'note-recent-color hidden',
+        title: lang.color.recent,
+        event: 'color',
+        value: '{"backColor":"#B35E9B"}'
+    });
+    var items = [
+        '<div class="text-center">',
+        '<button type="button" class="btn btn-default btn-sm active" data-event="textColor">Text</button>',
+        '<button type="button" class="btn btn-default btn-sm" data-event="highlightColor">Highlight</button>',
+        '</div>',
+        '<li><div class="btn-group hidden">',
+        '<div class="note-color-reset" data-event="backColor"',
+        ' data-value="inherit" title="' + lang.color.transparent + '">' + lang.color.setTransparent + '</div>',
+        '<div class="note-color-palette" data-target-event="backColor"></div>',
+        '</div><div class="btn-group">',
+        '<div class="note-color-reset" data-event="foreColor" data-value="inherit" title="' + lang.color.reset + '">',
+        lang.color.resetToDefault,
+        '</div>',
+        '<div class="note-color-palette" data-target-event="foreColor"></div>',
+        '</div></li>'
+    ];
+    var colorButton = renderer.getTemplate().button(colorButtonLabel, {
+        title: lang.color.more,
+        dropdown: renderer.getTemplate().dropdown(items)
+    });
+    return recentColorButton + colorButton;
+},
+
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 key.nameFromCode[46] = 'DELETE';
@@ -1873,60 +1906,6 @@ $.summernote.pluginEvents.removeFormat = function (event, editor, layoutInfo, va
     event.preventDefault();
     return false;
 };
-var fn_boutton_updateRecentColor = eventHandler.modules.toolbar.button.updateRecentColor;
-eventHandler.modules.toolbar.button.updateRecentColor = function (elBtn, sEvent, sValue) {
-    fn_boutton_updateRecentColor.call(this, elBtn, sEvent, sValue);
-    var $recentcolor = $.find('.note-recent-color i');
-    var $recentcolorbtn = $.find('.note-recent-color');
-
-    //find last used color for fonts or for icons
-    //set this color into recentcolor button of both font and icon
-    for (var i in $recentcolor) {
-        var $font = $recentcolor[i];
-        var $button = $($recentcolorbtn[i]);
-        var className = $font.className.split(/\s+/);
-        var k;
-        if (sEvent === "foreColor") {
-            //set class for forecolor to recentcolor button font-icon
-            for (k=2; k<className.length; k++) {
-                if (className[k].length && className[k].slice(0,5) === "text-") {
-                  className.splice(k,1);
-                  k--;
-                }
-            }
-            if (sValue.indexOf('text-') !== -1) {
-                $font.className = className.join(' ') + ' ' + sValue;
-                $font.style.color = '';
-            } else {
-                $font.className = $font.className.replace(/(^|\s+)text-\S+/, '');
-                $font.style.color = sValue !== 'inherit' ? sValue : "";
-            }
-        } else {
-            //set class for backcolor to recentcolor button font-icon
-            for (k=2; k<className.length; k++) {
-                if (className[k].length && className[k].slice(0,3) === "bg-") {
-                  className.splice(k,1);
-                  k--;
-                }
-            }
-            if (sValue.indexOf('bg-') !== -1) {
-                $font.className =className.join(' ') + ' ' + sValue;
-                $font.style.backgroundColor = "";
-            } else {
-                $font.className = $font.className.replace(/(^|\s+)bg-\S+/, '');
-                $font.style.backgroundColor = sValue !== 'inherit' ? sValue : "";
-            }
-        }
-        if (sValue !== 'inherit') {
-            //set attribute for color to the recentcolor button
-            var colorInfo = JSON.parse($button.attr('data-value'));
-            colorInfo[sEvent] = sValue;
-            $button.attr('data-value', JSON.stringify(colorInfo));
-        }
-    }
-    return false;
-};
-
 $(document).on('click keyup', function () {
     var $popover = $((range.create()||{}).sc).closest('[contenteditable]');
     var popover_history = ($popover.data()||{}).NoteHistory;
