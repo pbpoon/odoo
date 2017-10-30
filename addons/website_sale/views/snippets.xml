@@ -52,12 +52,26 @@
 
 <!-- Snippets -->
 <template id="s_product_catalog" name="Product Catalog">
-    <section class="s_product_catalog">
+    <section class="s_product_catalog" data-catalog-type="horizontal">
         <div class="container">
             <h1 class="text-center">Our New Products</h1>
             <h3 class="text-center text-muted">Shop with us now!</h3>
         </div>
     </section>
+</template>
+
+<template id="s_product_catalog_snippet_options" inherit_id="website.snippet_options">
+    <xpath expr="//div" position="after">
+        <div data-selector=".s_product_catalog" data-js="product_catalog">
+            <li class="dropdown-submenu">
+                <a tabindex="-1" href="#"><i class="fa fa-bars" aria-hidden="true"/>Mode</a>
+                <ul class="dropdown-menu">
+                    <li data-catalog-type="horizontal" data-no-preview="true"><a href="#">Horizontal</a></li>
+                    <li data-catalog-type="grid" data-no-preview="true"><a href="#">Grid</a></li>
+                </ul>
+            </li>
+        </div>
+    </xpath>
 </template>
 
 </odoo>
