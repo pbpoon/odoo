@@ -4,6 +4,7 @@ odoo.define('website_sale.product_catalog_options', function (require) {
 var core = require('web.core');
 var Dialog = require('web.Dialog');
 var options = require('web_editor.snippets.options');
+var productCatalog = require('website_sale.product_catalog');
 var rpc = require('web.rpc');
 
 var _t = core._t;
@@ -16,6 +17,7 @@ options.registry.product_catalog = options.Class.extend({
     start: function () {
         this._setGrid();
         this._bindGridEvents();
+        this._renderProducts();
         return this._super.apply(this, arguments);
     },
 
@@ -30,15 +32,18 @@ options.registry.product_catalog = options.Class.extend({
      */
     catalogType: function (previewMode, value) {
         this.$target.attr('data-catalog-type', value);
+        this._renderProducts();
     },
     /**
      * Set Grid size.
      */
     gridSize: function () {
         this._setGrid();
+        this._renderProducts();
     },
     sortby: function (previewMode, value, $li) {
         this.$target.attr('data-sortby', value);
+        this._renderProducts();
     },
     //--------------------------------------------------------------------------
     // Private
@@ -112,6 +117,19 @@ options.registry.product_catalog = options.Class.extend({
         }
         $grid.find('td').removeClass('selected');
         $selected.addClass('selected');
+    },
+    /**
+     * Render products by initialize 'productCatalog' widget.
+     *
+     * @private
+     */
+    _renderProducts: function () {
+        var self = this;
+        this.productCatalog = new productCatalog.ProductCatalog(this.$target);
+        this.$target.find('.product_grid').remove();
+        this.productCatalog.appendTo(this.$target.find('.container')).then(function () {
+            self.trigger_up('cover_update');
+        });
     },
 });
 });
