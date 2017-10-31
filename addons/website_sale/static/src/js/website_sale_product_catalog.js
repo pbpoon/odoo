@@ -59,8 +59,32 @@ var ProductCatalog = Widget.extend({
     _formatDescriptionValue: function (description_sale) {
         return description_sale.split("\n").join("<br>");
     },
+    /**
+     * Get product ids.
+     *
+     * @private
+     * @returns {Array} Contains product ids.
+     */
+    _getProductIds: function () {
+        return _.map(this.$target.find('.product-item'), function(el) {
+            return $(el).data('product-id');
+        });
+    },
     _getDomain: function () {
         var domain = [];
+        var selection = this.$target.attr('data-product-selection');
+        switch (selection) {
+            case 'all':
+                domain = [];
+                break;
+            case 'category':
+                domain = ['public_categ_ids', 'child_of', [parseInt(this.$target.attr('data-catagory-id'))]];
+                break;
+            case 'manual':
+                var productIds = this.$target.attr('data-productIds').split(',').map(Number);
+                domain = ['id', 'in', productIds]
+                break;
+        }
         return domain;
     },
     _getSortby: function () {
