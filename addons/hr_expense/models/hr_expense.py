@@ -42,8 +42,9 @@ class HrExpense(models.Model):
     attachment_number = fields.Integer(compute='_compute_attachment_number', string='Number of Attachments')
     state = fields.Selection([
         ('draft', 'To Submit'),
-        ('reported', 'Reported'),
-        ('done', 'Posted'),
+        ('reported', 'Submitted'),
+        ('approved', 'Approved'),
+        ('done', 'Paid'),
         ('refused', 'Refused')
         ], compute='_compute_state', string='Status', copy=False, index=True, readonly=True, store=True,
         help="Status of the expense.")
@@ -58,6 +59,8 @@ class HrExpense(models.Model):
                 expense.state = "draft"
             elif expense.sheet_id.state == "cancel":
                 expense.state = "refused"
+            elif expense.sheet_id.state == "approve" or expense.sheet_id.state == "post":
+                expense.state = "approved"
             elif not expense.sheet_id.account_move_id:
                 expense.state = "reported"
             else:
@@ -339,7 +342,7 @@ class HrExpense(models.Model):
     @api.multi
     def unlink(self):
         for expense in self:
-            if expense.state in ['done']:
+            if expense.state in ['done', 'approved']:
                 raise UserError(_('You cannot delete a posted expense.'))
         super(HrExpense, self).unlink()
 
