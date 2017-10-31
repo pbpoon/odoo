@@ -37,6 +37,9 @@ options.registry.product_catalog = options.Class.extend({
     gridSize: function () {
         this._setGrid();
     },
+    sortby: function (previewMode, value, $li) {
+        this.$target.attr('data-sortby', value);
+    },
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------

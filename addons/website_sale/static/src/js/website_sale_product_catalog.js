@@ -64,7 +64,7 @@ var ProductCatalog = Widget.extend({
         return domain;
     },
     _getSortby: function () {
-        var sortby = 'name ASC';
+        var sortby = this.$target.attr('data-sortby');
         return sortby;
     },
     _getLimit: function () {

@@ -52,7 +52,7 @@
 
 <!-- Snippets -->
 <template id="s_product_catalog" name="Product Catalog">
-    <section class="s_product_catalog" data-catalog-type="horizontal" data-x="3" data-y="1">
+    <section class="s_product_catalog" data-catalog-type="horizontal" data-x="3" data-y="1" data-sortby="name ASC">
         <div class="container">
             <h1 class="text-center">Our New Products</h1>
             <h3 class="text-center text-muted">Shop with us now!</h3>
@@ -83,6 +83,18 @@
                             </table>
                         </a>
                     </li>
+                </ul>
+            </li>
+            <li class="dropdown-submenu">
+                <a tabindex="-1" href="#"><i class="fa fa-sort"></i>Sort By</a>
+                <ul class="dropdown-menu" name="sortby">
+                    <li data-sortby="list_price DESC" data-no-preview="true"><a href="#"><i class="fa fa-sort-numeric-desc"></i>Price High to Low</a></li>
+                    <li data-sortby="list_price ASC" data-no-preview="true"><a href="#"><i class="fa fa-sort-numeric-asc"></i>Price Low to High</a></li>
+                    <li data-sortby="name ASC" data-no-preview="true"><a href="#"><i class="fa fa-sort-alpha-asc"></i>Name A to Z</a></li>
+                    <li data-sortby="name DESC" data-no-preview="true"><a href="#"><i class="fa fa-sort-alpha-desc"></i>Name Z to A</a></li>
+                    <li data-sortby="create_date ASC" data-no-preview="true"><a href="#"><i class="fa fa-chevron-down"></i>Newest to Oldest</a></li>
+                    <li data-sortby="create_date DESC" data-no-preview="true"><a href="#"><i class="fa fa-chevron-up"></i>Oldest to Newest</a></li>
+                    <li data-sortby="" data-no-preview="true"><a href="#"><i class="fa fa-bars"></i>Re-Order Products</a></li>
                 </ul>
             </li>
         </div>
