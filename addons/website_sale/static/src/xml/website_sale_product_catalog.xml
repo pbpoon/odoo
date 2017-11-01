@@ -9,6 +9,7 @@
                             <a href="#">
                                 <img t-attf-src="/web/image/product.template/#{product.id}/image/300x300" class="img img-responsive o_not_editable"/>
                             </a>
+                            <span class="rating"/>
                         </div>
                         <hr/>
                         <div class="product-details">
@@ -29,9 +30,15 @@
                             </div>
                         </div>
                         <div class="button-container">
-                            <a class="text-center text-primary item o_add_to_cart">
-                                <i class="fa fa-shopping-cart fa-lg" aria-hidden="true"></i> Add to cart
-                            </a>
+                            <form action="/shop/cart/update" method="post" class="o_add_to_cart">
+                                <input name="product_id" type="hidden" t-att-value="product.product_variant_id"/>
+                                <button type="submit" t-if="product.product_variant_count == 1" class="text-center text-primary item btn" title="Add to cart" t-att-data-product-variant-id="product.product_variant_id">
+                                    <i class="fa fa-shopping-cart"/> Add to cart
+                                </button>
+                                <button type="submit" t-if="product.product_variant_count gt 1" class="text-center text-primary item btn" t-attf-href="/shop/product/#{product.id}" title="Add to cart">
+                                    <i class="fa fa-shopping-cart"/> Add to cart
+                                </button>
+                            </form>
                             <a class="text-center item o_wish_list text-gamma">
                                 <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
                             </a>

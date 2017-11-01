@@ -12,7 +12,10 @@ var utils = require('web.utils')
 var QWeb = core.qweb;
 var ProductCatalog = Widget.extend({
     template: 'website_sale.product_catalog',
-    xmlDependencies: ['/website_sale/static/src/xml/website_sale_product_catalog.xml'],
+    xmlDependencies: [
+        '/website_sale/static/src/xml/website_sale_product_catalog.xml',
+        '/website_rating/static/src/xml/website_mail.xml'
+    ],
     /**
      * Initialize all options which are need to render widget.
      * @constructor
@@ -23,6 +26,7 @@ var ProductCatalog = Widget.extend({
         this._super.apply(this, arguments);
         this.$target = $target;
         this.catalogType = this.$target.attr('data-catalog-type');
+        this.is_rating = false;
         this.size = 12/this.$target.attr('data-x');
     },
     /**
@@ -42,10 +46,23 @@ var ProductCatalog = Widget.extend({
             }
         }).then(function (result) {
             self.products = result.products;
+            self.is_rating = result.is_rating_active;
         });
         return $.when(this._super.apply(this, arguments), def);
     },
 
+    /**
+     * If rating option is enable then display rating.
+     *
+     * @override
+     * @returns {Deferred}
+     */
+    start: function () {
+        if (this.is_rating) {
+            this._renderRating();
+        }
+        return this._super.apply(this, arguments);
+    },
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
@@ -92,9 +109,22 @@ var ProductCatalog = Widget.extend({
         return sortby;
     },
     _getLimit: function () {
-        var limit;
-        limit = this.catalogType === 'grid' ? this.$target.attr('data-x') * this.$target.attr('data-y') :  this.$target.attr('data-carousel');
-        return limit;
+        return this.catalogType === 'grid' ? this.$target.attr('data-x') * this.$target.attr('data-y') :  this.$target.attr('data-carousel');
+    },
+
+    /**
+     * Display rating for each product.
+     *
+     * @private
+     */
+    _renderRating: function () {
+        var self = this;
+        this.$target.find('.product-item').each(function () {
+            var productDetails = _.findWhere(self.products, {id: $(this).data('product-id')});
+            if (productDetails.product_variant_count >= 1) {
+                $(QWeb.render('website_rating.rating_stars_static', {val: productDetails.rating.avg})).appendTo($(this).find('.rating'));
+            }
+        });
     },
 });
 base.ready().then(function () {
