@@ -1487,9 +1487,19 @@
                         </page>
                         <page string="Other Info">
                             <group>
-                                <field name="auto_reverse" attrs="{'readonly':[('reverse_entry_id', '!=', False)]}"/>
-                                <field name="reverse_date" attrs="{'invisible':[('auto_reverse', '=', False)], 'required':[('auto_reverse', '=', True)],'readonly':[('reverse_entry_id', '!=', False)]}"/>
-                                <field name="reverse_entry_id" attrs="{'invisible':True}"/>    
+                                <group>
+                                    <field name="auto_reverse" attrs="{'readonly':[('reverse_entry_id', '!=', False)]}"/>
+                                    <field name="reverse_date" attrs="{'invisible':[('auto_reverse', '=', False)], 'required':[('auto_reverse', '=', True)],'readonly':[('reverse_entry_id', '!=', False)]}"/>
+                                    <field name="reverse_entry_id" attrs="{'invisible':True}"/>    
+                                </group>
+                                <group groups="account.group_allow_recurring">
+                                    <field name="is_recurrency_enabled" string="Generate Recurring Entries" help="Tick this box to generate recurring journal entries. The recurring journal entries will only be generated if this entry is posted"/>
+                                    <label for="recurrency_interval" attrs="{'invisible': [('is_recurrency_enabled', '=', False)]}"/>
+                                    <div class="o_row" attrs="{'invisible': [('is_recurrency_enabled', '=', False)]}">
+                                        <field name="recurrency_interval" help="Define the recurrency of the journal entry." attrs="{'required': [('is_recurrency_enabled', '=', True)]}"/>
+                                        <field name="recurrency_type" attrs="{'required': [('is_recurrency_enabled', '=', True)]}"/>
+                                    </div>
+                                </group>
                             </group>
                         </page>
                     </notebook>
@@ -1512,6 +1522,9 @@
                     <filter string="Bank Operations" name="bankoperations" domain="[('journal_id.type','=','bank')]" context="{'default_journal_type': 'bank'}"/>
                     <filter string="Cash Operations" name="cashoperations" domain="[('journal_id.type','=','cash')]" context="{'default_journal_type': 'cash'}"/>
                     <filter string="Miscellaneous Operations" domain="[('journal_id.type','=','general')]" name="misc_filter" context="{'default_journal_type': 'general'}"/>
+                    <separator/>
+                    <filter domain="[('is_recurrency_enabled','=',True)]" name="is_recurrency_enabled" help="Recurrent Entries" groups="account.group_allow_recurring"/>
+                    <filter domain="[('is_recurring_document','=',True)]" name="is_recurring_document" help="Generated Recurrent Entries" groups="account.group_allow_recurring"/>
                     <separator/>
                     <field name="partner_id"/>
                     <field name="journal_id"/>

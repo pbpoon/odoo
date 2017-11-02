@@ -17,6 +17,7 @@ from lxml import etree
 
 class AccountMove(models.Model):
     _name = "account.move"
+    _inherit = ['account.recurrent.mixin']
     _description = "Account Entry"
     _order = 'date desc, id desc'
 
@@ -31,6 +32,18 @@ class AccountMove(models.Model):
                 name = move.name
             result.append((move.id, name))
         return result
+
+    @api.depends('date', 'state', 'is_recurrency_enabled', 'recurrency_interval', 'recurrency_type')
+    def _compute_next_recurrency_date(self):
+        for move in self.filtered(lambda mv: mv.state != 'draft' and mv.is_recurrency_enabled and mv.recurrency_interval and mv.recurrency_type):
+            move.next_recurrency_date = move._get_next_recurrency_date(move.date)
+
+    def _create_draft_record(self):
+        default = {
+            'date': self.next_recurrency_date,
+            'is_recurring_document': True,
+        }
+        self.copy(default=default)
 
     @api.multi
     @api.depends('line_ids.debit', 'line_ids.credit')
