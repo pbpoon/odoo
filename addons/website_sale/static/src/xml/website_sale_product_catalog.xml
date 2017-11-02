@@ -13,21 +13,15 @@
                         </div>
                         <hr/>
                         <div class="product-details">
-                            <div>
-                                <strong>
-                                    <p>
-                                        <t t-esc="product.name"/>
-                                        <span class="pull-right">
-                                            <t t-esc="product.website_price"/>
-                                        </span>
-                                    </p>
-                                </strong>
-                            </div>
-                            <div class="product-description" t-if="product.description_sale">
-                                <a>
-                                    <t t-raw="widget._formatDescriptionValue(product.description_sale)"/>
-                                </a>
-                            </div>
+                            <strong><t t-esc="product.name"/></strong>
+                            <span class="pull-right o_product_price">
+                                <t t-esc="product.website_price"/>
+                            </span>
+                        </div>
+                        <div class="product-description" t-if="product.description_sale">
+                            <a>
+                                <t t-raw="widget._formatDescriptionValue(product.description_sale)"/>
+                            </a>
                         </div>
                         <div class="button-container">
                             <form action="/shop/cart/update" method="post" class="o_add_to_cart">
@@ -49,6 +43,9 @@
                     </div>
                 </div>
             </t>
+            <div class="col-md-12 text-center btn-all-products mt16">
+                <a href="/shop/" class="btn btn-default">View All Products</a>
+            </div>
         </div>
     </t>
     <t t-name="product_catalog.catagorySelection">

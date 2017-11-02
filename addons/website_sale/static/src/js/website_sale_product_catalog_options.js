@@ -191,6 +191,7 @@ options.registry.product_catalog = options.Class.extend({
      * @override
      */
     _setActive: function () {
+        this._super.apply(this, arguments);
         var mode = this.$target.attr('data-catalog-type');
         this.$el.find('[data-grid-size]:first').parent().parent().toggle(mode === 'grid');
         this.$el.find('li[data-catalog-type]').removeClass('active')
