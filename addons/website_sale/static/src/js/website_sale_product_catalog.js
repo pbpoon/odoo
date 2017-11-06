@@ -1,14 +1,11 @@
 odoo.define('website_sale.product_catalog', function (require) {
 'use strict';
 
-var ajax = require('web.ajax');
 var base = require('web_editor.base');
 var core = require('web.core');
 var rpc = require('web.rpc');
-var website = require('website.website');
 var Widget = require('web.Widget');
-var utils = require('web.utils')
-
+var config = require('web.config');
 var QWeb = core.qweb;
 var ProductCatalog = Widget.extend({
     template: 'website_sale.product_catalog',
@@ -27,7 +24,8 @@ var ProductCatalog = Widget.extend({
         this.$target = $target;
         this.catalogType = this.$target.attr('data-catalog-type');
         this.is_rating = false;
-        this.size = 12/this.$target.attr('data-x');
+        this.size = this.catalogType === 'grid' ? 12/this.$target.attr('data-x') : 12/(config.device.size_class + 1);
+        this.carouselId = _.uniqueId('product-carousel_');
     },
     /**
      * Fetch product details.
@@ -87,6 +85,19 @@ var ProductCatalog = Widget.extend({
             return $(el).data('product-id');
         });
     },
+    /**
+     * It is responsible to decide how many  numbers of products
+     * are display in each slide of carousel.
+     *
+     * @private
+     * @returns {Array} Contains arrays of products.
+     */
+    _getProducts: function () {
+        var lists = _.groupBy(this.products, function(product, index){
+            return Math.floor(index/(config.device.size_class + 1));
+        });
+        return _.toArray(lists);
+    },
     _getDomain: function () {
         var domain = [];
         var selection = this.$target.attr('data-product-selection');
@@ -137,6 +148,6 @@ base.ready().then(function () {
     }
 });
 return {
-    ProductCatalog: ProductCatalog
+    ProductCatalog: ProductCatalog,
 };
 });

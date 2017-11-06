@@ -1,52 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <template>
     <t t-name="website_sale.product_catalog">
-        <div class="row product_grid" contenteditable="false">
-            <t t-foreach="widget.products" t-as="product">
-                <div t-attf-class="col-md-#{widget.size} product-item" t-att-data-product-id="product.id">
-                    <div class="col-item">
-                        <div class="product-image">
-                            <a href="#">
-                                <img t-attf-src="/web/image/product.template/#{product.id}/image/300x300" class="img img-responsive o_not_editable"/>
-                            </a>
-                            <span class="rating"/>
-                        </div>
-                        <hr/>
-                        <div class="product-details">
-                            <strong><t t-esc="product.name"/></strong>
-                            <span class="pull-right o_product_price">
-                                <t t-esc="product.website_price"/>
-                            </span>
-                        </div>
-                        <div class="product-description" t-if="product.description_sale">
-                            <a>
-                                <t t-raw="widget._formatDescriptionValue(product.description_sale)"/>
-                            </a>
-                        </div>
-                        <div class="button-container">
-                            <form action="/shop/cart/update" method="post" class="o_add_to_cart">
-                                <input name="product_id" type="hidden" t-att-value="product.product_variant_id"/>
-                                <button type="submit" t-if="product.product_variant_count == 1" class="text-center text-primary item btn" title="Add to cart" t-att-data-product-variant-id="product.product_variant_id">
-                                    <i class="fa fa-shopping-cart"/> Add to cart
-                                </button>
-                                <button type="submit" t-if="product.product_variant_count gt 1" class="text-center text-primary item btn" t-attf-href="/shop/product/#{product.id}" title="Add to cart">
-                                    <i class="fa fa-shopping-cart"/> Add to cart
-                                </button>
-                            </form>
-                            <a class="text-center item o_wish_list text-gamma">
-                                <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
-                            </a>
-                            <a class="text-center item o_compare">
-                                <i class="fa fa-exchange fa-lg" aria-hidden="true"></i>
-                            </a>
-                        </div>
-                    </div>
+        <div class="row product_grid o_not_editable" contenteditable="false">
+            <t t-if="widget.catalogType === 'grid'">
+                <t t-set="products" t-value="widget.products"/>
+                <t t-set="size" t-value="widget.size"/>
+                <t t-call="website_sale.product_cell"/>
+                <div class="col-md-12 text-center btn-all-products mt16">
+                    <a href="/shop/" class="btn btn-default">View All Products</a>
                 </div>
             </t>
-            <div class="col-md-12 text-center btn-all-products mt16">
-                <a href="/shop/" class="btn btn-default">View All Products</a>
+            <t t-else="">
+                <t t-call="website_sale.carousel"/>
+            </t>
+        </div>
+    </t>
+    <t t-name="website_sale.carousel">
+        <div class="controls btn-group pull-right" role="group">
+            <a class="left fa fa-chevron-left btn btn-default" t-attf-href="##{widget.carouselId}"
+                data-slide="prev"></a>
+            <a class="btn btn-default btn-all-products" href="/shop/">View All Products</a>
+            <a class="right fa fa-chevron-right btn btn-default" t-attf-href="##{widget.carouselId}"
+                    data-slide="next"></a>
+        </div>
+        <div t-attf-id="#{widget.carouselId}" class="carousel slide mt48" data-ride="carousel" data-interval="false">
+            <div class="carousel-inner">
+                <t t-set="size" t-value="widget.size"/>
+                <t t-foreach="widget._getProducts()" t-as="products">
+                    <div t-att-class="'item ' + (products_index ==  0 ? 'active' : '')">
+                        <t t-call="website_sale.product_cell"/>
+                    </div>
+                </t>
             </div>
         </div>
+    </t>
+    <t t-name="website_sale.product_cell">
+        <t t-foreach="products" t-as="product">
+            <div t-attf-class="col-md-#{size} col-xs-#{size} product-item" t-att-data-product-id="product.id">
+                <div class="col-item
+                    ">
+                    <div class="product-image">
+                        <a t-attf-href="/shop/product/#{product.id}">
+                            <img t-attf-src="/web/image/product.template/#{product.id}/image/300x300" class="img img-responsive o_not_editable"/>
+                        </a>
+                        <span class="rating"/>
+                    </div>
+                    <hr/>
+                    <div class="product-details">
+                        <strong><a t-attf-href="/shop/product/#{product.id}"><t t-esc="product.name"/></a></strong>
+                        <span class="pull-right o_product_price">
+                            <t t-esc="product.website_price"/>
+                        </span>
+                    </div>
+                    <div class="product-description text-info">
+                        <t t-if="product.description_sale" t-raw="widget._formatDescriptionValue(product.description_sale)"/>
+                    </div>
+                    <div class="button-container">
+                        <form action="/shop/cart/update" method="post" class="o_add_to_cart">
+                            <input name="product_id" type="hidden" t-att-value="product.product_variant_id"/>
+                            <button type="submit" t-if="product.product_variant_count == 1" class="text-center text-primary item btn" title="Add to cart" t-att-data-product-variant-id="product.product_variant_id">
+                                <i class="fa fa-shopping-cart"/> Add to cart
+                            </button>
+                            <button type="submit" t-if="product.product_variant_count gt 1" class="text-center text-primary item btn" t-attf-href="/shop/product/#{product.id}" title="Add to cart">
+                                <i class="fa fa-shopping-cart"/> Add to cart
+                            </button>
+                        </form>
+                        <a class="text-center item o_wish_list text-gamma">
+                            <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <a class="text-center item o_compare">
+                            <i class="fa fa-exchange fa-lg" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
     </t>
     <t t-name="product_catalog.catagorySelection">
         <div class="form-group">
