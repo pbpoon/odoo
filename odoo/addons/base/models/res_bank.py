@@ -59,9 +59,11 @@ class ResPartnerBank(models.Model):
     _description = 'Bank Accounts'
     _order = 'sequence'
 
-    acc_type = fields.Char(compute='_compute_acc_type', help='Bank account type, inferred from account number')
+    acc_type = fields.Char(compute='_compute_acc_type', string='Type', help='Bank account type: Normal or IBAN. Inferred from the bank account number.')
     acc_number = fields.Char('Account Number', required=True)
     sanitized_acc_number = fields.Char(compute='_compute_sanitized_acc_number', string='Sanitized Account Number', readonly=True, store=True)
+    # Useable when the account holder name is different than the name of partner
+    acc_holder_name = fields.Char(string='Account Holder Name')
     partner_id = fields.Many2one('res.partner', 'Account Holder', ondelete='cascade', index=True, domain=['|', ('is_company', '=', True), ('parent_id', '=', False)], default=lambda self: self.env.user.company_id.partner_id)
     bank_id = fields.Many2one('res.bank', string='Bank')
     bank_name = fields.Char(related='bank_id.name')
@@ -82,7 +84,7 @@ class ResPartnerBank(models.Model):
     @api.multi
     def _compute_acc_type(self):
         for bank in self:
-            bank.acc_type = 'bank'
+            bank.acc_type = 'Normal'
 
     @api.model
     def search(self, args, offset=0, limit=None, order=None, count=False):
