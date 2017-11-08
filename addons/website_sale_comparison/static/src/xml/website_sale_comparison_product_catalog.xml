@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+
+    <t t-extend="website_sale.product_cell">
+        <t t-jquery=".button-container" t-operation="append">
+            <a t-if="product.product_variant_count gte 1" href="#" title="Compare" class="text-center item o_compare add_to_compare" t-att-data-product-variant-id="product.product_variant_id"><i class="fa fa-exchange"></i></a>
+        </t>
+    </t>
+
+</template>

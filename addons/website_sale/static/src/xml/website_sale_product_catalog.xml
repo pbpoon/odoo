@@ -65,12 +65,6 @@
                                 <i class="fa fa-shopping-cart"/> Add to cart
                             </button>
                         </form>
-                        <a class="text-center item o_wish_list text-gamma">
-                            <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
-                        </a>
-                        <a class="text-center item o_compare">
-                            <i class="fa fa-exchange fa-lg" aria-hidden="true"></i>
-                        </a>
                     </div>
                 </div>
             </div>
