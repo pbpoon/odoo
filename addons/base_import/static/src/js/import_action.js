@@ -6,6 +6,7 @@ var core = require('web.core');
 var session = require('web.session');
 var time = require('web.time');
 var Widget = require('web.Widget');
+var Dialog = require('web.Dialog');
 
 var QWeb = core.qweb;
 var _t = core._t;
@@ -594,7 +595,15 @@ StateMachine.create({
         { name: 'import', from: ['preview_success', 'results'], to: 'importing' },
         { name: 'import_succeeded', from: 'importing', to: 'imported'},
         { name: 'import_failed', from: 'importing', to: 'results' }
-    ]
+    ],
+    error: function(name, from, to, args, Error) {
+        new Dialog(this, {
+            title: _t('Warning Message'),
+             $content: $('<div>', {
+                text: 'Can not import this file, something went wrong(either the data limit exceeded Or memory does not allow to import Or connection lost).',
+            }),
+        }).open();
+    }
 });
 
 return {
