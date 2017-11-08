@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import logging
+import pytz
+
 from odoo import api, fields, models, _
 from odoo.addons.http_routing.models.ir_http import slug
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+try:
+    import vobject
+except ImportError:
+    _logger.warning("The `vobject` Python module is not installed, so iCal file generation is unavailable. Please install the `vobject` Python module")
+    vobject = None
 
 
 class EventType(models.Model):
@@ -131,3 +143,33 @@ class Event(models.Model):
             'target': 'new',
             'url': '/report/html/%s/%s?enable_editor' % ('event.event_event_report_template_badge', self.id),
         }
+
+    @api.multi
+    def get_ics_file(self):
+        """ Returns iCalendar file for the event invitation.
+            :returns a dict of .ics file content for each event
+        """
+        result = {}
+        if not vobject:
+            return result
+
+        for event in self:
+            cal = vobject.iCalendar()
+            cal_event = cal.add('vevent')
+
+            if not event.date_begin or not event.date_end:
+                raise UserError(_("First you have to specify the date of the invitation."))
+            cal_event.add('created').value = fields.Datetime.from_string(fields.Datetime.now()).replace(tzinfo=pytz.timezone('UTC'))
+            cal_event.add('dtstart').value = fields.Datetime.from_string(event.date_begin).replace(tzinfo=pytz.timezone('UTC'))
+            cal_event.add('dtend').value = fields.Datetime.from_string(event.date_end).replace(tzinfo=pytz.timezone('UTC'))
+            cal_event.add('summary').value = event.name
+            if event.address_id:
+                cal_event.add('location').value = event.address_id.contact_address
+
+            attendee_ids = self.env.context.get('attendee_ids')
+            attendees = self.env['event.registration'].sudo().browse(attendee_ids)
+            for attendee in attendees:
+                attendee_add = cal_event.add('attendee')
+                attendee_add.value = u'MAILTO:' + (attendee.email or u'')
+            result[event.id] = cal.serialize().encode('utf-8')
+        return result

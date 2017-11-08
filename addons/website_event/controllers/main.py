@@ -3,12 +3,17 @@
 import babel.dates
 import re
 import werkzeug
+
+from ast import literal_eval
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from odoo import fields, http, _
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.http import request
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
+
+GOOGLE_CALENDAR_URL = 'https://www.google.com/calendar/render?'
 
 
 class WebsiteEventController(http.Controller):
@@ -258,7 +263,36 @@ class WebsiteEventController(http.Controller):
             Attendees += Attendees.sudo().create(
                 Attendees._prepare_attendee_values(registration))
 
+        url_date_start = datetime.strptime(event.date_begin, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y%m%dT%H%M%SZ')
+        url_date_stop = datetime.strptime(event.date_end, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y%m%dT%H%M%SZ')
+        params = werkzeug.url_encode({
+            'action': 'TEMPLATE',
+            'text': event.name,
+            'dates': url_date_start + '/' + url_date_stop,
+            'location': event.address_id.contact_address.replace('\n', ' '),
+            'details': event.name,
+        })
+        google_url = GOOGLE_CALENDAR_URL + params
+        params = werkzeug.url_encode({
+            'attendees': dict(('attendee_%s' % attendee, attendee) for attendee in Attendees.ids)
+        })
+        iCal_url = '/event/%s/ics/%s.ics?' % (slug(event), event.name) + params
         return request.render("website_event.registration_complete", {
             'attendees': Attendees,
             'event': event,
+            'google_url': google_url,
+            'iCal_url': iCal_url
         })
+
+    @http.route(['/event/<model("event.event"):event>/ics/<string:name>.ics'], type='http', auth="public", website=True)
+    def calendar_appointment_ics(self, event, **kwargs):
+        if not event or not event.registration_ids:
+            return request.not_found()
+        attendee_ids = list(literal_eval(kwargs.get('attendees')).values())
+        files = event.with_context(attendee_ids=attendee_ids).get_ics_file()
+        content = files[event.id]
+        return request.make_response(content, [
+            ('Content-Type', 'application/octet-stream'),
+            ('Content-Length', len(content)),
+            ('Content-Disposition', 'attachment; filename=' + event.name + '.ics')
+        ])
