@@ -17,9 +17,27 @@ var BomReportAction = ReportAction.extend({
             });
         this._super(parent, action, option);
     },
+    _make_table_expandable: function () {
+        var $body = $(this.iframe).contents().find('html body');
+        var $trExpandable = $body.find('.tr_expandable');
+        $trExpandable.on('click', function (ev, collapse){
+            var id = $(this).data('id');
+            var $caret =  $(this).find('.td-caret');
+            var $table = $(this).closest('table');
+            var downDirection =  $caret.hasClass('fa-caret-down') ? false : true;
+            if (downDirection && !collapse) {
+                $table .find("tr[data-parent-id="+ id +"]").removeClass('hidden');
+                $caret.removeClass('fa-caret-right').addClass('fa-caret-down');
+            } else {
+                $table.find("tr[data-parent-id="+ id +"]").addClass('hidden');
+                $table.find("tr[data-parent-id="+ id +"].tr_expandable").trigger('click', true);
+                $caret.removeClass('fa-caret-down').addClass('fa-caret-right');
+            }
+        });
+    },
     _on_iframe_loaded: function () {
         this._super.apply(this, arguments);
-        var $body = $(this.iframe).contents().find('html body');
+        this._make_table_expandable();
     },
 });
 
