@@ -117,18 +117,6 @@ class StockWarehouse(models.Model):
         self.write(picking_types)
         return True
 
-    def create_sequences_and_picking_types(self):
-        res = super(StockWarehouse, self).create_sequences_and_picking_types()
-        self._create_manufacturing_picking_type()
-        return res
-
-    @api.multi
-    def get_routes_dict(self):
-        result = super(StockWarehouse, self).get_routes_dict()
-        for warehouse in self:
-            result[warehouse.id]['manufacture'] = [self.Routing(warehouse.lot_stock_id, warehouse.lot_stock_id, warehouse.int_type_id)]
-        return result
-
     @api.multi
     def _get_manufacturing_route_values(self, route_type):
         return {
@@ -150,66 +138,6 @@ class StockWarehouse(models.Model):
             manufacture_route_id = Route.create(self._get_manufacturing_route_values('manu_only')).id
         return manufacture_route_id
 
-    def _get_manufacture_pull_rules_values(self, route_values):
-        if not self.manu_type_id:
-            self._create_manufacturing_picking_type()
-        dummy, pull_rules_list = self._get_push_pull_rules_values(route_values, pull_values={
-            'name': self._format_routename(_(' Manufacture')),
-            'location_src_id': False,  # TDE FIXME
-            'action': 'manufacture',
-            'route_id': self._get_manufacture_route_id(),
-            'picking_type_id': self.manu_type_id.id,
-            'propagate': False,
-            'active': True})
-        return pull_rules_list
-
-    def _create_manufacturing_picking_type(self):
-        # TDE CLEANME
-        picking_type_obj = self.env['stock.picking.type']
-        seq_obj = self.env['ir.sequence']
-        for warehouse in self:
-            #man_seq_id = seq_obj.sudo().create('name': warehouse.name + _(' Sequence Manufacturing'), 'prefix': warehouse.code + '/MANU/', 'padding')
-            wh_stock_loc = warehouse.lot_stock_id
-            seq = seq_obj.search([('code', '=', 'mrp.production')], limit=1)
-            other_pick_type = picking_type_obj.search([('warehouse_id', '=', warehouse.id)], order = 'sequence desc', limit=1)
-            color = other_pick_type.color if other_pick_type else 0
-            max_sequence = other_pick_type and other_pick_type.sequence or 0
-            manu_type = picking_type_obj.create({
-                'name': _('Manufacturing'),
-                'warehouse_id': warehouse.id,
-                'code': 'mrp_operation',
-                'use_create_lots': True,
-                'use_existing_lots': False,
-                'sequence_id': seq.id,
-                'default_location_src_id': wh_stock_loc.id,
-                'default_location_dest_id': wh_stock_loc.id,
-                'sequence': max_sequence,
-                'color': color})
-            warehouse.write({'manu_type_id': manu_type.id})
-
-    def _create_or_update_manufacture_pull(self):
-        self.ensure_one()
-        location = self.lot_stock_id
-        location_src = self.wh_input_manu_loc_id if self.manufacture_steps != 'manu_only' else self.lot_stock_id
-        routings = [self.Routing(location, location_src, self.manu_type_id)]
-        if self.manufacture_pull_id:
-            manufacture_pull = self.manufacture_pull_id
-            manufacture_pull.write({
-                'location_id': location.id,
-                'location_src_id': location_src.id,
-                'picking_type_id': self.manu_type_id.id,
-                'active': self.manufacture_to_resupply})
-        else:
-            routings = [self.Routing(location_src, location, self.manu_type_id)]
-            dummy, pull_vals = self._get_push_pull_rules_values(routings, pull_values={
-                                'name': self._format_routename(_(' Manufacture')),
-                                'action': 'manufacture',
-                                'route_id': self._get_manufacture_route_id(),
-                                'propagate': False,
-                                'active': self.manufacture_to_resupply})
-            manufacture_pull = self.env['procurement.rule'].create(pull_vals[0])
-        return manufacture_pull.id
-
     def _create_or_update_manufacturing_mto_pull(self):
         """ Create Manufacturing MTO procurement rule and link it to the generic MTO route """
         location_id = self.wh_input_manu_loc_id if self.manufacture_steps != 'manu_only' else self.env.ref('stock.location_production')
@@ -228,31 +156,6 @@ class StockWarehouse(models.Model):
                  'pick_manu': _('Pick/Produce')
                })
         return names
-
-    def create_or_update_manufacture_route(self):
-        for warehouse in self:
-            warehouse._create_or_update_locations()
-            warehouse._create_or_update_manufacturing_picking_types()
-            warehouse._create_or_update_manufacturing_route()
-            manu_mto_pull_id = warehouse._create_or_update_manufacturing_mto_pull()
-            manu_pull_id = warehouse._create_or_update_manufacture_pull()
-            multistep_manu_route_id = warehouse._create_or_update_additional_step_routes()
-            warehouse.write({'manu_mto_pull_id': manu_mto_pull_id,
-                             'manufacture_pull_id': manu_pull_id,
-                             'multistep_manu_route_id': multistep_manu_route_id,
-                             'route_ids': [(4, multistep_manu_route_id)]})
-        return True
-
-    def create_or_update_manufactured_route(self):
-        for wh in self:
-            wh._create_or_update_locations()
-            wh._create_or_update_manufacturing_picking_types()
-            wh._create_or_update_manufacturing_route()
-            wh.manu_mto_pull_id = wh._create_or_update_manufacturing_mto_pull()
-            manu_pull_id = wh._create_or_update_manufacture_pull()
-            multistep_manu_route_id = wh._create_or_update_additional_step_routes()
-            wh.write({'manufacture_pull_id': manu_pull_id, 'multistep_manu_route_id': multistep_manu_route_id, 'route_ids': [(4, multistep_manu_route_id)]})
-        return True
 
     def _create_or_update_additional_step_routes(self):
         """This method will create/update push/pull rules for new route of Manufacturing."""
@@ -282,32 +185,56 @@ class StockWarehouse(models.Model):
                 existing_pull.write({'active': self.manufacture_steps != 'manu_only'})
         return manufacture_route.id
 
+    def _create_or_update_manufacture_pull(self):
+        self.ensure_one()
+        location = self.lot_stock_id
+        location_src = self.wh_input_manu_loc_id if self.manufacture_steps != 'manu_only' else self.lot_stock_id
+        routings = [self.Routing(location, location_src, self.manu_type_id)]
+        if self.manufacture_pull_id:
+            manufacture_pull = self.manufacture_pull_id
+            manufacture_pull.write({
+                'location_id': location.id,
+                'location_src_id': location_src.id,
+                'picking_type_id': self.manu_type_id.id,
+                'active': self.manufacture_to_resupply})
+        else:
+            routings = [self.Routing(location_src, location, self.manu_type_id)]
+            dummy, pull_vals = self._get_push_pull_rules_values(routings, pull_values={
+                                'name': self._format_routename(_(' Manufacture')),
+                                'action': 'manufacture',
+                                'route_id': self._get_manufacture_route_id(),
+                                'propagate': False,
+                                'active': self.manufacture_to_resupply})
+            manufacture_pull = self.env['procurement.rule'].create(pull_vals[0])
+        return manufacture_pull.id
+
+    def create_or_update_manufacture_route(self):
+        for warehouse in self:
+            warehouse._create_or_update_locations()
+            warehouse._create_or_update_manufacturing_picking_types()
+            warehouse._create_or_update_manufacturing_route()
+            manu_mto_pull_id = warehouse._create_or_update_manufacturing_mto_pull()
+            manu_pull_id = warehouse._create_or_update_manufacture_pull()
+            multistep_manu_route_id = warehouse._create_or_update_additional_step_routes()
+            warehouse.write({'manu_mto_pull_id': manu_mto_pull_id.id,
+                             'manufacture_pull_id': manu_pull_id,
+                             'multistep_manu_route_id': multistep_manu_route_id,
+                             'route_ids': [(4, multistep_manu_route_id)]})
+        return True
+
     @api.multi
     def create_routes(self):
-        res = super(StockWarehouse, self).create_routes()
         self.ensure_one()
-        routes_data = self.get_routes_dict()
-        manufacture_pull = self._create_or_update_manufacture_pull(routes_data)
-        res['manufacture_pull_id'] = manufacture_pull.id
+        res = super(StockWarehouse, self).create_routes()
+        self.create_or_update_manufacture_route()
         return res
 
     @api.multi
     def write(self, vals):
-        if 'manufacture_to_resupply' in vals:
-            if vals.get("manufacture_to_resupply"):
-                for warehouse in self.filtered(lambda warehouse: not warehouse.manufacture_pull_id):
-                    manufacture_pull = warehouse._create_or_update_manufacture_pull(self.get_routes_dict())
-                    vals['manufacture_pull_id'] = manufacture_pull.id
-                for warehouse in self:
-                    if not warehouse.manu_type_id:
-                        warehouse._create_manufacturing_picking_type()
-                    warehouse.manu_type_id.active = True
-            else:
-                for warehouse in self:
-                    if warehouse.manu_type_id:
-                        warehouse.manu_type_id.active = False
-                self.mapped('manufacture_pull_id').unlink()
-        return super(StockWarehouse, self).write(vals)
+        res = super(StockWarehouse, self).write(vals)
+        if 'manufacture_to_resupply' in vals or vals.get('manufacture_steps'):
+            self.create_or_update_manufacture_route()
+        return res
 
     @api.multi
     def _get_all_routes(self):
