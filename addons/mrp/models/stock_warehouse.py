@@ -229,6 +229,31 @@ class StockWarehouse(models.Model):
                })
         return names
 
+    def create_or_update_manufacture_route(self):
+        for warehouse in self:
+            warehouse._create_or_update_locations()
+            warehouse._create_or_update_manufacturing_picking_types()
+            warehouse._create_or_update_manufacturing_route()
+            manu_mto_pull_id = warehouse._create_or_update_manufacturing_mto_pull()
+            manu_pull_id = warehouse._create_or_update_manufacture_pull()
+            multistep_manu_route_id = warehouse._create_or_update_additional_step_routes()
+            warehouse.write({'manu_mto_pull_id': manu_mto_pull_id,
+                             'manufacture_pull_id': manu_pull_id,
+                             'multistep_manu_route_id': multistep_manu_route_id,
+                             'route_ids': [(4, multistep_manu_route_id)]})
+        return True
+
+    def create_or_update_manufactured_route(self):
+        for wh in self:
+            wh._create_or_update_locations()
+            wh._create_or_update_manufacturing_picking_types()
+            wh._create_or_update_manufacturing_route()
+            wh.manu_mto_pull_id = wh._create_or_update_manufacturing_mto_pull()
+            manu_pull_id = wh._create_or_update_manufacture_pull()
+            multistep_manu_route_id = wh._create_or_update_additional_step_routes()
+            wh.write({'manufacture_pull_id': manu_pull_id, 'multistep_manu_route_id': multistep_manu_route_id, 'route_ids': [(4, multistep_manu_route_id)]})
+        return True
+
     def _create_or_update_additional_step_routes(self):
         """This method will create/update push/pull rules for new route of Manufacturing."""
         self.ensure_one()
@@ -256,20 +281,6 @@ class StockWarehouse(models.Model):
             else:
                 existing_pull.write({'active': self.manufacture_steps != 'manu_only'})
         return manufacture_route.id
-
-    def create_or_update_manufacture_route(self):
-        for warehouse in self:
-            warehouse._create_or_update_locations()
-            warehouse._create_or_update_manufacturing_picking_types()
-            warehouse._create_or_update_manufacturing_route()
-            manu_mto_pull_id = warehouse._create_or_update_manufacturing_mto_pull()
-            manu_pull_id = warehouse._create_or_update_manufacture_pull()
-            multistep_manu_route_id = warehouse._create_or_update_additional_step_routes()
-            warehouse.write({'manu_mto_pull_id': manu_mto_pull_id,
-                             'manufacture_pull_id': manu_pull_id,
-                             'multistep_manu_route_id': multistep_manu_route_id,
-                             'route_ids': [(4, multistep_manu_route_id)]})
-        return True
 
     @api.multi
     def create_routes(self):
