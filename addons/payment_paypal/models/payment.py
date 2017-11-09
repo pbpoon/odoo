@@ -20,12 +20,15 @@ class AcquirerPaypal(models.Model):
     _inherit = 'payment.acquirer'
 
     provider = fields.Selection(selection_add=[('paypal', 'Paypal')])
-    paypal_email_account = fields.Char('Paypal Email ID', required_if_provider='paypal', groups='base.group_user')
+    paypal_email_account = fields.Char('Paypal Email ID', required_if_provider='paypal', groups='base.group_user', default=lambda self: self.env.user.email or 'dummy')
     paypal_seller_account = fields.Char(
         'Paypal Merchant ID', groups='base.group_user',
         help='The Merchant ID is used to ensure communications coming from Paypal are valid and secured.')
     paypal_use_ipn = fields.Boolean('Use IPN', default=True, help='Paypal Instant Payment Notification', groups='base.group_user')
     paypal_pdt_token = fields.Char(string='Paypal PDT Token', required_if_provider='paypal', help='Payment Data Transfer allows you to receive notification of successful payments as they are made.', groups='base.group_user')
+    paypal_account_check = fields.Selection(
+        [('newuser', 'New User'), ('existinguser', 'Existing User')], "Paypal Account", default='newuser', copy=False,
+        help="  * New User: User don't have PayPal account\n  * Existing User: User already have PayPal account")
     # Server 2 server
     paypal_api_enabled = fields.Boolean('Use Rest API', default=False)
     paypal_api_username = fields.Char('Rest API Username', groups='base.group_user')
@@ -183,8 +186,8 @@ class TxPaypal(models.Model):
             # different than the business email. Therefore, if you want such a configuration in your Paypal, you are then obliged to fill
             # the Merchant ID in the Paypal payment acquirer in Odoo, so the check is performed on this variable instead of the receiver_email.
             # At least one of the two checks must be done, to avoid fraudsters.
-            if data.get('receiver_email') != self.acquirer_id.paypal_email_account:
-                invalid_parameters.append(('receiver_email', data.get('receiver_email'), self.acquirer_id.paypal_email_account))
+            if (data.get('receiver_email') or data.get('business')) != self.acquirer_id.paypal_email_account:
+                invalid_parameters.append(('receiver_email', data.get('receiver_email') or data.get('business'), self.acquirer_id.paypal_email_account))
 
         return invalid_parameters
 

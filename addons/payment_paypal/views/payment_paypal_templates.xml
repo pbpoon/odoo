@@ -22,6 +22,7 @@
                 <input type="hidden" name="zip" t-att-value="zip_code"/>
                 <input t-if='state' type='hidden' name="state"
                     t-att-value='state'/>
+                <input type="hidden" name="rm" value="2" />
                 <!-- after payment parameters -->
                 <input t-if='custom' type='hidden' name="custom"
                     t-att-value='custom'/>
