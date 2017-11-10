@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+
+    <t t-extend="website_sale.product_cell">
+        <t t-jquery=".button-container" t-operation="append">
+            <a t-if="product.product_variant_count gte 1" href="#" title="Add to Wishlist" class="btn text-center item add_to_wishlist text-gamma" t-att-disabled='in_wish or None' t-att-data-product-product-id="product.product_variant_id"><i class="fa fa-heart"></i></a>
+        </t>
+    </t>
+
+</template>
