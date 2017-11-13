@@ -161,7 +161,7 @@ class MrpUnbuild(models.Model):
         moves = self.env['stock.move']
         for unbuild in self:
             if unbuild.mo_id:
-                raw_moves = self.mo_id.move_raw_ids.filtered(lambda move: move.state == 'done')
+                raw_moves = unbuild.mo_id.move_raw_ids.filtered(lambda move: move.state == 'done')
                 factor = unbuild.product_qty / unbuild.mo_id.product_uom_id._compute_quantity(unbuild.mo_id.product_qty, unbuild.product_uom_id)
                 for raw_move in raw_moves:
                     moves += unbuild._generate_move_from_raw_moves(raw_move, factor)
