@@ -657,8 +657,51 @@ class AccountTax(models.Model):
                 'account_id': int,
                 'refund_account_id': int,
                 'analytic': boolean,
-            }]
+            }],
+            'base': 0.0
         } """
+
+        # 1) Flatten the taxes.
+        def collect_taxes(self, all_taxes=None):
+            # Collect all the taxes recursively ordered by the sequence.
+            # Example:
+            # group | seq | sub-group |
+            # ------------|-----------|
+            #       |  1  |           |
+            # ------------|-----------|
+            #   t   |  2  |  | seq |  |
+            #       |     |  |  4  |  |
+            #       |     |  |  5  |  |
+            #       |     |  |  6  |  |
+            #       |     |           |
+            # ------------|-----------|
+            #       |  3  |           |
+            # ------------|-----------|
+            # Result: 1-4-5-6-3
+            if not all_taxes:
+                all_taxes = self.env['account.tax']
+            for tax in self.sorted(key=lambda r: r.sequence):
+                if tax.amount_type == 'group':
+                    all_taxes = collect_taxes(tax.children_tax_ids, all_taxes)
+                else:
+                    all_taxes += tax
+            return all_taxes
+
+        taxes = collect_taxes(self)
+
+        # 2) Avoid mixing taxes having price_include=False && include_base_amount=True
+        # with taxes having price_include=True. Use case not supported.
+        base_excluded_flag = False  # price_include=False && include_base_amount=True
+        included_flag = False  # price_include=True
+        for tax in taxes:
+            if tax.price_include:
+                included_flag = True
+            elif tax.include_base_amount:
+                base_excluded_flag = True
+            if base_excluded_flag and included_flag:
+                raise UserError(_('Unable to mix any taxes being price included with taxes affecting the base amount but not included in price.'))
+
+        # 3) Deal with the rounding methods
         if len(self) == 0:
             company_id = self.env.user.company_id
         else:
@@ -690,28 +733,89 @@ class AccountTax(models.Model):
         if not round_tax:
             prec += 5
 
-        base_values = self.env.context.get('base_values')
-        if not base_values:
-            total_excluded = total_included = base = round(price_unit * quantity, prec)
+        # 4) Iterate the taxes in the reversed sequence order to retrieve the initial base of the computation.
+        #     tax  |  base  |  amount  |
+        # /\ ----------------------------
+        # || tax_1 |  XXXX  |          | <- we are looking for that, it's the total_excluded
+        # || tax_2 |  XXXX  |          |
+        # || tax_3 |  XXXX  |          |
+        # ||  ...  |   ..   |    ..    |
+        #    ----------------------------
+        base = round(price_unit * quantity, prec)
+
+        # For the computation of move lines, we could have a negative base value.
+        # In this case, compute all with positive values and negate them at the end.
+        if base < 0:
+            base = -base
+            sign = -1
         else:
-            total_excluded, total_included, base = base_values
+            sign = 1
 
-        # Sorting key is mandatory in this case. When no key is provided, sorted() will perform a
-        # search. However, the search method is overridden in account.tax in order to add a domain
-        # depending on the context. This domain might filter out some taxes from self, e.g. in the
-        # case of group taxes.
-        for tax in self.sorted(key=lambda r: r.sequence):
-            if tax.amount_type == 'group':
-                children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
-                ret = children.compute_all(price_unit, currency, quantity, product, partner)
-                total_excluded = ret['total_excluded']
-                base = ret['base'] if tax.include_base_amount else base
-                total_included = ret['total_included']
-                tax_amount = total_included - total_excluded
-                taxes += ret['taxes']
-                continue
+        def recompute_base(base_amount, fixed_amount, percent_amount):
+            # Recompute the new base amount based on included fixed/percent amount and the current base amount.
+            # Example:
+            #  tax  |  amount  |   price_include  |
+            # -------------------------------------
+            # tax_1 |   10%    |   t
+            # tax_2 |   15     |   t
+            # tax_3 |   20%    |   t
+            # ------------------
 
-            tax_amount = tax._compute_amount(base, price_unit, quantity, product, partner)
+            # if base_amount = 145, the new base is computed as:
+            # (145 - 15) / (1.0 + 30%) = 130 / 1.3 = 100
+            return (base_amount - fixed_amount) / (1.0 + percent_amount / 100.0)
+
+
+        # Keep track of the accumulated included fixed/percent amount.
+        incl_fixed_amount = incl_percent_amount = 0
+        i = len(taxes) - 1
+        current_base = base
+        bases_vals = {}
+
+        for tax in reversed(taxes):
+            if tax.include_base_amount:
+                current_base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount)
+                incl_fixed_amount = incl_percent_amount = 0
+            if tax.price_include:
+                if tax.amount_type == 'fixed':
+                    incl_fixed_amount += quantity * tax.amount
+                elif tax.amount_type == 'percent':
+                    incl_percent_amount += tax.amount
+            bases_vals[i] = current_base
+            i -= 1
+
+        # Start the computation of accumulated amounts at the total_excluded value.
+        total_excluded = total_included = base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount)
+
+        # 5) Iterate the taxes in the sequence order to fill missing base/amount values.
+        #      tax  |  base  |  amount  |  price_include  |
+        # ||  --------------------------------------------
+        # ||  tax_1 |   OK   |   XXXX   |
+        # ||  tax_2 |  XXXX  |   XXXX   |
+        # ||  tax_3 |   OK   |   XXXX   |  t
+        # \/  ...   |   ..   |    ..    |
+        #     ----------------------------
+        def compute_amount(tax):
+            # Compute the amount of the tax but don't deal with the price_include because it's already
+            # took into account on the base amount except for 'division' tax:
+            # (tax.amount_type == 'percent' && not tax.price_include)
+            # == (tax.amount_type == 'division' && tax.price_include)
+            #
+            amount = tax.with_context(force_price_include=False)._compute_amount(
+                base, price_unit, quantity, product, partner)
+            return amount
+
+        taxes_vals = []
+        i = 0
+        for tax in taxes:
+            if tax.price_include:
+                #tax included in price has already been computed to retrieve the base, so we make a
+                #subtraction to avoid any rounding issue
+                tax_amount = bases_vals[i] - base
+            else:
+                #base = bases_vals[i]
+                tax_amount = compute_amount(tax)
+            i += 1
             if not round_tax:
                 tax_amount = round(tax_amount, prec)
             else:
@@ -741,10 +845,10 @@ class AccountTax(models.Model):
             })
 
         return {
-            'taxes': sorted(taxes, key=lambda k: k['sequence']),
-            'total_excluded': currency.round(total_excluded) if round_total else total_excluded,
-            'total_included': currency.round(total_included) if round_total else total_included,
-            'base': base,
+            'taxes': taxes_vals,
+            'total_excluded': sign * (currency.round(total_excluded) if round_total else total_excluded),
+            'total_included': sign * (currency.round(total_included) if round_total else total_included),
+            #'base': round(sign * base, prec),
         }
 
     @api.v7
