@@ -7,6 +7,7 @@ from odoo import fields, models, api, _
 from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_round, float_is_zero
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
 class ResCompany(models.Model):
@@ -79,6 +80,16 @@ Best Regards,''')
             @returns: a dictionary with date_from and date_to
         """
         self = self[0]
+        date_str = date.strftime(DEFAULT_SERVER_DATE_FORMAT)
+        fiscalyear = self.env['account.fiscalyear'].search([
+            ('company_id', '=', self.id),
+            ('date_start', '<=', date_str),
+            ('date_end', '>=', date_str)
+        ])
+        if fiscalyear:
+            date_from = datetime.strptime(fiscalyear.date_start, DEFAULT_SERVER_DATE_FORMAT)
+            date_to = datetime.strptime(fiscalyear.date_end, DEFAULT_SERVER_DATE_FORMAT)
+            return {'date_from': date_from, 'date_to': date_to}
         last_month = self.fiscalyear_last_month
         last_day = self.fiscalyear_last_day
         if (date.month < last_month or (date.month == last_month and date.day <= last_day)):
