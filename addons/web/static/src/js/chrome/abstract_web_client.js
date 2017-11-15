@@ -309,6 +309,9 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
     // Handler to be overwritten
     current_action_updated: function () {
     },
+    // --------------------------------------------------------------
+    // Scroll handling
+    // --------------------------------------------------------------
     /**
      * Get top position if mobile, otherwise top and left
      *

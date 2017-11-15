@@ -183,7 +183,7 @@ var ViewManagerAction = WidgetAction.extend({
     /**
      * Sets the scroll position of the widgets's active_view
      * @todo: replace this with a generic get/set local state mechanism.
-     * @see getScrollTop
+     * @see getScrollPosition
      *
      * @override
      * @param {Object} [scroll] the number of pixels to scroll
