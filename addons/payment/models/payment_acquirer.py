@@ -125,6 +125,7 @@ class PaymentAcquirer(models.Model):
              "issue an invoice.")
     token_implemented = fields.Boolean('Saving Card Data supported', compute='_compute_feature_support', search='_search_is_tokenized')
     authorize_implemented = fields.Boolean('Authorize Mechanism Supported', compute='_compute_feature_support')
+    s2s_supported = fields.Boolean('s2s mode supported', compute="_compute_feature_support", help="Determine if Odoo can process payments in server-to-server mode, without redirecting the customer on the acquirer website page")
     fees_implemented = fields.Boolean('Fees Computation Supported', compute='_compute_feature_support')
     fees_active = fields.Boolean('Add Extra Fees')
     fees_dom_fixed = fields.Float('Fixed domestic fees')
@@ -169,6 +170,7 @@ class PaymentAcquirer(models.Model):
             acquirer.fees_implemented = acquirer.provider in feature_support['fees']
             acquirer.authorize_implemented = acquirer.provider in feature_support['authorize']
             acquirer.token_implemented = acquirer.provider in feature_support['tokenize']
+            acquirer.s2s_supported = hasattr(acquirer, '%s_s2s_form_process' % acquirer.provider)
 
     @api.multi
     def _check_required_if_provider(self):
