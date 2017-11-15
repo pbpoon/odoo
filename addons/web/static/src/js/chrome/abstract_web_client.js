@@ -376,8 +376,8 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
      * Scrolls the webclient to either a given offset or a target element
      * Must be called with: trigger_up('scrollTo', options)
      *
-     * @param {Integer} [options.offset] the number of pixels to scroll from top
-     * @param {Integer} [options.offset_left] the number of pixels to scroll from left
+     * @param {Integer} [options.top] the number of pixels to scroll from top
+     * @param {Integer} [options.left] the number of pixels to scroll from left
      * @param {String} [options.selector] the selector of the target element to scroll to
      */
     scrollTo: function (ev) {
