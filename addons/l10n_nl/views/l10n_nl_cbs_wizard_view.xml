@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="account_cbs_view" model="ir.ui.view">
+    <field name="name">l10n_nl.cbs.form.view</field>
+    <field name="model">l10n_nl.cbs</field>
+    <field name="arch" type="xml">
+        <form string="CBS File Generation">
+            <notebook>
+                <page string="Options">
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                </page>
+                <page string="Technical Info">
+                    <group>
+                        <div>
+                        The encoding of this text file is UTF-8. Even the file extension is CSV, the content is a text of 155-length characters per line exactly.
+                        </div>
+                    </group>
+                    <group>
+                        <table style="width:80%">
+                            <tr>
+                                <th>HEADER</th>
+                                <th>Position</th>
+                                <th>Length</th>
+                            </tr>
+                            <tr>
+                                <td>Record Type</td>
+                                <td>1 - 4</td>
+                                <td>12</td>
+                            </tr>
+                            <tr>
+                                <td>PSI/Agent (VAT-number)</td>
+                                <td>5 - 16</td>
+                                <td>6</td>
+                            </tr>
+                            <tr>
+                                <td>Review period</td>
+                                <td>17 - 22</td>
+                                <td>40</td>
+                            </tr>
+                            <tr>
+                                <td>PSI/Agent (name)</td>
+                                <td>23 - 62</td>
+                                <td>6</td>
+                            </tr>
+                            <tr>
+                                <td>Statistics Netherlands registration number</td>
+                                <td>63 - 68</td>
+                                <td>5</td>
+                            </tr>
+                            <tr>
+                                <td>Version number</td>
+                                <td>69 - 73</td>
+                                <td>8</td>
+                            </tr>
+                            <tr>
+                                <td>Creation date</td>
+                                <td>74 - 81</td>
+                                <td>6</td>
+                            </tr>
+                            <tr>
+                                <td>Creation time</td>
+                                <td>82 - 87</td>
+                                <td>15</td>
+                            </tr>
+                            <tr>
+                                <td>Telephone number PSI/Agent</td>
+                                <td>88 - 102</td>
+                                <td>13</td>
+                            </tr>
+                            <tr>
+                                <td>Reserve</td>
+                                <td>103 - 115</td>
+                                <td>4</td>
+                            </tr>
+                            <tr>
+                                <th style="border-top-style: double;">DATA</th>
+                                <th style="border-top-style: double;">Position</th>
+                                <th style="border-top-style: double;">Length</th>
+                            </tr>
+                            <tr>
+                                <td>Transaction period</td>
+                                <td>1 - 6</td>
+                                <td>6</td>
+                            </tr>
+                            <tr>
+                                <td>Commodity flow</td>
+                                <td>7 - 7</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>PSI</td>
+                                <td>8 - 19</td>
+                                <td>12</td>
+                            </tr>
+                            <tr>
+                                <td>Line number</td>
+                                <td>20 - 24</td>
+                                <td>5</td>
+                            </tr>
+                            <tr>
+                                <td>Country of origin</td>
+                                <td>25 - 27</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Country of consignment/destination</td>
+                                <td>28 - 30</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Mode of transport</td>
+                                <td>31 - 31</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Container</td>
+                                <td>32 - 32</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Traffic region/port</td>
+                                <td>33 - 34</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>Statistical procedure</td>
+                                <td>35 - 36</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>Transaction</td>
+                                <td>37 - 37</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Commodity code</td>
+                                <td>38 - 45</td>
+                                <td>8</td>
+                            </tr>
+                            <tr>
+                                <td>Taric</td>
+                                <td>46 - 47</td>
+                                <td>2</td>
+                            </tr>
+                            <tr>
+                                <td>Mass sign</td>
+                                <td>48 - 48</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Mass</td>
+                                <td>49 - 58</td>
+                                <td>10</td>
+                            </tr>
+                            <tr>
+                                <td>Supplementary unit sign</td>
+                                <td>59 - 59</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Supplementary unit</td>
+                                <td>60 - 69</td>
+                                <td>10</td>
+                            </tr>
+                            <tr>
+                                <td>Invoice value sign</td>
+                                <td>70 - 70</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Invoice value</td>
+                                <td>71 - 80</td>
+                                <td>10</td>
+                            </tr>
+                            <tr>
+                                <td>Statistical value sign</td>
+                                <td>81 - 81</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Statistical value</td>
+                                <td>82 - 91</td>
+                                <td>10</td>
+                            </tr>
+                            <tr>
+                                <td>Administration number</td>
+                                <td>92 - 101</td>
+                                <td>10</td>
+                            </tr>
+                            <tr>
+                                <td>Reserve</td>
+                                <td>102 - 104</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Correction items</td>
+                                <td>105 - 105</td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td>Preference</td>
+                                <td>106 - 108</td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td>Reserve</td>
+                                <td>109 - 115</td>
+                                <td>7</td>
+                            </tr>
+                            <tr>
+                                <th style="border-top-style: double;">FOOTER</th>
+                                <th style="border-top-style: double;">Position</th>
+                                <th style="border-top-style: double;">Length</th>
+                            </tr>
+                            <tr>
+                                <td>Record type</td>
+                                <td>1 - 4</td>
+                                <td>4</td>
+                            </tr>
+                            <tr>
+                                <td>Reserve</td>
+                                <td>5 - 115</td>
+                                <td>111</td>
+                            </tr>
+                        </table>
+                    </group>
+                </page>
+            </notebook>
+            <footer>
+                <button string="Generate" name="generate_cbs" type="object" class="oe_highlight"/>
+                <button string="Cancel" class="btn btn-default" special="cancel"/>
+            </footer>
+        </form>
+    </field>
+</record>
+
+<record id="account_cbs_action" model="ir.actions.act_window">
+    <field name="name">CBS</field>
+    <field name="res_model">l10n_nl.cbs</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+</record>
+
+<menuitem id="account_cbs_menu"
+        parent="l10n_nl.account_reports_nl_statements_menu"
+        action="account_cbs_action"
+        sequence="100" />
+</odoo>

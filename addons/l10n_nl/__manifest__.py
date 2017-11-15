@@ -14,6 +14,7 @@
         'base_iban',
         'base_vat',
         'base_address_extended',
+        'report_intrastat',
     ],
     'data': [
         'data/account_account_tag.xml',
@@ -26,6 +27,7 @@
         'data/account_fiscal_position_account_template.xml',
         'data/account_chart_template_data.xml',
         'data/menuitem.xml',
+        'views/l10n_nl_cbs_wizard_view.xml',
     ],
     'demo': [],
     'auto_install': False,
