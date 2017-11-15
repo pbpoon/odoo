@@ -63,7 +63,7 @@ var Action = core.Class.extend({
     /**
      * Not implemented for client actions
      */
-    setScrollPosition: function() {
+    setScrollPosition: function () {
     },
     /**
      * Stores the DOM fragment of the action
@@ -74,9 +74,9 @@ var Action = core.Class.extend({
     },
     /**
      * Not implemented for client actions
-     * @return {int} the number of pixels the webclient is scrolled when leaving the action
+     * @return {Object} the number of pixels the webclient is scrolled when leaving the action
      */
-    getScrollPosition: function() {
+    getScrollPosition: function () {
         return {top: 0, left: 0};
     },
     /**
@@ -171,10 +171,10 @@ var ViewManagerAction = WidgetAction.extend({
         });
     },
     /**
-     * Sets the on_reverse_breadcrumb_callback and the scrollTop to apply when
+     * Sets the on_reverse_breadcrumb_callback and the scroll to apply when
      * coming back to that action
      * @param {Function} [callback] the callback
-     * @param {int} [scrollTop] the number of pixels to scroll
+     * @param {Object} [scroll] the number of pixels to scroll
      */
     set_on_reverse_breadcrumb: function(callback, scroll) {
         this._super(callback);
@@ -186,7 +186,7 @@ var ViewManagerAction = WidgetAction.extend({
      * @see getScrollTop
      *
      * @override
-     * @param {integer} [scrollTop] the number of pixels to scroll
+     * @param {Object} [scroll] the number of pixels to scroll
      */
     setScrollPosition: function (scroll) {
         var activeView = this.widget.active_view;
@@ -205,7 +205,7 @@ var ViewManagerAction = WidgetAction.extend({
      * to restore.
      *
      * @override
-     * @returns {integer} the number of pixels the webclient is currently
+     * @returns {Object} the number of pixels the webclient is currently
      *  scrolled
      */
     getScrollPosition: function () {
@@ -285,7 +285,7 @@ var ActionManager = Widget.extend({
         core.bus.on('DOM_updated', this, function() {
             if (this.inner_action) {
                 var scrollPosition = this.inner_action.getScrollPosition();
-                this.trigger_up('scrollTo', {offset: scrollPosition.top || 0, offset_left: scrollPosition.left});
+                this.trigger_up('scrollTo', {top: scrollPosition.top || 0, left: scrollPosition.left});
             }
         });
 
@@ -388,7 +388,7 @@ var ActionManager = Widget.extend({
             self.inner_widget = old_widget;
         });
     },
-    setScrollPosition: function(scroll) {
+    setScrollPosition: function (scroll) {
         if (this.inner_action) {
             this.inner_action.setScrollPosition(scroll);
         }

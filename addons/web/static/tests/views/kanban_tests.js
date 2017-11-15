@@ -1778,8 +1778,7 @@ QUnit.module('Views', {
         assert.verifySteps([[2, undefined], [2, undefined], [2, 2]],
             "the records should be correctly fetched");
 
-        // reload
-        // All ids are same after reload
+        // All IDs are same after reload
         kanban.reload();
         assert.strictEqual(kanban.$('.o_kanban_group:eq(1) .o_kanban_record').length, 3,
             "there should be 3 records in the column after reload");

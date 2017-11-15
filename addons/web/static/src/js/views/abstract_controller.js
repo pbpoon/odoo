@@ -96,8 +96,8 @@ var AbstractController = Widget.extend({
         return {};
     },
     /**
-     * @see setScrollTop
-     * @returns {number}
+     * @see setScrollPosition
+     * @returns {Object}
      */
     getScrollPosition: function () {
         return {top: this.scrollTop, left: this.scrollLeft};
@@ -169,12 +169,12 @@ var AbstractController = Widget.extend({
      * Not sure about this one, it probably needs to be reworked, maybe merged
      * in get/set local state methods.
      *
-     * @see getScrollTop
-     * @param {number} scrollTop
+     * @see getScrollPosition
+     * @param {Object} scroll
      */
     setScrollPosition: function (scroll) {
         this.scrollTop = scroll.top;
-        this.scrollLeft = scroll.left || 0;
+        this.scrollLeft = scroll.left;
     },
     /**
      * This is the main entry point for the controller.  Changes from the search

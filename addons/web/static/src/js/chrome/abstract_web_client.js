@@ -309,11 +309,8 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
     // Handler to be overwritten
     current_action_updated: function () {
     },
-    // --------------------------------------------------------------
-    // Scrolltop handling
-    // --------------------------------------------------------------
     getScrollPosition: function () {
-        if (config.device.size_class <= config.device.SIZES.XS) {
+        if (config.device.isMobile) {
             return {
                 top: this.el.scrollTop,
             };
@@ -378,21 +375,21 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
     /**
      * Scrolls the webclient to either a given offset or a target element
      * Must be called with: trigger_up('scrollTo', options)
+     *
      * @param {Integer} [options.offset] the number of pixels to scroll from top
      * @param {Integer} [options.offset_left] the number of pixels to scroll from left
      * @param {String} [options.selector] the selector of the target element to scroll to
      */
     scrollTo: function (ev) {
-        var offset = {top: ev.data.offset, left: ev.data.offset_left || 0};
-        var xs_device = config.device.size_class <= config.device.SIZES.XS;
+        var offset = {top: ev.data.top, left: ev.data.left || 0};
         if (!offset.top && !offset.left) {
             offset = dom.getPosition(document.querySelector(ev.data.selector));
-            if (!xs_device) {
+            if (!config.device.isMobile) {
                 // Substract the position of the action_manager as it is the scrolling part
                 offset.top -= dom.getPosition(this.action_manager.el).top;
             }
         }
-        if (xs_device) {
+        if (config.device.isMobile) {
             this.el.scrollTop = offset.top;
         } else {
             this.action_manager.el.scrollTop = offset.top;
