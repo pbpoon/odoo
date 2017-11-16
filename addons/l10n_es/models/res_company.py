@@ -7,4 +7,4 @@ from odoo import models, fields
 class ResCompany(models.Model):
     _inherit = 'res.company'
 
-    l10n_es_nif = fields.Char(string="NIF", help="Número de Identificación Fiscal") #TODO OCO éventuellement vérifier son format
+    l10n_es_nif = fields.Char(string="NIF", related='partner_id.l10n_es_nif')
