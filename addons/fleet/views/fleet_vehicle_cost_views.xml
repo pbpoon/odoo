@@ -176,6 +176,9 @@
                     <button name="contract_close" states="open,expired,future" type="object" class="oe_highlight" string="Close Contract" groups="fleet.fleet_group_manager"/>
                     <button name="contract_open" states="closed" type="object" class="oe_highlight" string="Set Contract In Progress" groups="fleet.fleet_group_manager"/>
                     <button class="oe_highlight" name="act_renew_contract" type="object" string="Renew Contract" help="Create a new contract automatically with all the same informations except for the date that will start at the end of current contract" groups="fleet.fleet_group_manager"/>
+                    <button name="run_scheduler" type="object"
+                        string="Update Contract"
+                        groups="base.group_no_one"/>
                     <field name="state" widget="statusbar" />
                 </header>
                 <sheet>
@@ -188,6 +191,7 @@
                         <group string="Contract details">
                             <field name="vehicle_id"/>
                             <field name="cost_subtype_id" required="1" domain="['|',('category','=','contract'),('category','=','both')]"/>
+                            <field name="user_id"/>
                             <field name="amount" string="Activation Cost" help="Cost that is paid only once at the creation of the contract"/>
                             <label for="cost_generated"/>
                             <div>
@@ -251,6 +255,7 @@
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
                     <field name="message_ids" widget="mail_thread" options='{"thread_level": 1}'/>
                 </div>
             </form>
