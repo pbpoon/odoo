@@ -660,7 +660,6 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
      */
     _updateControlPanel: function () {
         this.update_control_panel({
-            breadcrumbs: this.action_manager.get_breadcrumbs(),
             cp_content: {
                 $buttons: this.$buttons,
                 $searchview: this.searchview.$el,
@@ -902,6 +901,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
      * @param {OdooEvent}
      */
     _onSearch: function (event) {
+        event.stopPropagation();
         var session = this.getSession();
         var result = pyeval.eval_domains_and_contexts({
             domains: event.data.domains,

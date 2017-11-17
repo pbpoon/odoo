@@ -1422,7 +1422,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                     '</sheet>' +
                 '</form>',
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             res_id: 1,
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
@@ -1568,7 +1568,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -1599,7 +1599,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -1630,7 +1630,7 @@ QUnit.module('Views', {
                         '</footer>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {footer_to_buttons: true},
+            viewOptions: {footerToButtons: true},
         });
 
         assert.ok(form.$buttons.find('button.infooter').length, "footer button should be in footer");
@@ -2021,7 +2021,7 @@ QUnit.module('Views', {
             data: this.data,
             arch: '<form string="Partners"><field name="date"></field></form>',
             intercepts: {
-                switch_to_previous_view: function (event) {
+                history_back: function () {
                     form.update({}, {reload: false});
                 }
             },
@@ -2057,9 +2057,9 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
             intercepts: {
-                switch_to_previous_view: function (event) {
+                history_back: function () {
                     assert.ok(true, "should have sent correct event");
-                    // simulate the response from the view manager, in the case
+                    // simulate the response from the action manager, in the case
                     // where we have only one active view (the form).  If there
                     // was another view, we would have switched to that view
                     // instead
@@ -2097,7 +2097,7 @@ QUnit.module('Views', {
             data: this.data,
             arch: '<form string="Partners"><field name="foo"></field></form>',
             intercepts: {
-                switch_to_previous_view: function () {
+                history_back: function () {
                     assert.ok(true, "should have sent correct event");
                 }
             }
@@ -2126,9 +2126,9 @@ QUnit.module('Views', {
             data: this.data,
             arch: '<form string="Partners"><field name="foo"></field></form>',
             intercepts: {
-                switch_to_previous_view: function (event) {
+                history_back: function () {
                     assert.ok(true, "should have sent correct event");
-                    // simulate the response from the view manager, in the case
+                    // simulate the response from the action manager, in the case
                     // where we have only one active view (the form).  If there
                     // was another view, we would have switched to that view
                     // instead
@@ -2168,7 +2168,7 @@ QUnit.module('Views', {
             data: this.data,
             arch: '<form string="Partners"><field name="foo"></field></form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -2513,7 +2513,7 @@ QUnit.module('Views', {
             viewOptions: {
                 ids: [1, 2, 4],
                 index: 0,
-                sidebar: true,
+                hasSidebar: true,
             },
             res_id: 1,
             mockRPC: function (route, args) {
@@ -2557,7 +2557,7 @@ QUnit.module('Views', {
             viewOptions: {
                 ids: [1],
                 index: 0,
-                sidebar: true,
+                hasSidebar: true,
             },
             res_id: 1,
             mockRPC: function (route, args) {
@@ -2573,15 +2573,14 @@ QUnit.module('Views', {
         form.sidebar.$('button.o_dropdown_toggler_btn').click();
         form.sidebar.$('a:contains(Delete)').click();
 
-        testUtils.intercept(form, 'do_action', function (event) {
-            assert.strictEqual(event.data.action, 'history_back',
-                "should trigger an history back action");
+        testUtils.intercept(form, 'history_back', function () {
+            assert.step('history_back');
         });
         assert.strictEqual($('.modal').length, 1, 'a confirm modal should be displayed');
         $('.modal .modal-footer button.btn-primary').click();
         assert.strictEqual($('.modal').length, 0, 'no confirm modal should be displayed');
 
-        assert.verifySteps(['read', 'unlink']);
+        assert.verifySteps(['read', 'unlink', 'history_back']);
         form.destroy();
     });
 
@@ -4258,7 +4257,7 @@ QUnit.module('Views', {
                 '</form>',
             res_id: 1,
             viewOptions: {
-                footer_to_buttons: true,
+                footerToButtons: true,
                 mode: 'edit',
             },
         });
@@ -4297,7 +4296,7 @@ QUnit.module('Views', {
                 '</form>',
             res_id: 1,
             viewOptions: {
-                footer_to_buttons: true,
+                footerToButtons: true,
             },
         });
 
@@ -4655,7 +4654,7 @@ QUnit.module('Views', {
                 print: [],
             },
             viewOptions: {
-                sidebar: true,
+                hasSidebar: true,
             },
             mockRPC: function (route, args) {
                 if (route === '/web/action/load') {
@@ -5914,7 +5913,7 @@ QUnit.module('Views', {
                         '<field name="display_name"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     // rpcs done by the sidebar

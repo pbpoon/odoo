@@ -148,7 +148,7 @@ var FormController = BasicController.extend({
      *   inserted
      **/
     renderSidebar: function ($node) {
-        if (!this.sidebar && this.hasSidebar) {
+        if (this.hasSidebar) {
             var otherItems = [];
             if (this.is_action_enabled('delete')) {
                 otherItems.push({
@@ -279,7 +279,7 @@ var FormController = BasicController.extend({
     _onDeletedRecords: function () {
         var state = this.model.get(this.handle, {raw: true});
         if (!state.res_ids.length) {
-            this.do_action('history_back');
+            this.trigger_up('history_back');
         } else {
             this._super.apply(this, arguments);
         }
