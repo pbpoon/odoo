@@ -356,3 +356,70 @@ class MailActivityMixin(models.AbstractModel):
             [('res_model', '=', self._name), ('res_id', 'in', record_ids)]
         ).unlink()
         return result
+
+    def activity_schedule(self, act_type_xmlid='', date_deadline=None, summary='', note='', **act_values):
+        """ Schedule an activity on each record of the current record set.
+        This method allow to provide as parameter act_type_xmlid. This is an
+        xml_id of activity type instead of directly giving an activity_type_id.
+        It is useful to avoid having various "env.ref" in the code and allow
+        to let the mixin handle access rights.
+        """
+        if not date_deadline:
+            date_deadline = fields.Date.today()
+        if act_type_xmlid:
+            activity_type = self.sudo().env.ref(act_type_xmlid)
+        else:
+            activity_type = self.env['mail.activity.type'].sudo().browse(act_values['activity_type_id'])
+
+        model_id = self.env['ir.model']._get(self._name).id
+        activities = self.env['mail.activity']
+        for record in self:
+            create_vals = {
+                'activity_type_id': activity_type.id,
+                'summary': summary or activity_type.summary,
+                'note': note,
+                'date_deadline': date_deadline,
+                'res_model_id': model_id,
+                'res_id': record.id,
+            }
+            create_vals.update(act_values)
+            activities |= self.env['mail.activity'].create(create_vals)
+        return activities
+
+    def activity_feedback(self, act_type_xmlids, user_id=None, feedback=None):
+        """ Set activities as done, limiting to some activity types and
+        optionally to a given user. """
+        sudo_env = self.sudo()
+        activity_types = self.env['mail.activity.type'].sudo()
+        for act_type_xmlid in act_type_xmlids:
+            activity_types |= sudo_env.env.ref(act_type_xmlid)
+        domain = [
+            '&', '&',
+            ('res_model', '=', self._name),
+            ('res_id', 'in', self.ids),
+            ('activity_type_id', 'in', activity_types.ids)
+        ]
+        if user_id:
+            domain = ['&'] + domain + [('user_id', '=', user_id)]
+        activities = self.env['mail.activity'].search(domain)
+        if activities:
+            activities.action_feedback(feedback=feedback)
+        return True
+
+    def activity_unlink(self, act_type_xmlids, user_id=None):
+        """ Unlink activities as done, limiting to some activity types and
+        optionally to a given user. """
+        sudo_env = self.sudo()
+        activity_types = self.env['mail.activity.type'].sudo()
+        for act_type_xmlid in act_type_xmlids:
+            activity_types |= sudo_env.env.ref(act_type_xmlid)
+        domain = [
+            '&', '&',
+            ('res_model', '=', self._name),
+            ('res_id', 'in', self.ids),
+            ('activity_type_id', 'in', activity_types.ids)
+        ]
+        if user_id:
+            domain = ['&'] + domain + [('user_id', '=', user_id)]
+        self.env['mail.activity'].search(domain).unlink()
+        return True
