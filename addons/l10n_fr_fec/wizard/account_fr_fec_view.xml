@@ -106,7 +106,7 @@
                 </page>
             </notebook>
             <footer>
-                <button string="Generate" name="generate_fec" type="object"
+                <button string="Generate" name="generate_fec" type="object" close="true"
                     class="oe_highlight"/>
                 <button string="Cancel" class="btn btn-default" special="cancel"/>
             </footer>

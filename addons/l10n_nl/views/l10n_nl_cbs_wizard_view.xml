@@ -230,7 +230,7 @@
                 </page>
             </notebook>
             <footer>
-                <button string="Generate" name="generate_cbs" type="object" class="oe_highlight"/>
+                <button string="Generate" name="generate_cbs" type="object" class="oe_highlight" close="true"/>
                 <button string="Cancel" class="btn btn-default" special="cancel"/>
             </footer>
         </form>

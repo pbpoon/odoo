@@ -949,7 +949,6 @@ var ActionManager = Widget.extend({
 
         if (action.target === 'self') {
             framework.redirect(url);
-            return $.Deferred(); // The action is finished only when the redirection is done
         } else {
             window.open(url, '_blank');
             options.on_close();

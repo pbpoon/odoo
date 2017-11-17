@@ -376,7 +376,14 @@ var FormController = BasicController.extend({
                 // by the basic model, such as the new res_id, if the record is
                 // new.
                 var record = self.model.get(event.data.record.id);
-                return self._callButtonAction(attrs, record);
+                var actionDef = self._callButtonAction(attrs, record);
+                if (attrs.close) {
+                    // Close the wizard when clicking on button having the "close" attribute.
+                    return actionDef.then(function() {
+                        self.do_action({"type": "ir.actions.act_window_close"});
+                    });
+                }
+                return actionDef;
             });
         }
         var attrs = event.data.attrs;
