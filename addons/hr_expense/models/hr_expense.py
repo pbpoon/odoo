@@ -545,14 +545,15 @@ class HrExpenseSheet(models.Model):
         for partner in users.mapped('partner_id'):
             values['message_follower_ids'] += MailFollowers._add_follower_command(self._name, [], {partner.id: None}, {})[0]
         
-        if vals.get('responsible_id') and vals.get('responsible_id') != vals.get('employee_id'):
-            resp_partner = self.env['res.users'].browse(vals['responsible_id'])
+        if values.get('responsible_id') and values.get('responsible_id') != values.get('employee_id'):
+            resp_partner = self.env['res.users'].browse(values['responsible_id'])
             values['message_follower_ids'] += MailFollowers._add_follower_command(self._name, [], {resp_partner.partner_id.id: None}, {})[0]
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         self.address_id = self.employee_id.address_home_id
         self.department_id = self.employee_id.department_id
+        self.responsible_id = self.employee_id.expense_manager_id
 
     @api.depends('expense_line_ids.total_amount_company')
     def _compute_amount(self):
