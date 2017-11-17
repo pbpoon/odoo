@@ -160,8 +160,8 @@ QUnit.test('basic rendering', function (assert) {
     form.destroy();
 });
 
-QUnit.test('chatter is not rendered in mode === create', function (assert) {
-    assert.expect(4);
+QUnit.test('chatter in create mode', function (assert) {
+    assert.expect(8);
 
     var form = createView({
         View: FormView,
@@ -197,16 +197,30 @@ QUnit.test('chatter is not rendered in mode === create', function (assert) {
     assert.strictEqual(form.$('.o_chatter').length, 1,
         "chatter should be displayed");
 
+    // entering create mode
     form.$buttons.find('.o_form_button_create').click();
+    assert.strictEqual(form.$('.o_chatter').length, 1,
+        "chatter should still be displayed in create mode");
 
-    assert.strictEqual(form.$('.o_chatter').length, 0,
-        "chatter should not be displayed");
+    // topbar buttons disabled in create mode (e.g. 'send message')
+    assert.strictEqual(form.$('.o_chatter_topbar button:not(:disabled)').length, 0,
+        "button should be disabled in create mode")
 
+    // chatter containing a single message with 'Creating a record...'
+    assert.strictEqual(form.$('.o_mail_thread').length, 1,
+        "there should be a mail thread");
+    assert.strictEqual(form.$('.o_thread_message').length, 1,
+        "there should be a single thread message");
+    assert.strictEqual(form.$('.o_thread_message_content').text().trim(),
+        "Creating a new record...",
+        "the content of the message should be 'Creating a new record...'");
+
+    // getting out of creation mode by saving
     form.$('.o_field_char').val('coucou').trigger('input');
     form.$buttons.find('.o_form_button_save').click();
 
     assert.strictEqual(form.$('.o_chatter').length, 1,
-        "chatter should be displayed");
+        "chatter should still be displayed after saving from creation mode");
 
     // check if chatter buttons still work
     form.$('.o_chatter_button_new_message').click();
@@ -259,8 +273,8 @@ QUnit.test('chatter rendering inside the sheet', function (assert) {
 
     form.$buttons.find('.o_form_button_create').click();
 
-    assert.strictEqual(form.$('.o_chatter').length, 0,
-        "chatter should not be displayed");
+    assert.strictEqual(form.$('.o_chatter').length, 1,
+        "chatter should be displayed"); // creating a new record...
 
     form.$('.o_field_char').val('coucou').trigger('input');
     form.$buttons.find('.o_form_button_save').click();
@@ -861,7 +875,7 @@ QUnit.test('form activity widget: schedule activity does not discard changes', f
 });
 
 QUnit.test('form activity widget: mark as done and remove', function (assert) {
-    assert.expect(14);
+    assert.expect(15);
 
     var self = this;
 
@@ -969,6 +983,8 @@ QUnit.test('form activity widget: mark as done and remove', function (assert) {
         "there should be no more activity");
     assert.strictEqual(form.$('.o_mail_thread .o_thread_message').length, 1,
         "a chatter message should have been generated");
+    assert.strictEqual(form.$('.o_thread_message:contains(The activity has been done)').length, 1,
+        "the message's body should be correct");
     form.destroy();
 });
 
