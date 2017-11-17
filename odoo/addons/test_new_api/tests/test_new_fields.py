@@ -3,7 +3,7 @@
 #
 from datetime import date, datetime
 
-from odoo.exceptions import AccessError, except_orm
+from odoo.exceptions import AccessError, UserError, except_orm
 from odoo.tests import common
 from odoo.tools import mute_logger, float_repr, pycompat
 
@@ -932,3 +932,99 @@ class TestMagicFields(common.TransactionCase):
         record = self.env['test_new_api.discussion'].create({'name': 'Booba'})
         self.assertEqual(record.create_uid, self.env.user)
         self.assertEqual(record.write_uid, self.env.user)
+
+
+def show(node):
+    return "%s(%s, %s)" % (node.name, node.parent_left, node.parent_right)
+
+
+class TestParentStore(common.TransactionCase):
+
+    def setUp(self):
+        super(TestParentStore, self).setUp()
+        # pretend the pool has finished loading to avoid deferring parent_store
+        # computation
+        self.patch(self.registry, '_init', False)
+        self.registry.do_parent_store(self.cr)
+
+    def check_siblings(self, nodes):
+        for node in nodes:
+            self.assertLess(node.parent_left, node.parent_right,
+                            "incorrect node %s" % show(node))
+        for node1, node2 in pycompat.izip(nodes, nodes[1:]):
+            self.assertLess(node1.parent_right, node2.parent_left,
+                            "wrong node order: %s < %s" % (show(node1), show(node2)))
+
+    def check_children(self, root, children):
+        self.assertLess(root.parent_left, children[0].parent_left)
+        self.check_siblings(children)
+        self.assertLess(children[-1].parent_left, root.parent_right)
+
+    def test_mptt(self):
+        """ Test parent_left/parent_right computation. """
+        Category = self.env['test_new_api.category']
+
+        def descendants(recs):
+            return Category.search([('id', 'child_of', recs.ids)])
+
+        c = Category.create({'name': 'c'})
+        a = Category.create({'name': 'a'})
+        b = Category.create({'name': 'b'})
+
+        # all records should be roots in the right order
+        self.check_siblings([a, b, c])
+
+        # create nodes d, e, f under b
+        f = Category.create({'name': 'f', 'parent': b.id})
+        d = Category.create({'name': 'd', 'parent': b.id})
+        e = Category.create({'name': 'e', 'parent': b.id})
+        self.check_siblings([a, b, c])
+        self.check_children(b, [d, e, f])
+
+        self.assertEqual(descendants(a), a)
+        self.assertEqual(descendants(b), b + d + e + f)
+        self.assertEqual(descendants(c), c)
+        self.assertEqual(descendants(d), d)
+        self.assertEqual(descendants(e), e)
+        self.assertEqual(descendants(f), f)
+
+        # move d, e, f under c
+        (f + d + e).write({'parent': c.id})
+        self.check_siblings([a, b, c])
+        self.check_children(c, [d, e, f])
+
+        self.assertEqual(descendants(a), a)
+        self.assertEqual(descendants(b), b)
+        self.assertEqual(descendants(c), c + d + e + f)
+        self.assertEqual(descendants(d), d)
+        self.assertEqual(descendants(e), e)
+        self.assertEqual(descendants(f), f)
+
+        # move b, c under a
+        (b + c).write({'parent': a.id})
+        self.check_siblings([a])
+        self.check_children(a, [b, c])
+        self.check_children(c, [d, e, f])
+
+        self.assertEqual(descendants(a), a + b + c + d + e + f)
+        self.assertEqual(descendants(b), b)
+        self.assertEqual(descendants(c), c + d + e + f)
+        self.assertEqual(descendants(d), d)
+        self.assertEqual(descendants(e), e)
+        self.assertEqual(descendants(f), f)
+
+        # remove node e
+        e.unlink()
+        self.check_siblings([a])
+        self.check_children(a, [b, c])
+        self.check_children(c, [d, f])
+
+        self.assertEqual(descendants(a), a + b + c + d + f)
+        self.assertEqual(descendants(b), b)
+        self.assertEqual(descendants(c), c + d + f)
+        self.assertEqual(descendants(d), d)
+        self.assertEqual(descendants(f), f)
+
+        # not cycle should occur
+        with self.assertRaises(UserError):
+            a.parent = d
