@@ -150,7 +150,7 @@ class Holidays(models.Model):
     _name = "hr.holidays"
     _description = "Leave"
     _order = "type desc, date_from desc"
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     def _default_employee(self):
         return self.env.context.get('default_employee_id') or self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
@@ -366,6 +366,7 @@ class Holidays(models.Model):
             values.update({'department_id': self.env['hr.employee'].browse(employee_id).department_id.id})
         holiday = super(Holidays, self.with_context(mail_create_nolog=True, mail_create_nosubscribe=True)).create(values)
         holiday.add_follower(employee_id)
+        holiday.action_update_activities()
         return holiday
 
     @api.multi
@@ -426,13 +427,16 @@ class Holidays(models.Model):
             for linked_request in linked_requests:
                 linked_request.action_draft()
             linked_requests.unlink()
+        self.action_update_activities()
         return True
 
     @api.multi
     def action_confirm(self):
         if self.filtered(lambda holiday: holiday.state != 'draft'):
             raise UserError(_('Leave request must be in Draft state ("To Submit") in order to confirm it.'))
-        return self.write({'state': 'confirm'})
+        self.write({'state': 'confirm'})
+        self.action_update_activities()
+        return True
 
     @api.multi
     def _check_security_action_approve(self):
@@ -451,6 +455,7 @@ class Holidays(models.Model):
 
         self.filtered(lambda hol: hol.double_validation).write({'state': 'validate1', 'first_approver_id': current_employee.id})
         self.filtered(lambda hol: not hol.double_validation).action_validate()
+        self.action_update_activities()
         return True
 
     @api.multi
@@ -503,6 +508,7 @@ class Holidays(models.Model):
                 leaves.action_approve()
                 if leaves and leaves[0].double_validation:
                     leaves.action_validate()
+        self.action_update_activities()
         return True
 
     def _validate_leave_request(self):
@@ -555,12 +561,34 @@ class Holidays(models.Model):
             # If a category that created several holidays, cancel all related
             holiday.linked_request_ids.action_refuse()
         self._remove_resource_leave()
+        self.action_update_activities()
         return True
 
     @api.multi
     def _check_security_action_refuse(self):
         if not self.env.user.has_group('hr_holidays.group_hr_holidays_user'):
             raise UserError(_('Only an HR Officer or Manager can refuse leave requests.'))
+
+    def _get_responsible_for_approval(self):
+        if self.state == 'confirm' and self.manager_id.user_id:
+            return self.manager_id.user_id
+        elif self.department_id.manager_id.user_id:
+            return self.department_id.user_id
+        return self.env.user
+
+    def action_update_activities(self):
+        self.filtered(lambda hol: hol.state == 'draft').activity_unlink(['hr_holidays.mail_act_leave_approval', 'hr_holidays.mail_act_leave_second_approval'])
+        for holiday in self.filtered(lambda hol: hol.state == 'confirm'):
+            self.activity_schedule(
+                'hr_holidays.mail_act_leave_approval', fields.Date.today(),
+                user_id=holiday._get_responsible_for_approval().id)
+        for holiday in self.filtered(lambda hol: hol.state == 'validate1'):
+            holiday.activity_feedback(['hr_holidays.mail_act_leave_approval'])
+            holiday.activity_schedule(
+                'hr_holidays.mail_act_leave_second_approval', fields.Date.today(),
+                user_id=holiday._get_responsible_for_approval().id)
+        self.filtered(lambda hol: hol.state == 'validate').activity_feedback(['hr_holidays.mail_act_leave_approval', 'hr_holidays.mail_act_leave_second_approval'])
+        self.filtered(lambda hol: hol.state == 'refuse').activity_unlink(['hr_holidays.mail_act_leave_approval', 'hr_holidays.mail_act_leave_second_approval'])
 
     ####################################################
     # Messaging methods
@@ -570,10 +598,6 @@ class Holidays(models.Model):
     def _track_subtype(self, init_values):
         if 'state' in init_values and self.state == 'validate':
             return 'hr_holidays.mt_holidays_approved'
-        elif 'state' in init_values and self.state == 'validate1':
-            return 'hr_holidays.mt_holidays_first_validated'
-        elif 'state' in init_values and self.state == 'confirm':
-            return 'hr_holidays.mt_holidays_confirmed'
         elif 'state' in init_values and self.state == 'refuse':
             return 'hr_holidays.mt_holidays_refused'
         return super(Holidays, self)._track_subtype(init_values)
