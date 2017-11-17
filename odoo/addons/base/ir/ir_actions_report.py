@@ -682,7 +682,7 @@ class IrActionsReport(models.Model):
             return {
                 'name': _('Choose Your Document Layout'),
                 'type': 'ir.actions.act_window',
-                'context': {'default_report_name': self.report_name, 'discard_logo_check': True},
+                'context': {'default_report_name': self.report_name, 'discard_logo_check': True, 'data': data},
                 'view_type': 'form',
                 'view_mode': 'form',
                 'res_id': self.env.user.company_id.id,

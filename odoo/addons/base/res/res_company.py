@@ -256,6 +256,6 @@ class Company(models.Model):
             docids = self.env[active_model].browse(active_ids)
             return (self.env['ir.actions.report'].search([('report_name', '=', report_name)], limit=1)
                         .with_context(values)
-                        .report_action(docids))
+                        .report_action(docids, data=values.get('data')))
         else:
             return res
