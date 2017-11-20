@@ -37,6 +37,8 @@ class AccountVoucher(models.Model):
         help="Effective date for accounting entries", copy=False, default=fields.Date.context_today)
     journal_id = fields.Many2one('account.journal', 'Journal',
         required=True, readonly=True, states={'draft': [('readonly', False)]}, default=_default_journal)
+    payment_journal_id = fields.Many2one('account.journal', string='Payment Method', readonly=True,
+        states={'draft': [('readonly', False)]}, domain="[('type', 'in', ['cash', 'bank'])]", compute='_compute_payment_journal_id')
     account_id = fields.Many2one('account.account', 'Account',
         required=True, readonly=True, states={'draft': [('readonly', False)]},
         domain="[('deprecated', '=', False), ('internal_type','=', (pay_now == 'pay_now' and 'liquidity' or voucher_type == 'purchase' and 'payable' or 'receivable'))]")
@@ -100,6 +102,15 @@ class AccountVoucher(models.Model):
     @api.depends('journal_id', 'company_id')
     def _get_journal_currency(self):
         self.currency_id = self.journal_id.currency_id.id or self.company_id.currency_id.id
+
+    @api.depends('company_id')
+    def _compute_payment_journal_id(self):
+        for voucher in self:
+            domain = [
+                ('type', 'in', ('bank', 'cash')),
+                ('company_id', '=', voucher.company_id.id),
+            ]
+            voucher.payment_journal_id = self.env['account.journal'].search(domain, limit=1)
 
     @api.multi
     @api.depends('tax_correction', 'line_ids.price_subtotal')
@@ -170,11 +181,16 @@ class AccountVoucher(models.Model):
         if credit < 0.0: credit = 0.0
         sign = debit - credit < 0 and -1 or 1
         #set the first line of the voucher
+        if self.pay_now == 'pay_now':
+            account_id = debit >= 0.0 and self.payment_journal_id.default_debit_account_id\
+                         or self.payment_journal_id.default_credit_account_id
+        else:
+            account_id = self.account_id
         move_line = {
                 'name': self.name or '/',
                 'debit': debit,
                 'credit': credit,
-                'account_id': self.account_id.id,
+                'account_id': account_id.id,
                 'move_id': move_id,
                 'journal_id': self.journal_id.id,
                 'partner_id': self.partner_id.id,
@@ -224,19 +240,29 @@ class AccountVoucher(models.Model):
 
     @api.multi
     def voucher_pay_now_payment_create(self):
-        payment_methods = self.journal_id.outbound_payment_method_ids
+        if self.voucher_type == 'sale':
+            payment_methods = self.journal_id.inbound_payment_method_ids
+            payment_type = 'inbound'
+            partner_type = 'customer'
+            sequence_code = 'account.payment.customer.invoice'
+        else:
+            payment_methods = self.journal_id.outbound_payment_method_ids
+            payment_type = 'outbound'
+            partner_type = 'supplier'
+            sequence_code = 'account.payment.supplier.invoice'
+        name = self.env['ir.sequence'].with_context(ir_sequence_date=self.date).next_by_code(sequence_code)
         return {
-            'payment_type': 'outbound',
+            'name': name,
+            'payment_type': payment_type,
             'payment_method_id': payment_methods and payment_methods[0].id or False,
-            'partner_type': 'supplier',
+            'partner_type': partner_type,
             'partner_id': self.partner_id.id,
             'amount': self.amount,
             'currency_id': self.currency_id.id,
             'payment_date': self.date,
-            'journal_id': self.journal_id.id,
+            'journal_id': self.payment_journal_id.id,
             'company_id': self.company_id.id,
             'communication': self.name,
-            'name': self.name,
             'state': 'reconciled',
         }
 
