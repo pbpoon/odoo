@@ -940,13 +940,6 @@ def show(node):
 
 class TestParentStore(common.TransactionCase):
 
-    def setUp(self):
-        super(TestParentStore, self).setUp()
-        # pretend the pool has finished loading to avoid deferring parent_store
-        # computation
-        self.patch(self.registry, '_init', False)
-        self.registry.do_parent_store(self.cr)
-
     def check_siblings(self, nodes):
         for node in nodes:
             self.assertLess(node.parent_left, node.parent_right,

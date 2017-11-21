@@ -14,11 +14,6 @@ class TestUi(odoo.tests.HttpCase):
         assert cr == self.registry.test_cr
         env = Environment(cr, self.uid, {})
 
-        # By default parent_store computation is deferred until end of
-        # tests. Pricelist items however are sorted based on these
-        # fields, so they need to be computed.
-        env['product.category']._parent_store_compute()
-
         journal_obj = env['account.journal']
         account_obj = env['account.account']
         main_company = env.ref('base.main_company')
