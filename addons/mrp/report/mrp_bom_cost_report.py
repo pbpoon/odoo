@@ -65,7 +65,7 @@ class MrpBomCost(models.AbstractModel):
                                 'currency': self.env.user.company_id.currency_id,
                                 'product_uom_qty': bom.product_qty,
                                 'product_uom': bom.product_uom_id,
-                                'attributes': attributes}
+                                'attributes': attributes, 'id': product.id}
                 total, lines = self.get_bom_lines(bom.bom_line_ids, product, bom.product_qty, False, 0)
                 product_line['lines'] = lines
                 product_line['total'] = total

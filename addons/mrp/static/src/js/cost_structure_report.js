@@ -17,9 +17,26 @@ var BomReportAction = ReportAction.extend({
             });
         this._super(parent, action, option);
     },
+    openM2ORecord: function (){
+        var action = {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'target': 'current',
+            'res_id': Number($(this).attr('res-id')),
+            'res_model': $(this).attr('res-model'),
+            'views': [[false, 'form']],
+        };
+        window.parent.postMessage({
+            'message': 'report:do_action',
+            'action': action,
+        }, window.origin);
+    },
     _make_table_expandable: function () {
         var $body = $(this.iframe).contents().find('html body');
+        $body.find('.reports_m2o_web_action').on('click', this.openM2ORecord);
         var $trExpandable = $body.find('.tr_expandable');
+
         $trExpandable.on('click', function (ev, collapse){
             var id = $(this).data('id');
             var $caret =  $(this).find('.td-caret');

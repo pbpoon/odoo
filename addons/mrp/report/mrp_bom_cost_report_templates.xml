@@ -16,7 +16,9 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <h3 class="mt8 mb16" t-esc="line['name']"/>
+                        <a class="mt8 mb16 reports_m2o_web_action" t-att-res-id="line['id']" res-model="product.product">
+                            <h3 t-esc="line['name']"/>
+                        </a>
                         <table class="table table-condensed">
                             <thead>
                                 <tr>
@@ -38,7 +40,7 @@
                                             <t t-if="bom_line['has_child'] and bom_line['print_mode'] == 'html'">
                                                 <i class="fa fa-caret-right td-caret" aria-hidden="true"></i>
                                             </t>
-                                            <span t-att-res-id="bom_line['product_id'].id" res-model="product.product" view-type="form" t-esc="bom_line['product_id'].display_name"/>
+                                            <span t-esc="bom_line['product_id'].display_name"/>
                                         </td>
                                         <td class="text-left">
                                             <span t-esc="bom_line['product_uom_qty']"/>
