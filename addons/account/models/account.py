@@ -708,7 +708,6 @@ class AccountTax(models.Model):
             company_id = self[0].company_id
         if not currency:
             currency = company_id.currency_id
-        taxes = []
         # By default, for each tax, tax amount will first be computed
         # and rounded at the 'Account' decimal precision for each
         # PO/SO/invoice line and then these rounded amounts will be
@@ -783,6 +782,7 @@ class AccountTax(models.Model):
                     incl_percent_amount += tax.amount
             bases_vals[i] = current_base
             i -= 1
+
 
         # Start the computation of accumulated amounts at the total_excluded value.
         total_excluded = total_included = base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount)
