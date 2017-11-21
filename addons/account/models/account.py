@@ -833,7 +833,7 @@ class AccountTax(models.Model):
             if tax.include_base_amount:
                 base += tax_amount
 
-            taxes.append({
+            taxes_vals.append({
                 'id': tax.id,
                 'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
                 'amount': tax_amount,
