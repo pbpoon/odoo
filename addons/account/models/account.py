@@ -821,28 +821,25 @@ class AccountTax(models.Model):
             else:
                 tax_amount = currency.round(tax_amount)
 
-            if tax.price_include:
-                total_excluded -= tax_amount
-                base -= tax_amount
-            else:
-                total_included += tax_amount
+            #if tax.price_include:
+            #    base -= tax_amount
 
-            # Keep base amount used for the current tax
-            tax_base = base
-
-            if tax.include_base_amount:
-                base += tax_amount
+            total_included += tax_amount
 
             taxes_vals.append({
                 'id': tax.id,
                 'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
                 'amount': tax_amount,
-                'base': tax_base,
+                'base': base,
                 'sequence': tax.sequence,
                 'account_id': tax.account_id.id,
                 'refund_account_id': tax.refund_account_id.id,
                 'analytic': tax.analytic,
             })
+
+            # Affect subsequent taxes
+            if tax.include_base_amount:
+                base += tax_amount
 
         return {
             'taxes': taxes_vals,
