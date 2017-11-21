@@ -3300,10 +3300,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             # check Python constraints
             self._validate_fields(vals)
 
-            # recompute fields
-            if self.env.recompute and self._context.get('recompute', True):
-                self.recompute()
-
         self.check_access_rule('create')
 
         # add translations
