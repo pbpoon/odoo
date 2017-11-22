@@ -45,7 +45,7 @@
                     </div>
 
                     <div t-if="o.workorder_ids">
-                        <strong>Work Orders</strong>
+                        <h3>Planned Operations</h3>
                         <table class="table table-condensed">
                             <tr>
                                 <td><strong>Operation</strong></td>
