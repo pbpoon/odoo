@@ -346,6 +346,88 @@ class ComputeInverse(models.Model):
         for record in self:
             record.foo = record.bar
 
+class ComputeReadWrite(models.Model):
+    """
+    Test for stored read-write computed fields.
+    """
+    _name = 'test_new_api.compute_read_write'
+
+    body = fields.Text()
+    introduction = fields.Char(
+        string='introduction', compute='_compute_introduction', readonly=False, store=True)
+    author = fields.Many2one('res.users', default=lambda self: self.env.user)
+    parent = fields.Many2one(
+        'test_new_api.compute_read_write',
+        string='Parent',
+        compute='_compute_parent', readonly=False, store=True)
+    field_with_inverse = fields.Integer(
+        string='Field with inverse', default=0,
+        compute='_compute_with_inverse',
+        inverse='_inv_with_inverse',
+        readonly=False, store=True)
+    taxes = fields.Integer(string='Taxes', default=20)
+    amount = fields.Integer(
+        string='Amount', default=100, compute='_compute_amount', readonly=False, store=True)
+    amount_with_taxes = fields.Integer(
+        string='Amount with taxes',
+        compute='_compute_amount_with_taxes', readonly=False, store=True)
+    formatted_ids = fields.Char(
+        string='Formatted ids', compute='_compute_formatted_ids', readonly=False, store=True)
+
+    @api.multi
+    @api.depends('amount_with_taxes', 'taxes')
+    def _compute_amount(self):
+        for record in self:
+            record.amount = record.amount_with_taxes * (1 - record.taxes/100)
+
+    @api.multi
+    @api.depends('amount', 'taxes')
+    def _compute_amount_with_taxes(self):
+        for record in self:
+            record.amount_with_taxes = record.amount * (1 + record.taxes/100)
+
+    @api.multi
+    @api.depends('parent.formatted_ids', 'parent')
+    def _compute_formatted_ids(self):
+        for record in self:
+            if not record.parent:
+                record.formatted_ids = "%s" % record.id
+            else:
+                record.formatted_ids = "%s / " % record.id + record.parent.formatted_ids
+
+    @api.multi
+    @api.depends('write_date', 'author.name')
+    def _compute_introduction(self):
+        for record in self:
+            introduction = "%s says on %s: " % (record.author.name, record.write_date)
+            introduction += "The most exciting phrase to hear in science, the one that heralds "
+            introduction += "new discoveries, is not \"Eureka!\" (I found it!) but \"That's funny...\"."
+            introduction += "Isaac Asimov. Foundation."
+            record.introduction = introduction
+
+    @api.multi
+    @api.depends('author')
+    def _compute_parent(self):
+        for compute in self:
+            if compute.body:
+                parent_id = len(compute.body)
+                parent = self.search([('id', '=', parent_id)])
+                if parent:
+                    compute.parent = parent[0]
+
+    @api.multi
+    @api.depends('body')
+    def _compute_with_inverse(self):
+        for compute in self:
+            if compute.body is None:
+                compute.field_with_inverse = -1
+                continue
+            compute.field_with_inverse = len(compute.body)
+
+    @api.multi
+    @api.depends('body')
+    def _inv_with_inverse(self):
+        pass
 
 class CompanyDependent(models.Model):
     _name = 'test_new_api.company'

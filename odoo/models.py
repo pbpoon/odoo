@@ -2986,6 +2986,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             elif field.inverse:
                 inverse_vals[key] = val
                 protected_fields.append(field)
+            if field.store and field.compute and not field.readonly:
+                protected_fields.append(field)
 
         if unknown_names:
             _logger.warning("%s.write() with unknown fields: %s",
@@ -3185,6 +3187,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             elif field.inverse:
                 inverse_vals[key] = val
                 protected_fields.append(field)
+            if field.store and field.compute and not field.readonly:
+                protected_fields.append(field)
 
         if unknown_names:
             _logger.warning("%s.create() with unknown fields: %s",
@@ -3252,6 +3256,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 other_fields.append(field)
 
             if field.inverse:
+                protected_fields.append(field)
+
+            if field.store and field.compute and not field.readonly:
                 protected_fields.append(field)
 
         if self._log_access:

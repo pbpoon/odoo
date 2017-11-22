@@ -7,7 +7,6 @@ from odoo.exceptions import AccessError, UserError, except_orm
 from odoo.tests import common
 from odoo.tools import mute_logger, float_repr, pycompat
 
-
 class TestFields(common.TransactionCase):
 
     def test_00_basics(self):
@@ -297,6 +296,72 @@ class TestFields(common.TransactionCase):
         # messages in discussion
         discussion.participants += self.env.user
         self.env['test_new_api.message'].create({'discussion': discussion.id, 'body': 'Whatever'})
+
+    def test_16_rw_stored(self):
+        """ test readwrite stored computed fields """
+        record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'Whatever'
+        })
+        introduction = "%s says on %s: " % (record.author.name, record.write_date)
+        root_id = record.id
+
+        self.assertTrue(record.introduction.startswith(introduction))
+        record.write({'introduction': 'Defaced'})
+        self.assertTrue(record.introduction == 'Defaced')
+        record.write({'author': record.author.id})
+        introduction = "%s says on %s: " % (record.author.name, record.write_date)
+        self.assertTrue(record.introduction.startswith(introduction))
+
+        record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'Whatever',
+            'introduction': 'No intro'
+        })
+        self.assertTrue(record.introduction == 'No intro')
+
+        record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'A' * root_id,
+            'introduction': 'Test recursive'
+        })
+        result = '/ %s' % record.id
+
+        self.assertTrue(record.parent.id == root_id)
+
+        child_record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'A' * record.id,
+            'introduction': 'Test recursive'
+        })
+        result = '/ %s %s' % (child_record.id, result)
+
+        child_record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'A' * child_record.id,
+            'introduction': 'Test recursive'
+        })
+        result = '%s %s' % (child_record.id, result)
+
+        self.assertTrue(child_record.parent.parent.id == record.id)
+        self.assertTrue(child_record.formatted_ids.startswith(result))
+
+        child_record.parent = child_record.parent.parent
+        self.assertTrue(child_record.parent.id == record.id)
+
+        record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'A',
+            'introduction': 'Test mutual dependency',
+            'amount': 100,
+            'taxes': 20,
+        })
+        self.assertTrue(record.amount_with_taxes == 120)
+
+        record = self.env['test_new_api.compute_read_write'].create({
+            'body': 'A',
+            'introduction': 'Test mutual dependency',
+            'amount_with_taxes': 1200,
+            'taxes': 20,
+        })
+
+        self.assertTrue(record.amount == 100) # A default value exists, don't compute on create
+        record.amount = 2000
+        self.assertTrue(record.amount_with_taxes == 2400)
 
     def test_20_float(self):
         """ test float fields """
