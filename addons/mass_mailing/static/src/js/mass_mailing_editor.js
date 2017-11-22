@@ -143,6 +143,31 @@ $.summernote.eventHandler.modules.popover.update = function ($popover, oStyle, i
 ajax.loadXML("/mass_mailing/static/src/xml/mass_mailing.xml", core.qweb);
 
 snippets_editor.Class.include({
+    /**
+     * Add padding in Basic theme(Plain text) template for proper preview
+     *
+     * @override
+     */
+    start: function () {
+        var $basicTheme = this.$editable.find('.o_layout.o_basic_theme');
+        if ($basicTheme.length) {
+            $basicTheme.css('padding', '25px');
+        }
+        return this._super.apply(this, arguments);
+    },
+    /**
+     * Basic theme(Plain text) template should look proper in gmail without padding
+     * So, padding removed when save template
+     *
+     * @override
+     */
+    cleanForSave: function () {
+        this._super.apply(this, arguments);
+        var $basicTheme = this.$editable.find('.o_layout.o_basic_theme');
+        if ($basicTheme.length) {
+            $basicTheme.css('padding', '0px');
+        }
+    },
     _computeSnippetTemplates: function (html) {
         var self = this;
         var ret = this._super.apply(this, arguments);
