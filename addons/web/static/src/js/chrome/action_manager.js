@@ -176,7 +176,7 @@ var ViewManagerAction = WidgetAction.extend({
      * @param {Function} [callback] the callback
      * @param {Object} [scroll] the number of pixels to scroll
      */
-    set_on_reverse_breadcrumb: function(callback, scroll) {
+    set_on_reverse_breadcrumb: function (callback, scroll) {
         this._super(callback);
         this.setScrollPosition(scroll);
     },

@@ -3518,19 +3518,13 @@ var BasicModel = AbstractModel.extend({
                     if (oldGroup) {
                         // restore the internal state of the group
                         delete self.localData[newGroup.id];
-                        var updatedProps = _.omit(newGroup, 'limit', 'isOpen', 'offset', 'id');
+                        var updatedProps = _.omit(newGroup, 'limit', 'isOpen', 'offset', 'id', 'lastLimit');
                         if (options && options.onlyGroups || oldGroup.isOpen && newGroup.groupedBy.length) {
                             // If the group is opened and contains subgroups,
                             // also keep its data to keep internal state of
                             // sub-groups
                             // Also keep data if we only reload groups' own data
                             delete updatedProps.data;
-                        }
-                        _.extend(newGroup, _.pick(oldGroup, 'limit', 'isOpen', 'offset', 'lastLimit'));
-                        // if the group is open and contains subgroups, also
-                        // restore its data to keep internal state of sub-groups
-                        if (newGroup.isOpen && newGroup.groupedBy.length) {
-                            newGroup.data = oldGroup.data;
                         }
                         _.extend(oldGroup, updatedProps);
                         newGroup = oldGroup;
