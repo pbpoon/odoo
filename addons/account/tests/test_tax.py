@@ -88,7 +88,6 @@ class TestTax(AccountTestUsers):
         # Base after the second group (220) is dropped.
         # Base of the group of groups is passed out,
         # so we obtain base as after first group
-        self.assertEquals(res['base'], 210.0)
         self.assertEquals(res['total_included'], 263.0)
 
     def test_tax_group(self):
@@ -171,7 +170,7 @@ class TestTax(AccountTestUsers):
             [
                 # base , amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (5.79, 1.21),     # |  3  |    10% |   t  |
+                (5.79, 1.21),     # |  3  |    21% |   t  |
                 # ---------------------------------------------------
             ],
             res
@@ -187,7 +186,7 @@ class TestTax(AccountTestUsers):
             [
                 # base , amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (333.33, 66.66),  # |  3  |    10% |   t  |
+                (333.33, 66.66),  # |  3  |    20% |   t  |
                 # ---------------------------------------------------
             ],
             res
@@ -212,7 +211,7 @@ class TestTax(AccountTestUsers):
             [
                 # base , amount          | seq | amount | incl | incl_base
                 # --------------------------------------------------------
-                (5.785124, 1.214876),  # |  3  |    10% |   t  |
+                (5.785124, 1.214876),  # |  3  |    21% |   t  |
                 # --------------------------------------------------------
             ],
             res
@@ -228,7 +227,7 @@ class TestTax(AccountTestUsers):
             [
                 # base , amount             | seq | amount | incl | incl_base
                 # -----------------------------------------------------------
-                (333.333333, 66.666666),  # |  3  |    10% |   t  |
+                (333.333333, 66.666666),  # |  3  |    20% |   t  |
                 # -----------------------------------------------------------
             ],
             res

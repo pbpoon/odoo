@@ -658,7 +658,6 @@ class AccountTax(models.Model):
                 'refund_account_id': int,
                 'analytic': boolean,
             }],
-            'base': 0.0
         } """
 
         # 1) Flatten the taxes.
@@ -750,7 +749,8 @@ class AccountTax(models.Model):
         else:
             sign = 1
 
-        def recompute_base(base_amount, fixed_amount, percent_amount):
+
+        def recompute_base(base_amount, fixed_amount, percent_amount, division_amount):
             # Recompute the new base amount based on included fixed/percent amount and the current base amount.
             # Example:
             #  tax  |  amount  |   price_include  |
@@ -762,30 +762,32 @@ class AccountTax(models.Model):
 
             # if base_amount = 145, the new base is computed as:
             # (145 - 15) / (1.0 + 30%) = 130 / 1.3 = 100
-            return (base_amount - fixed_amount) / (1.0 + percent_amount / 100.0)
+            return (base_amount - fixed_amount) / (1.0 + percent_amount / 100.0) * (100 - division_amount) / 100
 
 
         # Keep track of the accumulated included fixed/percent amount.
-        incl_fixed_amount = incl_percent_amount = 0
+        incl_fixed_amount = incl_percent_amount = incl_division_amount = 0
         i = len(taxes) - 1
         current_base = base
         bases_vals = {}
 
         for tax in reversed(taxes):
             if tax.include_base_amount:
-                current_base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount)
-                incl_fixed_amount = incl_percent_amount = 0
+                current_base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount, incl_division_amount)
+                incl_fixed_amount = incl_percent_amount = incl_division_amount = 0
             if tax.price_include:
                 if tax.amount_type == 'fixed':
                     incl_fixed_amount += quantity * tax.amount
                 elif tax.amount_type == 'percent':
                     incl_percent_amount += tax.amount
+                elif tax.amount_type == 'division':
+                    incl_division_amount += tax.amount
             bases_vals[i] = current_base
             i -= 1
 
 
         # Start the computation of accumulated amounts at the total_excluded value.
-        total_excluded = total_included = base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount)
+        total_excluded = total_included = base = recompute_base(current_base, incl_fixed_amount, incl_percent_amount, incl_division_amount)
 
         # 5) Iterate the taxes in the sequence order to fill missing base/amount values.
         #      tax  |  base  |  amount  |  price_include  |
@@ -829,8 +831,8 @@ class AccountTax(models.Model):
             taxes_vals.append({
                 'id': tax.id,
                 'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
-                'amount': tax_amount,
-                'base': base,
+                'amount': sign * tax_amount,
+                'base': sign * round(base, prec),
                 'sequence': tax.sequence,
                 'account_id': tax.account_id.id,
                 'refund_account_id': tax.refund_account_id.id,
