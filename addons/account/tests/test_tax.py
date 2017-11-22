@@ -276,3 +276,100 @@ class TestTax(AccountTestUsers):
         aml_with_taxes = move.line_ids.filtered(lambda l: set(l.tax_ids.ids) == set([self.group_tax.id, self.fixed_tax_bis.id]))
         self.assertEquals(len(aml_with_taxes), 1)
         self.assertEquals(aml_with_taxes.credit, 190)
+
+    def test_advanced_taxes_computation_0(self):
+        '''Test more advanced taxes computation (see issue 34471).'''
+        tax_1 = self.env['account.tax'].create({
+            'name': 'test_advanced_taxes_computation_0_1',
+            'amount_type': 'percent',
+            'amount': 10,
+            'price_include': True,
+            'include_base_amount': True,
+            'sequence': 1,
+        })
+        tax_2 = self.env['account.tax'].create({
+            'name': 'test_advanced_taxes_computation_0_2',
+            'amount_type': 'percent',
+            'amount': 10,
+            'sequence': 2,
+        })
+        tax_3 = self.env['account.tax'].create({
+            'name': 'test_advanced_taxes_computation_0_3',
+            'amount_type': 'percent',
+            'amount': 10,
+            'price_include': True,
+            'sequence': 3,
+        })
+        tax_4 = self.env['account.tax'].create({
+            'name': 'test_advanced_taxes_computation_0_4',
+            'amount_type': 'percent',
+            'amount': 10,
+            'sequence': 4,
+        })
+        tax_5 = self.env['account.tax'].create({
+            'name': 'test_advanced_taxes_computation_0_5',
+            'amount_type': 'percent',
+            'amount': 10,
+            'price_include': True,
+            'sequence': 5,
+        })
+        taxes = tax_1 + tax_2 + tax_3 + tax_4 + tax_5
+        res = taxes.compute_all(132.0)
+        self._check_compute_all_results(
+            110,     # 'base'
+            154,     # 'total_included'
+            100,     # 'total_excluded'
+            [
+                # base , amount     | seq | amount | incl | incl_base
+                # ---------------------------------------------------
+                (100.0, 10.0),    # |  1  |    10% |   t  |     t
+                (110.0, 11.0),    # |  2  |    10% |      |
+                (110.0, 11.0),    # |  3  |    10% |   t  |
+                (110.0, 11.0),    # |  4  |    10% |      |
+                (110.0, 11.0),    # |  5  |    10% |   t  |
+                # ---------------------------------------------------
+            ],
+            res
+        )
+
+    def test_tax_include_round_globally(self):
+        self.percent_tax.price_include = True
+        self.percent_tax.amount = 6.0
+        self.percent_tax_bis.price_include = False
+        self.percent_tax_bis.amount = 6.0
+
+        res = (self.percent_tax + self.percent_tax + self.percent_tax_bis + self.percent_tax_bis).compute_all(130.0)
+        self._check_compute_all_results(
+            116.07, # 'base'
+            143.92, # 'total_included'
+            116.07, # 'total_excluded'
+            [
+                # base , amount     | seq | amount | incl | incl_base
+                # ---------------------------------------------------
+                (116.07, 6.96),   # |  3  |    6%  |   t  |
+                (116.07, 6.97),   # |  3  |    6%  |   t  |
+                (116.07, 6.96),   # |  3  |    6%  |      |
+                (116.07, 6.96),   # |  3  |    6%  |      |
+                # ---------------------------------------------------
+            ],
+            res
+        )
+
+        self.env.user.company_id.tax_calculation_rounding_method = 'round_globally'
+
+        res = (self.percent_tax + self.percent_tax + self.percent_tax_bis + self.percent_tax_bis).compute_all(130.0)
+        self._check_compute_all_results(
+            116.07, # 'base'
+            143.93, # 'total_included'
+            116.07, # 'total_excluded'
+            [
+                # base , amount     | seq | amount | incl | incl_base
+                # ---------------------------------------------------
+                (116.07, 6.96),   # |  3  |    6%  |   t  |
+                (116.07, 6.97),   # |  3  |    6%  |   t  |
+                (116.07, 6.96),   # |  3  |    6%  |      |
+                (116.07, 6.96),   # |  3  |    6%  |      |
+                # ---------------------------------------------------
+            ],
+            res
+        )
