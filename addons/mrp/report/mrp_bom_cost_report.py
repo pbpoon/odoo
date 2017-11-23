@@ -3,20 +3,21 @@
 
 from odoo import api, models
 
-
 class MrpBomCost(models.AbstractModel):
     _name = 'report.mrp.mrp_bom_cost_report'
 
-    def get_unit_cost(self, bom_line):
+    def get_bom_cost(self, current_line, quantity):
         total = 0
-        for line in bom_line:
-            for child_line in line.child_line_ids:
-                if child_line._skip_bom_line(line.product_id):
-                    continue
-                total += self.get_unit_cost(child_line)
-            if not line.child_line_ids:
-                total += line.product_id.uom_id._compute_price(line.product_id.standard_price, line.product_uom_id) * line.product_qty
-                total = total / line.bom_id.product_qty
+        for child_line in current_line.child_line_ids:
+            if child_line._skip_bom_line(current_line.product_id):
+                continue
+            line_quantity = (quantity / child_line.bom_id.product_qty) * child_line.product_qty
+            if child_line.child_bom_id:
+                line_quantity = child_line.product_uom_id._compute_quantity(line_quantity, child_line.child_bom_id.product_uom_id)
+            total += self.get_bom_cost(child_line, line_quantity)
+        if not current_line.child_bom_id:
+            unit_price = current_line.product_id.uom_id._compute_price(current_line.product_id.standard_price, current_line.product_uom_id)
+            total = unit_price * quantity
         return total
 
     def get_bom_lines(self, bom_lines, product, qty, parent_line, level):
@@ -27,9 +28,18 @@ class MrpBomCost(models.AbstractModel):
         for bom_line in bom_lines:
             if bom_line._skip_bom_line(product):
                 continue
-            line_quantity = qty * bom_line.product_qty
+            line_quantity = bom_line.product_qty
+            if parent_line:
+                qty = parent_line.product_uom_id._compute_quantity(qty, bom_line.bom_id.product_uom_id) / bom_line.bom_id.product_qty
+                line_quantity = bom_line.product_qty * qty
             has_child = bom_line.child_line_ids and True or False
-            unit_price = has_child and self.get_unit_cost(bom_line) or bom_line.product_id.uom_id._compute_price(bom_line.product_id.standard_price, bom_line.product_uom_id)
+            unit_price = 0.0
+            total_price = 0.0
+            if has_child:
+                qty = bom_line.product_uom_id._compute_quantity(line_quantity, bom_line.child_bom_id.product_uom_id)
+                unit_price = self.get_bom_cost(bom_line, qty) / line_quantity
+            else:
+                unit_price = bom_line.product_id.uom_id._compute_price(bom_line.product_id.standard_price, bom_line.product_uom_id)
             total_price = line_quantity * unit_price
             lines.append(({
                 'product_id': bom_line.product_id,
