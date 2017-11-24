@@ -65,14 +65,10 @@
         <field name="view_id" eval="False"/>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to define a new category.
+                Create a <a type="create">new category</a>.
             </p><p>
                 Categories are used to browse your products through the
                 touchscreen interface.
-            </p><p>
-                If you put a photo on the category, the layout of the
-                touchscreen interface will automatically. We suggest not to put
-                a photo on categories for small (1024x768) screens.
             </p>
         </field>
     </record>

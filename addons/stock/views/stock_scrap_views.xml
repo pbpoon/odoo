@@ -93,7 +93,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to scrap products.
+                <a type="create">Scrap products</a>.
               </p><p>
                 Scrapping a product will remove it from your stock. The product will
                 end up in a scrap location that can be used for reporting purpose.

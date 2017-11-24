@@ -94,7 +94,7 @@
             <field name="search_view_id" ref="view_attachment_search"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create new documents.
+                    Create a <a type="create">new document</a>.
                 </p>
                 <p>
                     Also you will find here all the related documents and download it by clicking on any individual document.

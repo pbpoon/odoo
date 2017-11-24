@@ -106,7 +106,7 @@
         <field name="search_view_id" ref="stock_picking_batch_filter"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to create a Batch Picking.
+            Create a <a type="create">new batch picking</a>.
           </p><p>
             The goal of the batch picking is to group operations that may
             (needs to) be done together in order to increase their efficiency.

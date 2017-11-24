@@ -80,7 +80,7 @@
             <field name="view_id" ref="view_base_automation_tree"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to setup a new automated automation. 
+                Setup a <a type="create">new automated automation</a>. 
               </p><p>
                 Use automated actions to automatically trigger actions for
                 various screens. Example: a lead created by a specific user may

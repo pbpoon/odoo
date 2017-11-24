@@ -328,7 +328,7 @@
         <field name="context">{"search_default_consumable": 1, 'default_type': 'product'}</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to define a new product.
+                Create a <a type="create">new product</a>.
             </p>
         </field>
     </record>

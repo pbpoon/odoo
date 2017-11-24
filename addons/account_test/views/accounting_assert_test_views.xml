@@ -73,7 +73,7 @@ Example:
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create Accounting Test.
+                Create a <a type="create">new accounting test</a>.
               </p>
             </field>
         </record>

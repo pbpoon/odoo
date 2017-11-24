@@ -30,7 +30,7 @@
             <field name="view_id" ref="crm_team_salesteams_search"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to define a new sales channel.
+                    Define a <a type="create">new sales channel</a>.
                 </p><p>
                     Use sales channels to organize your sales departments. 
                     Each channel will work with a separate pipeline.
@@ -162,7 +162,7 @@
             <field name="view_id" ref="crm_team_salesteams_search"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to define a new sales channel.
+                    Define a <a type="create">new sales channel</a>.
                 </p><p>
                     Use sales channels to organize your sales departments. 
                     Each channel will work with a separate pipeline.

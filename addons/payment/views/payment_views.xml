@@ -199,7 +199,7 @@
             <field name='view_mode'>kanban,tree,form</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to create a payment acquirer.
+                    Create a <a type="create">new payment acquirer</a>.
                 </p>
             </field>
         </record>
@@ -328,6 +328,11 @@
             <field name="res_model">payment.transaction</field>
             <field name='view_type'>form</field>
             <field name='view_mode'>tree,kanban,form</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Create a <a type="create">new payment transaction</a>.
+              </p>
+            </field>
         </record>
 
         <menuitem
@@ -439,7 +444,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to create a payment icon.
+                    Create a <a>payment icon</a>.
                 </p>
             </field>
         </record>

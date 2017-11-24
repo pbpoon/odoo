@@ -9,7 +9,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to define a new chat shortcode.
+                Define a <a type="create">new chat shortcode</a>.
               </p><p>
                 A shortcode is a keyboard shortcut. For instance, you type #gm and it will be transformed into "Good Morning".
               </p>

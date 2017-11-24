@@ -181,6 +181,7 @@ var Menu = Widget.extend({
                 }
             }
         }
+
         if (action_id) {
             this.trigger('menu_click', {
                 action_id: action_id,

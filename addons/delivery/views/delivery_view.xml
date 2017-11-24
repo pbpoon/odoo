@@ -143,7 +143,7 @@
             <field name="context">{'search_default_group_by_provider': True}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to define a new delivery method.
+                Define a <a type="create">new delivery method</a>.
               </p><p>
                 Each carrier (e.g. UPS) can have several delivery methods (e.g.
                 UPS Express, UPS Standard) with a set of pricing rules attached

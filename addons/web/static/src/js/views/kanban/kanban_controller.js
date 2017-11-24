@@ -31,6 +31,9 @@ var KanbanController = BasicController.extend({
         kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
     }),
+    events: _.extend({}, BasicController.prototype.events, {
+        'click a[type="create"]': '_onButtonNew',
+    }),
     /**
      * @override
      * @param {Object} params

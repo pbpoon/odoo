@@ -124,7 +124,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create your template.
+                    Create <a type="create">your quotation template</a>.
                 </p><p>
                     Use templates to create polished, professional quotes in minutes.
                     Send these quotes by email and let your customers sign online.

@@ -53,7 +53,7 @@
         <field name="view_id" ref="product_uom_tree_view"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to add a new unit of measure.
+            Add a <a type="create">new unit of measure</a>.
           </p><p>
             You must define a conversion rate between several Units of
             Measure within the same category.
@@ -80,7 +80,7 @@
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to add a new unit of measure category.
+            Add a <a type="create">new unit of measure category</a>.
           </p><p>
             Units of measure belonging to the same category can be
             converted between each others. For example, in the category

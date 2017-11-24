@@ -50,7 +50,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a new bank.
+                Create a <a type="create">new bank</a>.
               </p><p>
                 Manage bank records you want to be used in the system.
               </p>
@@ -102,7 +102,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a bank account.
+                Create a <a type="create">bank account</a>.
               </p>
             </field>
         </record>

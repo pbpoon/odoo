@@ -27,6 +27,9 @@ var ListController = BasicController.extend({
         toggle_column_order: '_onToggleColumnOrder',
         toggle_group: '_onToggleGroup',
     }),
+    events: _.extend({}, BasicController.prototype.events, {
+        'click a[type="create"]': '_onCreateRecord',
+    }),
     /**
      * @constructor
      * @override

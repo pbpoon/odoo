@@ -209,16 +209,10 @@
         <field name="view_mode">tree,kanban,form</field>
         <field name="search_view_id" ref="view_pos_session_search" />
         <field name="help" type="html">
-            <p class="oe_view_nocontent_create">
-                Click to start a new session.
+            <p class="oe_view_nocontent_reporting">
+                No session found.
             </p><p>
-                A session is a period of time, usually one day, during which
-                you sell through the point of sale. The user has to check the
-                currencies in your cash registers at the beginning and the end
-                of each session.
-            </p><p>
-                Note that you may use the menu <i>Your Session</i>
-                to quickly open a new session.
+                A session is a period of time, usually one day, during which you sell through the Point of Sale.
             </p>
         </field>
     </record>

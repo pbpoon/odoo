@@ -75,7 +75,7 @@
         <field name="context">{"search_default_groupby_brand" : True,}</field>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to create a new model.
+            Create a <a type="create">new model</a>.
           </p><p>
             You can define several models (e.g. A3, A4) for each make (Audi).
           </p>
@@ -149,7 +149,7 @@
         <field name="view_mode">kanban,tree,form</field>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to create a new make.
+            Create a <a type="create">new make</a>.
           </p>
         </field>
     </record>

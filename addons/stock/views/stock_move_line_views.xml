@@ -115,6 +115,11 @@
             <field name="view_mode">tree,kanban,pivot,form</field>
             <field name="view_id" ref="view_move_line_tree"/>
             <field name="context">{'search_default_done': 1}</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Create a <a type="create">new product move</a>.
+              </p>
+            </field>
     </record>
 
     <menuitem 

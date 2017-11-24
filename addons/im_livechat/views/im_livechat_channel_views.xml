@@ -8,7 +8,7 @@
             <field name="view_mode">kanban,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to define a new website live chat channel.
+                Define a <a type="create">new website live chat channel</a>.
               </p><p>
                 You can create channels for each website on which you want
                 to integrate the website live chat widget, allowing your website
@@ -207,7 +207,7 @@
             <field name="domain">[('shortcode_type','=','text')]</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a new canned response.
+                Create a <a type="create">new canned response</a>.
               </p><p>
                 Canned responses allow you to insert prewritten responses in
                 your messages by typing <i>:shortcut</i>. The shortcut is

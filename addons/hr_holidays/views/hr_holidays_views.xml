@@ -335,7 +335,7 @@
             <field name="search_view_id" ref="view_hr_holidays_filter"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a new leave request.
+                Create a <a type="create">new leave request</a>.
               </p><p>
                 Once you have recorded your leave request, it will be sent
                 to a manager for validation. Be sure to set the right leave
@@ -409,7 +409,7 @@
             }</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create a new leave allocation request.
+                    Create a <a type="create">new leave allocation request</a>.
                 </p>
             </field>
             <field name="domain">[('type','=','add'), ('user_id', '=', uid)]</field>
@@ -476,7 +476,7 @@
             }</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create a new leave request.
+                    Create a <a type="create">new leave request</a>.
                 </p>
             </field>
             <field name="domain">[('holiday_type','=','employee'), ('user_id', '=', uid)]</field>
@@ -498,7 +498,7 @@
             <field name="context">{'default_type': 'remove',}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create a new leave request.
+                    Create a <a type="create">new leave request</a>.
                 </p>
             </field>
             <field name="domain">[('type','=','remove')]</field>
@@ -513,7 +513,7 @@
             <field name="context">{'search_default_department':1, 'search_default_approve':1}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create a new leave request.
+                    Create a <a type="create">new leave request</a>.
                 </p>
             </field>
             <field name="domain">[('type','=','remove')]</field>
@@ -536,7 +536,7 @@
             <field name="context">{'default_type':'add', 'search_default_department':1, 'search_default_approve':1}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click here to create a new leave allocation.
+                    Create a <a type="create">new leave allocation request</a>.
                 </p>
             </field>
             <field name="domain">[('type','=','add')]</field>
@@ -721,7 +721,8 @@
            <field name="view_mode">tree,form</field>
            <field name="view_id" ref="hr_holidays_leaves_assign_tree_view"/>
            <field name="help" type="html">
-             <p>
+             <p class="oe_view_nocontent_reporting">
+             </p><p>
                You can assign remaining Legal Leaves for each employee, Odoo
                will automatically create and validate allocation requests.
              </p>
@@ -771,6 +772,14 @@
                 'default_department_id': active_id}
             </field>
             <field name="search_view_id" ref="hr.view_employee_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Add a <a type="create">new employee</a>.
+              </p><p>
+                With just a quick glance on the Odoo employee screen, you can easily find all the
+                information you need for each person; contact data, job position, availability, etc.
+              </p>
+            </field>
         </record>
 
         <record id="action_hr_holidays_leaves_analysis" model="ir.actions.act_window">

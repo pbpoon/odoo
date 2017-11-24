@@ -288,7 +288,7 @@
         <field name="search_view_id" ref="view_purchase_requisition_filter"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to start a new purchase agreement.
+            Start a <a type="create">new purchase agreement</a>.
           </p><p>
             Example of purchase agreements include call for tenders and blanket orders.
           </p><p>

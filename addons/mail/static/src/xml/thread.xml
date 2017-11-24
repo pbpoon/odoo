@@ -104,7 +104,7 @@
     </t>
 
     <!-- When a channel is empty-->
-    <div t-name="mail.EmptyChannel" class="o_mail_no_content">
+    <div t-name="mail.EmptyChannel" class="o_mail_no_content o_view_container_nocontent">
         <t t-if="options.channel_id==='channel_inbox'">
             <div class="o_thread_title">Congratulations, your inbox is empty</div>
             <div>New messages appear here.</div>

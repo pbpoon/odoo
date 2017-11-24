@@ -9,11 +9,9 @@
         <field name="search_view_id" ref="base.view_res_partner_filter"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to add a contact in your contacts directory.
+            Create a <a type="create">contact</a> in your address book.
           </p><p>
-            Odoo helps you easily track all activities related to
-            a customer: discussions, history of business opportunities,
-            documents, etc.
+            Odoo helps you to easily track all activities related to a customer.
           </p>
         </field>
     </record>

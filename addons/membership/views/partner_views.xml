@@ -52,10 +52,10 @@
             <field name="context">{"search_default_all_members": 1, "default_free_member": True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                  Click to add a new Member
+                  Add a <a type="create">new member</a>.
                 </p><p>
-                 Odoo helps you easily track all activities related to a member: 
-                 Current Membership Status, Discussions and History of Membership, etc.
+                  Odoo helps you easily track all activities related to a member: 
+                  Current Membership Status, Discussions and History of Membership, etc.
                 </p>
             </field>
         </record>

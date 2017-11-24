@@ -50,6 +50,11 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">['|', ('move_id.unbuild_id', '=', active_id), ('move_id.consume_unbuild_id', '=', active_id)]</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Create a <a type="create">new product move</a>.
+              </p>
+            </field>
         </record>
 
         <record id="mrp_unbuild_kanban_view" model="ir.ui.view">
@@ -164,9 +169,10 @@
         <field name="view_mode">tree,kanban,form</field>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click here to create a Unbuild Order. 
+            Create a <a type="create">new unbuild order</a>. 
           </p><p>
-            Unbuild Orders are used to break down a product you manufactured or purchased into its components, based on its Bill of Material.</p>
+            An unbuild order is used to break down a finished product into its components.
+          </p>
         </field>
     </record>
 

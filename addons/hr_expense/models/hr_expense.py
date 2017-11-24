@@ -350,7 +350,7 @@ class HrExpense(models.Model):
                     'email': '%s@%s' % (alias_record.alias_name, alias_record.alias_domain)
                 }
                 return '<p class="oe_view_nocontent_create">%s<br/>%s</p>%s' % (
-                    _('Click to add a new expense,'),
+                    _('Add a new expense,'),
                     _('or send receipts by email to %s.') % (link,),
                     help_message)
         return super(HrExpense, self).get_empty_list_help(help_message)

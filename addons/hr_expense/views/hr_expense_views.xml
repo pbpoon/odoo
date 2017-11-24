@@ -190,16 +190,8 @@
             <field name="search_view_id" ref="view_hr_expense_filter"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                  Create a new expense.<br/>
-                  <!-- Or send receipts to .... -->
-              </p><p>
-                  Expenses will go through these steps:
-              </p><ol>
-                  <li>You record expenses</li>
-                  <li>Periodically, you submit expenses report to your manager,</li>
-                  <li>Once approved, your expenses report goes to the accounting,</li>
-                  <li>The accountant validates journal entries and reimburse you.</li>
-              </ol>
+                Create a <a type="create">new expense</a>.
+              </p>
             </field>
         </record>
 
@@ -211,14 +203,8 @@
             <field name="domain">[('employee_id.user_id', '=', uid)]</field>
             <field name="context">{'search_default_to_report': 1}</field>
             <field name="help" type="html">
-              <p>
-                The steps to process expenses are:
-                <ol>
-                    <li>You record expenses,</li>
-                    <li>Periodically, you submit expenses report to your manager,</li>
-                    <li>Once approved, your expense report, goes to the accounting,</li>
-                    <li>The accountant validates entries and reimburse you.</li>
-                </ol>
+              <p class="oe_view_nocontent_create">
+                Create a <a type="create">new expense</a>.
               </p>
             </field>
         </record>
@@ -295,7 +281,7 @@
             <field name="domain">[('can_be_expensed', '=', True)]</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a new expense category.
+                Create a <a type="create">new expense category</a>.
               </p>
             </field>
         </record>
@@ -330,7 +316,9 @@
             <field name="domain">[]</field>
             <field name="context">{"search_default_approved": 1}</field>
             <field name="help" type="html">
-              <p>
+              <p class="oe_view_nocontent_reporting">
+                No employee expense.
+              </p><p>
                 From here the accountant will be able to approve as well as refuse the expenses which are verified by the HR Manager.
               </p>
             </field>
@@ -345,7 +333,9 @@
             <field name="domain">[]</field>
             <field name="context">{"search_default_unsubmitted": 1}</field>
             <field name="help" type="html">
-              <p>
+              <p class="oe_view_nocontent_reporting">
+                No employee expense.
+              </p><p>
                 From here the accountant will be able to approve as well as refuse the expenses which are verified by the HR Manager.
               </p>
             </field>
@@ -572,7 +562,7 @@
             <field name="context">{}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create a new expense report.
+                Create a <a type="create">new expense report</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -587,7 +577,9 @@
             <field name="domain">[('employee_id.user_id', '=', uid), ('state', '=', 'cancel')]</field>
             <field name="context">{'create': False}</field>
             <field name="help" type="html">
-              <p>No refused reports to display.</p>
+              <p class="oe_view_nocontent_reporting">
+                No refused report to display.
+              </p>
             </field>
         </record>
 
@@ -599,10 +591,8 @@
             <field name="domain">[]</field>
             <field name="context">{'search_default_submitted': 1}</field>
             <field name="help" type="html">
-              <p class="oe_view_nocontent_create">
-                Click here to create a new expense report.
-              </p><p>
-                Once you have created your expense, submit it to your manager who will validate it.
+              <p class="oe_view_nocontent_reporting">
+                No expense report to approve.
               </p>
             </field>
         </record>
@@ -616,7 +606,7 @@
             <field name="context">{'search_default_to_post': 1}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create a new expense report.
+                Create a <a type="create">new expense report</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -632,7 +622,7 @@
             <field name="context">{'search_default_approved': 1}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create a new expense report.
+                Create a <a type="create">new expense report</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -648,7 +638,7 @@
             <field name="context">{}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create a new expense report.
+                Create a <a type="create">new expense report</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -665,7 +655,7 @@
             <field name="view_id" ref="view_hr_expense_sheet_tree"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create new expenses.
+                Create a <a type="create">new expense</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -682,7 +672,7 @@
             <field name="view_id" ref="view_hr_expense_sheet_tree"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create new expenses.
+                Create a <a type="create">new expense</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>
@@ -699,7 +689,7 @@
             <field name="view_id" ref="view_hr_expense_sheet_tree"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create new expenses.
+                Create a <a type="create">new expense</a>.
               </p><p>
                 Once you have created your expense, submit it to your manager who will validate it.
               </p>

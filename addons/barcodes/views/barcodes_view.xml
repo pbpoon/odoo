@@ -58,7 +58,7 @@
             <field name="view_mode">tree,kanban,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a Barcode Nomenclature .
+                Add a <a type="create">new barcode nomenclature</a>.
               </p><p>
                 A barcode nomenclature defines how the point of sale identify and interprets barcodes
               </p>

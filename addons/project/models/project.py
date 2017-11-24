@@ -147,11 +147,13 @@ class Project(models.Model):
             cover_task.write({'displayed_image_id': cover_image.id})
 
         # Change the help message on the action (no more activate project)
+        create_action = self.env.ref('project.open_create_project', False)
         action = self.env.ref('project.open_view_project_all', False)
         action_data = None
         if action:
             action.sudo().write({
-                "help": _('''<p class="oe_view_nocontent_create">Click to create a new project.</p>''')
+                "help": _('''<p class="oe_view_nocontent_create">
+                    Create a <a type="action" name="{}">new project</a>.<br/></p>'''.format(create_action.id))
             })
             action_data = action.read()[0]
         # Reload the dashboard
@@ -671,7 +673,7 @@ class Task(models.Model):
         self = self.with_context(
             empty_list_help_id=self.env.context.get('default_project_id'),
             empty_list_help_model='project.project',
-            empty_list_help_document_name=_("tasks")
+            empty_list_help_document_name=_("task"),
         )
         return super(Task, self).get_empty_list_help(help)
 

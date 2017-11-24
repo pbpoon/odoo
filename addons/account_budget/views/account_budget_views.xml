@@ -215,7 +215,7 @@
             <field name="search_view_id" ref="view_crossovered_budget_search"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a new budget.
+                Create a <a type="create">new budget</a>.
               </p><p>
                 A budget is a forecast of your company's income and/or expenses
                 expected for a period in the future. A budget is defined on some

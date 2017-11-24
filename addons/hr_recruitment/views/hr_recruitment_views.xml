@@ -11,7 +11,7 @@
         <field name="context">{}</field>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to add a new stage in the recruitment process.
+            Add a <a type="create">new stage</a> in the recruitment process.
           </p><p>
             Define here your stages of the recruitment process, for example:
             qualification call, first interview, second interview, refused,
@@ -329,7 +329,9 @@
         <field name="search_view_id" ref="view_crm_case_jobs_filter"/>
         <field name="context">{'search_default_job_id': [active_id], 'default_job_id': active_id}</field>
         <field name="help" type="html">
-              <p>
+              <p class="oe_view_nocontent_reporting">
+                No application yet.
+              </p><p>
                 Odoo helps you track applicants in the recruitment
                 process and follow up all operations: meetings, interviews, etc.
               </p><p>
@@ -349,8 +351,8 @@
         <field name="context">{'search_default_activities_my': 1}</field>
         <field name="domain">[('activity_date_deadline', '!=', False)]</field>
         <field name="help" type="html">
-            <p>
-                Currently there are not any activity scheduled.
+            <p class="oe_view_nocontent_create">
+                No scheduled activity for the moment.
             </p>
         </field>
     </record>
@@ -362,10 +364,9 @@
         <field name="domain">[('job_id', '=', active_id)]</field>
         <field name="context">{'default_job_id': active_id}</field>
         <field name="help" type="html">
-              <p>
-                Create some aliases that will allow you to track where applicants come from.
-              </p>
-              <p>
+              <p class="oe_view_nocontent_create">
+                Create <a type="create">some aliases</a> to track where applicants come from.
+              </p><p>
                 These aliases can be emails or urls for every source. When the applicant arrives here through one of these you'll know where he came from.
               </p>
          </field>
@@ -392,7 +393,7 @@
         <field name="context">{'search_default_job_id': active_id}</field>
         <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a new employee.
+                Add a <a type="create">new employee</a>.
               </p><p>
                 With just a quick glance on the Odoo employee screen, you
                 can easily find all the information you need for each person;
@@ -502,7 +503,7 @@
             <field name="context">{'search_default_in_recruitment': 1}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                  Click here to create a new job position.
+                  Create a <a type="create">new job position</a>.
               </p><p>
                   Once a job position is created, you can track the applicants
                   and manage the recruitment process related to the job
@@ -520,7 +521,9 @@
         <field name="search_view_id" ref="view_crm_case_jobs_filter"/>
         <field name="context">{}</field>
         <field name="help" type="html">
-          <p>
+          <p class="oe_view_nocontent_reporting">
+            No application yet.
+          </p><p>
             Odoo helps you track applicants in the recruitment
             process and follow up all operations: meetings, interviews, etc.
           </p><p>
@@ -625,7 +628,7 @@
         <field name="domain">[('res_model','=','hr.applicant')]</field>
         <field name="context">{'create': False}</field>
         <field name="help" type="html">
-            <p>
+            <p class="oe_view_nocontent_reporting">
                 No document yet.
             </p><p>
                 This menu helps you search through resumes and motivation
@@ -707,7 +710,7 @@
         <field name="view_id" ref="hr_recruitment_stage_tree"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to add a new stage in the recruitment process.
+            Add a <a type="create">new stage</a> in the recruitment process.
           </p><p>
             Don't forget to specify the department if your recruitment process
             is different according to the job position.
@@ -744,7 +747,7 @@
         <field name="view_type">form</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to add a new tag.
+                Add a <a type="create">new tag</a>.
             </p>
         </field>
     </record>

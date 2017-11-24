@@ -7,9 +7,8 @@
         <field name="context">{'search_default_group_by_user': True, 'search_default_group_by_definition': True}</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to create a goal.
-            </p>
-            <p>
+                Create a <a type="create">new goal</a>.
+            </p><p>
                 A goal is defined by a user and a goal definition.
                 Goals can be created automatically by using challenges.
             </p>
@@ -200,9 +199,8 @@
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to create a goal definition.
-            </p>
-            <p>
+                Create a <a type="create">new goal definition</a>.
+            </p><p>
                 A goal definition is a technical model of goal defining a condition to reach.
                 The dates, values to reach or users are defined in goal instance.
             </p>

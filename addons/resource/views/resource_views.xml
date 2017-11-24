@@ -289,7 +289,7 @@
         <field name="search_view_id" ref="view_resource_calendar_search"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Define working hours and time table that could be scheduled to your project members
+            Define <a type="create">working hours</a> and time table that could be scheduled to your project members
           </p>
         </field>
     </record>

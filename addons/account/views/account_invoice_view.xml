@@ -664,15 +664,9 @@
             <field name="search_view_id" ref="view_account_invoice_filter_inherit_invoices"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a customer invoice.
+                Create a <a type="create">customer invoice</a>.
               </p><p>
-                Odoo's electronic invoicing allows to ease and fasten the
-                collection of customer payments. Your customer receives the
-                invoice by email and he can pay online and/or import it
-                in his own system.
-              </p><p>
-                The discussions with your customer are automatically displayed at
-                the bottom of each invoice.
+                Create invoices, register payments and keep track of the discussions with your customers.
               </p>
             </field>
         </record>
@@ -705,10 +699,10 @@
             <field name="search_view_id" ref="view_account_invoice_filter_inherit_credit_notes"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a credit note.
+                Create a <a type="create">customer credit note</a>.
               </p><p>
-                Note that the easiest way to create a credit note is to do it directly form
-                the customer invoice, to refund it totally or partially.
+                Note that the easiest way to create a customer credit note is to do it directly 
+                from the customer invoice.
               </p>
             </field>
         </record>
@@ -743,7 +737,7 @@
             <field name="search_view_id" ref="view_account_invoice_filter_inherit_invoices"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to record a new vendor bill.
+                Record a <a type="create">new vendor bill</a>.
               </p><p>
                 You can control the invoice from your vendor according to
                 what you purchased or received.
@@ -779,7 +773,9 @@
             <field name="search_view_id" ref="view_account_invoice_filter_inherit_credit_notes"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to record a new vendor credit note.
+                Record a <a type="create">new vendor credit note</a>.
+              </p><p>
+                Note that the easiest way to create a vendor credit note it to do it directly from the vendor bill.
               </p>
             </field>
         </record>

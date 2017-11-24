@@ -111,6 +111,8 @@
             <field name="context">{}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
+                    Create a <a type="create">new product valuation</a>.
+                </p><p>
                     If there are products, you will see its name and valuation. 
                 </p>
             </field>
@@ -174,7 +176,7 @@
             <field name="context">{'search_default_outgoing': 1, 'search_default_incoming': 1, 'search_default_done': 1, 'search_default_group_by_product': 1}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a stock movement.
+                Create a <a type="create">new stock movement</a>.
               </p>
             </field>
         </record>

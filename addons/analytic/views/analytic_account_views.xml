@@ -36,7 +36,7 @@
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a new tag.
+                Add a <a type="create">new tag</a>.
               </p>
             </field>
         </record>
@@ -66,7 +66,7 @@
             <field name="view_id" ref="view_account_analytic_line_tree"/>
             <field name="view_type">form</field>
             <field name="help" type="html">
-              <p>
+              <p class="oe_view_nocontent_reporting">
                 No activity yet on this account.
               </p><p>
                 In Odoo, sales orders and projects are implemented using
@@ -199,7 +199,7 @@
             <field name="view_id" ref="view_account_analytic_account_list"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add an analytic account.
+                Add an <a type="create">new analytic account</a>.
               </p>
             </field>
         </record>
@@ -214,7 +214,7 @@
             <field name="view_mode">tree,kanban,form</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add an analytic account.
+                Add an <a type="create">new analytic account</a>.
               </p>
             </field>
         </record>
@@ -330,7 +330,7 @@
             <field name="view_type">form</field>
             <field name="search_view_id" ref="analytic.view_account_analytic_line_filter"/>
             <field name="help" type="html">
-              <p>
+              <p class="oe_view_nocontent_reporting">
                 No activity yet.
               </p><p>
                 In Odoo, sales orders and projects are implemented using

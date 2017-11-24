@@ -208,7 +208,7 @@
             <field name="search_view_id" ref="hr_contract_view_search"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click here to create new contracts.
+                Create a <a type="create">new contract</a>.
               </p>
             </field>
         </record>

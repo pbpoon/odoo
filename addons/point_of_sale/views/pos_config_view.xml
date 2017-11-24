@@ -550,7 +550,7 @@
         <field name="search_view_id" ref="view_pos_config_search" />
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
-                Click to create a new PoS config.
+                Create a <a type="create">new PoS config</a>.
             </p><p>
                 Configure at least one Point of Sale to be able to sell through the PoS interface.
             </p>

@@ -55,9 +55,12 @@ return AbstractRenderer.extend({
      * returning immediately, then wait a tiny interval before actually
      * displaying the data.
      *
+     * @override
+     * @private
      * @returns {Deferred} The _super deferred is actually resolved immediately
      */
     _render: function () {
+        this.$el.toggleClass('o_view_container_nocontent', !this.state.data.length);
         if (this.to_remove) {
             nv.utils.offWindowResize(this.to_remove);
         }
@@ -70,9 +73,8 @@ return AbstractRenderer.extend({
         } else if (!this.state.data.length) {
             this.$el.empty();
             this.$el.append(qweb.render('GraphView.error', {
-                title: _t("No data to display"),
-                description: _t("No data available for this chart. " +
-                    "Try to add some records, or make sure that " +
+                title: _t("No data to display."),
+                description: _t("Try to add some records, or make sure that " +
                     "there is no active filter in the search bar."),
             }));
         } else {

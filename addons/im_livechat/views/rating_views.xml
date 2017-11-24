@@ -24,7 +24,7 @@
         <field name="domain">[('parent_res_model','=','im_livechat.channel'), ('consumed','=',True)]</field>
         <field name="search_view_id" ref="rating_rating_view_search_livechat"/>
         <field name="help" type="html">
-            <p>
+            <p class="oe_view_nocontent_reporting">
                 There is no rating for this channel at the moment.
             </p>
         </field>
@@ -38,8 +38,8 @@
         <field name="domain">[('parent_res_model','=','im_livechat.channel'), ('consumed', '=', True)]</field>
         <field name="search_view_id" ref="rating_rating_view_search_livechat"/>
         <field name="help" type="html">
-            <p>
-                Customer ratings on livechat session.
+            <p class="oe_view_nocontent_reporting">
+                No customer rating on live chat session yet.
             </p>
         </field>
     </record>

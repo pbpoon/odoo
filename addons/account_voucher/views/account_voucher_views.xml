@@ -296,7 +296,7 @@
             <field name="target">current</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to create a sale receipt.
+                Create a <a type="create">new sale receipt</a>.
               </p><p>
                 When the sale receipt is confirmed, you can record the customer
                 payment related to this sales receipt.
@@ -411,7 +411,7 @@
             <field name="target">current</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to register a purchase receipt.
+                Register a <a type="create">new purchase receipt</a>.
               </p><p>
                 When the purchase receipt is confirmed, you can record the
                 vendor payment related to this purchase receipt.

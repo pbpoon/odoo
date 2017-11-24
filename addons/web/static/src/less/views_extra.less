@@ -1,28 +1,66 @@
 // No content helper
+.o_view_container_nocontent {
+    height: 100%;
+    max-height: 650px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .oe_view_nocontent {
     padding: 15px;
-    margin-top: 0;
+    margin: auto;
+    max-width: 650px;
     color: #777777;
-    font-size: 125%;
-    max-width: 700px;
-    .oe_view_nocontent_create {
+    font-size: 115%;
+    text-align: center;
+
+    .oe-view-nocontent() {
         margin-top: 0;
-        padding-top: 35px;
         color: #4c4c4c;
+        font-weight: bold;
+        font-size: 125%;
+    }
+
+    .oe-init-image() {
+        content: "";
+        display: block;
+        margin: auto;
+        background-size: cover;
+    }
+
+    .oe-happy-image() {
+        .oe-init-image();
+        .size(120px, 140px);
+        background: transparent url(/web/static/src/img/empty_state_file_happy.svg) no-repeat center;
+    }
+
+    .oe-folder-image() {
+        .oe-init-image();
+        .size(120px, 80px);
+        margin-top: 30px;
+        margin-bottom: 30px;
+        background: transparent url(/web/static/src/img/empty_state_folder_neutral.svg) no-repeat center;
+    }
+
+    .oe_view_nocontent_create {
+        .oe-view-nocontent();
         &:before {
-            content: "";
-            display: inline-block;
-            position: absolute;
-            width: 70px;
-            height: 80px;
-            margin-left: -70px;
-            margin-top: -50px;
-            background: transparent url(/web/static/src/img/view_empty_arrow.png) no-repeat 0px 0px;
+            .oe-happy-image();
+        }
+        &.nocontent_create_config:before {
+            .oe-folder-image();
         }
     }
-    > p {
-        padding-left: 78px;
+
+    .oe_view_nocontent_reporting {
+        .oe-view-nocontent();
+        &:before {
+            .oe-folder-image();
+        }
     }
+
     .oe_empty_custom_dashboard {
         background: transparent url(/web/static/src/img/graph_background.png) no-repeat 0 0;
         margin-top: -15px;

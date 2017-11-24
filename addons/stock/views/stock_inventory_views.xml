@@ -250,12 +250,9 @@
         <field name="search_view_id" ref="view_inventory_filter"/>
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to start an inventory.
+            Create a <a type="create">new inventory adjustment</a>.
           </p><p>
-            Periodical Inventories are used to count the number of products
-            available per location. You can use it once a year when you do
-            the general inventory or whenever you need it, to adapt the
-            current inventory level of a product.
+            This is used to correct the product quantities you have in stock.
           </p>
         </field>
     </record>
