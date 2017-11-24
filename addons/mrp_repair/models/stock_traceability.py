@@ -14,8 +14,11 @@ class MrpStockReport(models.TransientModel):
 
     @api.model
     def get_linked_move_lines(self, move_line):
-        move_lines = super(MrpStockReport, self).get_linked_move_lines(move_line)
+        move_lines, is_used = super(MrpStockReport, self).get_linked_move_lines(move_line)
         if not move_lines:
             # return consumed lines of repair order
             move_lines = move_line.move_id.repair_id and move_line.consume_line_ids
-        return move_lines
+        if not is_used:
+            # return produced lines if maretials is used in repair order
+            is_used = move_line.move_id.repair_id and move_line.produce_line_ids
+        return move_lines, is_used

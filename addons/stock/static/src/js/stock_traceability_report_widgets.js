@@ -41,6 +41,8 @@ var ReportWidget = Widget.extend({
             context: {
                 active_id : $el.data('model_id'),
                 active_model : $el.data('model'),
+                autofold: true,
+                lot_id: $el.data('lot_id').toString(),
                 url: '/stock/output_format/stock/active_id'
             },
         });
@@ -71,14 +73,15 @@ var ReportWidget = Widget.extend({
         $(e.target).parents('tr').find('span.o_stock_reports_foldable').replaceWith(QWeb.render("unfoldable", {lineId: active_id}));
         $(e.target).parents('tr').toggleClass('o_stock_reports_unfolded');
     },
-    unfold: function(e) {
+    autounfold: function(target, lot_id) {
+        var self =this;
         var $CurretElement;
-        $CurretElement = $(e.target).parents('tr').find('td.o_stock_reports_unfoldable');
+        $CurretElement = $(target).parents('tr').find('td.o_stock_reports_unfoldable');
         var active_id = $CurretElement.data('id');
         var active_model_name = $CurretElement.data('model');
         var active_model_id = $CurretElement.data('model_id');
         var row_level = $CurretElement.data('level');
-        var $cursor = $(e.target).parents('tr');
+        var $cursor = $(target).parents('tr');
         this._rpc({
                 model: 'stock.traceability.report',
                 method: 'get_lines',
@@ -89,16 +92,21 @@ var ReportWidget = Widget.extend({
                     'level': parseInt(row_level) + 30 || 1
                 },
             })
-            .then(function (lines) {// After loading the line
-                var line;
-                for (line in lines) { // Render each line
-                    $cursor.after(QWeb.render("report_mrp_line", {l: lines[line]}));
+            .then(function (lines) {
+                _.each(lines, function (line) {
+                    $cursor.after(QWeb.render("report_mrp_line", {l: line}));
                     $cursor = $cursor.next();
-                }
+                    if ($cursor && line.unfoldable && line.lot_id == lot_id) {
+                        self.autounfold($cursor.find(".fa-caret-right"), lot_id);
+                    }
+                });
             });
         $CurretElement.attr('class', 'o_stock_reports_foldable ' + active_id); // Change the class, and rendering of the unfolded line
-        $(e.target).parents('tr').find('span.o_stock_reports_unfoldable').replaceWith(QWeb.render("foldable", {lineId: active_id}));
-        $(e.target).parents('tr').toggleClass('o_stock_reports_unfolded');
+        $(target).parents('tr').find('span.o_stock_reports_unfoldable').replaceWith(QWeb.render("foldable", {lineId: active_id}));
+        $(target).parents('tr').toggleClass('o_stock_reports_unfolded');
+    },
+    unfold: function(e) {
+        this.autounfold($(e.target));
     },
 
 });

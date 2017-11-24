@@ -63,7 +63,12 @@ class MrpStockReport(models.TransientModel):
             move_ids = self.env['stock.picking'].browse(context['active_id']).move_lines.mapped('move_line_ids').filtered(lambda m: m.lot_id and m.state == 'done')
             res = self._lines(line_id, model_id=model_id, model='stock.move.line', level=level, obj_ids=move_ids)
         elif context.get('active_id') and context.get('model') == 'stock.move.line':
-            move_line_ids = self.env['stock.move.line'].browse(context.get('active_id'))
+            move_ids = self.env['stock.move.line'].search([
+                ('lot_id', '=', context.get('lot_id')),
+                ('state', '=', 'done'),
+                ('move_id.returned_move_ids', '=', False),
+            ])
+            move_line_ids = move_ids.mapped('produce_line_ids') | move_ids.mapped('consume_line_ids')
             res = self._lines(line_id, model_id=context.get('active_id'), model=context.get('model'), level=level, obj_ids=move_line_ids)
         else:
             res = self._lines(line_id,  model_id=model_id, model=model, level=level)
@@ -112,12 +117,14 @@ class MrpStockReport(models.TransientModel):
 
     def make_dict_head(self, level, parent_id, model=False, move_line=False, head=False, unfoldable=True):
         res_model, res_id, ref = self.get_links(move_line)
+        dummy, is_used = self.get_linked_move_lines(move_line)
         data = []
         if model == 'stock.move.line':
             data = [{
                 'name': not head and move_line.lot_id.name,
                 'level': level,
                 'unfoldable': unfoldable,
+                'is_used': bool(is_used),
                 'date': move_line.move_id.date,
                 'model_id': move_line.id,
                 'parent_id': parent_id,
@@ -153,10 +160,12 @@ class MrpStockReport(models.TransientModel):
                 'model': data['model'],
                 'model_id': data['model_id'],
                 'parent_id': data['parent_id'],
+                'is_used': data.get('is_used', False),
                 'type': 'line',
                 'reference': data.get('reference_id', False),
                 'res_id': data.get('res_id', False),
                 'res_model': data.get('res_model', False),
+                'lot_id': data.get('lot_id', False),
                 'name': _(data.get('name', False)),
                 'columns': [data.get('reference_id', False),
                             data.get('date', False),
@@ -172,7 +181,7 @@ class MrpStockReport(models.TransientModel):
 
     def get_linked_move_lines(self, move_line):
         """ This method will return which consume line or produce line for this operation."""
-        return False
+        return False, False
 
     @api.model
     def _lines(self, line_id=None, model_id=False, model=False, level=0, obj_ids=[], **kw):
@@ -180,7 +189,7 @@ class MrpStockReport(models.TransientModel):
         if model and line_id:
             model_obj = self.env[model].browse(model_id)
             if model == 'stock.move.line':
-                move_lines = self.get_linked_move_lines(model_obj)
+                move_lines, dummy = self.get_linked_move_lines(model_obj)
                 if move_lines:
                     final_vals += self.get_produced_or_consumed_vals(move_lines, level, model=model, parent_id=line_id)
                 else:
