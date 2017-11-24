@@ -93,6 +93,7 @@ class MrpStockReport(models.TransientModel):
     def make_dict_move(self, level, parent_id, move_line, unfoldable=False):
         res_model, res_id, ref = self.get_links(move_line)
         data = [{
+            'name': move_line.lot_id.name,
             'level': level,
             'unfoldable': unfoldable,
             'date': move_line.move_id.date,
@@ -109,11 +110,12 @@ class MrpStockReport(models.TransientModel):
             'res_model': res_model}]
         return data
 
-    def make_dict_head(self, level, parent_id, model=False, move_line=False):
+    def make_dict_head(self, level, parent_id, model=False, move_line=False, head=False):
         res_model, res_id, ref = self.get_links(move_line)
         data = []
         if model == 'stock.move.line':
             data = [{
+                'name': not head and move_line.lot_id.name,
                 'level': level,
                 'unfoldable': True,
                 'date': move_line.move_id.date,
@@ -123,8 +125,8 @@ class MrpStockReport(models.TransientModel):
                 'product_id': move_line.product_id.display_name,
                 'lot_id': move_line.lot_id.name,
                 'product_qty_uom': str(move_line.product_uom_id._compute_quantity(move_line.qty_done, move_line.product_id.uom_id, rounding_method='HALF-UP')) + ' ' + move_line.product_id.uom_id.name,
-                'location_source': move_line.location_id.name,
-                'location_destination': move_line.location_dest_id.name,
+                'location_source': False if head else move_line.location_id.name,
+                'location_destination': False if head else move_line.location_dest_id.name,
                 'reference_id': ref,
                 'res_id': res_id,
                 'res_model': res_model}]
@@ -155,7 +157,7 @@ class MrpStockReport(models.TransientModel):
                 'reference': data.get('reference_id', False),
                 'res_id': data.get('res_id', False),
                 'res_model': data.get('res_model', False),
-                'name': _(data.get('lot_id', False)),
+                'name': _(data.get('name', False)),
                 'columns': [data.get('reference_id', False),
                             data.get('date', False),
                             data.get('product_id', False),
@@ -192,17 +194,21 @@ class MrpStockReport(models.TransientModel):
     @api.model
     def get_produced_or_consumed_vals(self, move_lines, level, model, parent_id):
         final_vals = []
+        head = False
         for line in move_lines:
-            final_vals += self.make_dict_head(level, model=model, parent_id=parent_id, move_line=line)
+            head = bool(line.produce_line_ids or line.consume_line_ids)
+            final_vals += self.make_dict_head(level, model=model, parent_id=parent_id, move_line=line, head=head)
         return final_vals
 
     def get_pdf_lines(self, line_data=[]):
         final_vals = []
         lines = []
+        head = False
         for line in line_data:
             model = self.env[line['model_name']].browse(line['model_id'])
-            if line.get('unfoldable'):
-                    final_vals += self.make_dict_head(line['level'], model=line['model_name'], parent_id=line['id'], move_line=model)
+            head = bool(model.produce_line_ids)
+            if line.get('unfoldable') and head:
+                final_vals += self.make_dict_head(line['level'], model=line['model_name'], parent_id=line['id'], move_line=model, head=head)
             else:
                 if line['model_name'] == 'stock.move.line':
                     final_vals += self.make_dict_move(line['level'], parent_id=line['id'], move_line=model)
@@ -213,7 +219,7 @@ class MrpStockReport(models.TransientModel):
                 'model_id': data['model_id'],
                 'parent_id': data['parent_id'],
                 'type': 'line',
-                'name': _(data.get('lot_id')),
+                'name': _(data.get('name', False)),
                 'columns': [data.get('reference_id'),
                             data.get('date'),
                             data.get('product_id'),
