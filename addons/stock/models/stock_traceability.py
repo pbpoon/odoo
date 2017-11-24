@@ -62,6 +62,9 @@ class MrpStockReport(models.TransientModel):
         elif context.get('active_id') and context.get('model') == 'stock.picking':
             move_ids = self.env['stock.picking'].browse(context['active_id']).move_lines.mapped('move_line_ids').filtered(lambda m: m.lot_id and m.state == 'done')
             res = self._lines(line_id, model_id=model_id, model='stock.move.line', level=level, obj_ids=move_ids)
+        elif context.get('active_id') and context.get('model') == 'mrp.production':
+            move_ids = self.env['mrp.production'].browse(context['active_id']).move_finished_ids.mapped('move_line_ids').filtered(lambda m: m.lot_id and m.state == 'done')
+            res = self._lines(line_id, model_id=model_id, model='stock.move.line', level=level, obj_ids=move_ids)
         elif context.get('active_id') and context.get('model') == 'stock.move.line':
             move_ids = self.env['stock.move.line'].search([
                 ('lot_id', '=', context.get('lot_id')),
