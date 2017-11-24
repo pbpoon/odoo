@@ -167,16 +167,21 @@ class MrpStockReport(models.TransientModel):
             })
         return lines
 
+    def get_linked_move_lines(self, move_line):
+        """ This method will return which consume line or produce line for this operation."""
+        return False
+
     @api.model
     def _lines(self, line_id=None, model_id=False, model=False, level=0, obj_ids=[], **kw):
         final_vals = []
         if model and line_id:
             model_obj = self.env[model].browse(model_id)
-            final_vals += self.get_traceability(level, line_id=line_id, model=model, model_obj=model_obj)
             if model == 'stock.move.line':
-                if model_obj.consume_line_ids:
-                    final_vals += self.get_produced_or_consumed_vals(model_obj.consume_line_ids, level, model=model, parent_id=line_id)
+                move_lines = self.get_linked_move_lines(model_obj)
+                if move_lines:
+                    final_vals += self.get_produced_or_consumed_vals(move_lines, level, model=model, parent_id=line_id)
                 else:
+                    final_vals += self.get_traceability(level, line_id=line_id, model=model, model_obj=model_obj)
                     final_vals = self.make_dict_move(level, parent_id=line_id, move_line=model_obj) + final_vals
         else:
             for move_line in obj_ids:

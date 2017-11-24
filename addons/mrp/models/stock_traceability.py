@@ -19,3 +19,14 @@ class MrpStockReport(models.TransientModel):
             res_id = move_line.move_id.consume_unbuild_id.id
             ref = move_line.move_id.consume_unbuild_id.name
         return res_model, res_id, ref
+
+    @api.model
+    def get_linked_move_lines(self, move_line):
+        move_lines = super(MrpStockReport, self).get_linked_move_lines(move_line)
+        # return produced lines of unbuild order
+        produced_lined = move_line.move_id.consume_unbuild_id and move_line.produce_line_ids
+        # return consumed lines of production order
+        consumed_lines = move_line.move_id.production_id and move_line.consume_line_ids
+        if not move_lines:
+            move_lines = produced_lined or consumed_lines
+        return move_lines
