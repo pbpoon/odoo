@@ -110,14 +110,14 @@ class MrpStockReport(models.TransientModel):
             'res_model': res_model}]
         return data
 
-    def make_dict_head(self, level, parent_id, model=False, move_line=False, head=False):
+    def make_dict_head(self, level, parent_id, model=False, move_line=False, head=False, unfoldable=True):
         res_model, res_id, ref = self.get_links(move_line)
         data = []
         if model == 'stock.move.line':
             data = [{
                 'name': not head and move_line.lot_id.name,
                 'level': level,
-                'unfoldable': True,
+                'unfoldable': unfoldable,
                 'date': move_line.move_id.date,
                 'model_id': move_line.id,
                 'parent_id': parent_id,
@@ -187,8 +187,10 @@ class MrpStockReport(models.TransientModel):
                     final_vals += self.get_traceability(level, line_id=line_id, model=model, model_obj=model_obj)
                     final_vals = self.make_dict_move(level, parent_id=line_id, move_line=model_obj) + final_vals
         else:
+            unfoldable = False
             for move_line in obj_ids:
-                final_vals += self.make_dict_head(level, parent_id=line_id, model=model or 'stock.pack.operation', move_line=move_line)
+                unfoldable = bool(move_line.produce_line_ids or move_line.consume_line_ids)
+                final_vals += self.make_dict_head(level, parent_id=line_id, model=model or 'stock.pack.operation', move_line=move_line, unfoldable=unfoldable)
         return final_vals
 
     @api.model
