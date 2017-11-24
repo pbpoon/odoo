@@ -27,6 +27,12 @@ class TestTax(AccountTestUsers):
             'amount': 10,
             'sequence': 3,
         })
+        self.percent_tax_bis = self.tax_model.create({
+            'name': "Percent tax bis",
+            'amount_type': 'percent',
+            'amount': 10,
+            'sequence': 4,
+        })
         self.division_tax = self.tax_model.create({
             'name': "Division tax",
             'amount_type': 'division',
@@ -332,44 +338,3 @@ class TestTax(AccountTestUsers):
             res
         )
 
-    def test_tax_include_round_globally(self):
-        self.percent_tax.price_include = True
-        self.percent_tax.amount = 6.0
-        self.percent_tax_bis.price_include = False
-        self.percent_tax_bis.amount = 6.0
-
-        res = (self.percent_tax + self.percent_tax + self.percent_tax_bis + self.percent_tax_bis).compute_all(130.0)
-        self._check_compute_all_results(
-            116.07, # 'base'
-            143.92, # 'total_included'
-            116.07, # 'total_excluded'
-            [
-                # base , amount     | seq | amount | incl | incl_base
-                # ---------------------------------------------------
-                (116.07, 6.96),   # |  3  |    6%  |   t  |
-                (116.07, 6.97),   # |  3  |    6%  |   t  |
-                (116.07, 6.96),   # |  3  |    6%  |      |
-                (116.07, 6.96),   # |  3  |    6%  |      |
-                # ---------------------------------------------------
-            ],
-            res
-        )
-
-        self.env.user.company_id.tax_calculation_rounding_method = 'round_globally'
-
-        res = (self.percent_tax + self.percent_tax + self.percent_tax_bis + self.percent_tax_bis).compute_all(130.0)
-        self._check_compute_all_results(
-            116.07, # 'base'
-            143.93, # 'total_included'
-            116.07, # 'total_excluded'
-            [
-                # base , amount     | seq | amount | incl | incl_base
-                # ---------------------------------------------------
-                (116.07, 6.96),   # |  3  |    6%  |   t  |
-                (116.07, 6.97),   # |  3  |    6%  |   t  |
-                (116.07, 6.96),   # |  3  |    6%  |      |
-                (116.07, 6.96),   # |  3  |    6%  |      |
-                # ---------------------------------------------------
-            ],
-            res
-        )
