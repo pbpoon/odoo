@@ -326,6 +326,11 @@ class HrExpense(models.Model):
         super(HrExpense, self).unlink()
 
     @api.multi
+    def send_attach_document(self, **kwargs):
+        self.ensure_one()
+        return self.message_post(**kwargs)
+
+    @api.multi
     def action_get_attachment_view(self):
         self.ensure_one()
         res = self.env['ir.actions.act_window'].for_xml_id('base', 'action_attachment')
