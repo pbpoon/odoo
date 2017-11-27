@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="draft" name="Draft page">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+
+            
+
+
+
+                <section class="s_faq_collapse  bg-gray-lighter">
+        <div class="container">
+            <h2 class="page-header"> General Terms and Conditions / Service Policies </h2>
+            <div class="panel-group" role="tablist">
+                <div class="panel">
+                    <div class="panel-heading bg-white" role="tab" data-toggle="collapse">
+                        <h4 class="panel-title">
+                            Terms of service
+                        </h4>
+                    </div>
+                    <div class="panel-collapse collapse in" role="tabpanel">
+                        <div class="panel-body bg-white-75">
+                            <p>
+                                These terms of service ("Terms", "Agreement") are an agreement between the website
+                                ("Website operator", "us", "we" or "our") and you ("User", "you" or "your").
+                            </p>
+                            <p>
+                                This Agreement sets forth the general terms and conditions of your use of this website
+                                and any of its products or services (collectively, "Website" or "Services").
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-heading bg-white" role="tab" data-toggle="collapse">
+                        <h4 class="panel-title">
+                            Links to other websites
+                        </h4>
+                    </div>
+                    <div class="panel-collapse collapse" role="tabpanel">
+                        <div class="panel-body bg-white-50">
+                            <p>
+                                Although this Website may be linked to other websites, we are not, directly or
+                                indirectly, implying any approval, association, sponsorship, endorsement, or
+                                affiliation with any linked website, unless specifically stated herein.
+                            </p>
+                            <p>
+                                You should carefully review the legal statements and other conditions of use of
+                                any website which you access through a link from this Website. Your linking to
+                                any other off-site pages or other websites is at your own risk.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-heading bg-white" role="tab" data-toggle="collapse">
+                        <h4 class="panel-title">
+                            
+                        </h4>
+                    </div>
+                    <div class="panel-collapse collapse" role="tabpanel">
+                        <div class="panel-body bg-white-50">
+                            <p>Website may use cookies to personalize and facilitate maximum navigation of the
+                                User by this site. The User may configure his / her browser to notify and
+                                reject the installation of the cookies sent by us.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<div class="container mt92 mb92"/>
+
+                <t t-call="website.s_banner"/>
+
+<div class="container mt92 mb92"/>                
+                
+                <t t-call="website.s_quotes_slider"/>
+
+<div class="container mt92 mb92"/>                
+
+                <section class="s_cover parallax s_parallax_is_fixed oe_img_bg" style="background-image: url('/website/static/src/img/snippets_demo/s_cover.jpg');" data-scroll-background-ratio="1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12 text-center mt128 mb16">
+                                <h1 style="font-size: 62px;">Headline</h1>
+                                <h3 class="lead"><b>Tell your story. It draws readers in and engages them.</b><br/> Write professionally, but don’t be afraid to add character<br/> and emotion so readers can see the human behind the curtain.</h3>
+                            </div>
+                            <div class="col-md-12 text-center mb128">
+                                <a href="/page/aboutus" class="s_button s_button_border btn btn-primary btn-lg mr8">About us</a>
+                                <a href="/page/contactus" class="sa_button s_button_border btn btn-alpha btn-lg">Contact us</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<div class="container mt92 mb92"/>                
+
+                <section class="s_cover parallax s_parallax_is_fixed oe_img_bg" style="background-image: url('/website/static/src/img/snippets_demo/s_cover.jpg');" data-scroll-background-ratio="1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12 text-center mt128 mb16">
+                                <h1 style="font-size: 62px;">Headline</h1>
+                                <h3 class="lead"><b>Tell your story. It draws readers in and engages them.</b><br/> Write professionally, but don’t be afraid to add character<br/> and emotion so readers can see the human behind the curtain.</h3>
+                            </div>
+                            <div class="col-md-12 text-center mb128">
+                                <a href="/page/aboutus" class="s_button s_button_border btn btn-primary btn-lg mr8">About us</a>
+                                <a href="/page/contactus" class="s_button s_button_border btn btn-alpha btn-lg">Contact us</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<div class="container mt92 mb92"/>
+
+                <section class="s_cover oe_img_bg" style="background-image: url('/website/static/src/img/snippets_demo/s_cover_02.jpg');">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-8 mt128 mb8">
+                                <h2 style="font-size: 62px;">Headline</h2>
+                                <h4>Explain the benefits you offer.</h4>
+                            </div>
+                            <div class="col-md-6 mb32">
+                                <p>Write one or two paragraphs describing your <b>product</b>, <b>services</b> or a specific <b>feature</b>.<br/> To be successful your content needs to be <b>useful to your readers</b>.</p>
+                            </div>
+                            <div class="col-md-12 mb128">
+                                <a href="/page/aboutus" class="s_button s_button_rounded btn btn-primary mr4">About us</a>
+                                <a href="/page/contactus" class="s_button s_button_rounded btn btn-success">Contact us</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<div class="container mt92 mb92"/>
+
+                <section class="s_text_block_image_fw oe_img_bg" style="background-image: url('/website/static/src/img/snippets_demo/s_cover_03.jpg');background-position: center;">
+                    <div class="container-fluid bg-black-50">
+                        <div class="row">
+                            <div class="col-md-12 text-center mt128 mb16">
+                                <h1 style="font-size: 62px;">Sell Online. Easily.</h1>
+                            </div>
+                            <div class="col-md-12 text-center mb48">
+                                <p class="lead">Write a short paragraph describing your <b>product</b>, <b>services</b> or a specific <b>feature</b>.<br/> To be successful your content needs to be <b>useful to your readers</b>.</p>
+                            </div>
+                            <div class="col-md-12 text-center mb128">
+                                <a href="/page/aboutus" class="s_button s_button_rectangle btn btn-lg btn-primary mr8">About us</a>
+                                <a href="/page/aboutus" class="s_button s_button_rectangle btn btn-lg btn-success">Contact us</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<div class="container mt92 mb92"/>
+
+                <section class="s_text_block_image_fw oe_img_bg" style="background-image: url('/website/static/src/img/snippets_demo/s_cover_04.jpg');background-position: center;">
+                    <div class="container-fluid bg-black-50">
+                        <div class="row">
+                            <div class="col-md-12 text-center mt128 mb8">
+                                <h1 style="font-size: 62px;">Sell Online. Easily.</h1>
+                            </div>
+                            <div class="col-md-12 text-center mb48">
+                                <p class="lead">Write a short paragraph describing your <b>product</b>, <b>services</b> or a specific <b>feature</b>.<br/> To be successful your content needs to be <b>useful to your readers</b>.</p>
+                            </div>
+                            <div class="col-md-12 text-center mb128">
+                                <a href="/page/aboutus" class="s_button btn btn-lg btn-primary mr8">About us</a>
+                                <a href="/page/aboutus" class="s_button btn btn-lg btn-success">Contact us</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+<div class="container mt92 mb92"/>
+
+
+
+            </div>
+        </t>
+    </template>
+
+</odoo>

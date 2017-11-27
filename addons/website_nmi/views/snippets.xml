@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="snippets" name="Snippets page">
+        <t t-call="website.layout">
+            <div id="wrap">
+
+                <!-- Title -->
+                <t t-call="website.s_title"/>
+
+                    <section class="s_title">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12 mt32 mb32">
+                                    <h1 class="s_title_line" style="font-size: 48px;" >Your Website Title</h1>
+                                    <h3 class="text-center text-muted lead">And a great subtitle too</h3>
+                                </div>
+                                <div class="col-md-12 mt32 mb32">
+                                    <h1 class="page-header" style="font-size: 48px;" >Your Website Title</h1>
+                                    <h3 class="text-muted lead">And a great subtitle too</h3>
+                                </div>
+                                <div class="col-md-12 mt32 mb32">
+                                    <h1 class="s_title_boxed" style="font-size: 48px;" >Your Website Title</h1>
+                                    <h3 class="text-muted lead">And a great subtitle too</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="clearfix mt92 mb92"/>
+
+                <!-- Cover -->
+                <t t-call="website.s_cover"/>
+
+                    <div class="clearfix mt92 mb92"/>
+
+                <!-- Text Image -->
+                <t t-call="website.s_text_image"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <!-- Image Text -->
+                <t t-call="website.s_image_text"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <!-- Text Block -->
+                <t t-call="website.s_text_block"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <!-- Features -->
+                <t t-call="website.s_features"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_big_picture"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <!-- Three Columns -->
+                <t t-call="website.s_three_columns"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_banner"/>
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                
+                <t t-call="website.s_tabs"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_comparisons"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_company_team"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_call_to_action"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_references"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+                
+                <t t-call="website.s_faq_collapse"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+
+                <t t-call="website.s_feature_grid"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+    
+                <t t-call="website.s_quotes_slider"/>
+
+
+                    <div class="clearfix mt92 mb92"/>
+
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                
+                                <a href="#" class="s_btn s_btn_default btn btn-primary mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_rounded btn btn-primary mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_rectangle btn btn-primary mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_border btn btn-primary mr8">Button</a>
+                                <div class="mt16"/>
+                                <a href="#" class="s_btn s_btn_default btn btn-alpha mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_rounded btn btn-alpha mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_rectangle btn btn-alpha mr8">Button</a>
+                                <a href="#" class="s_btn s_btn_border btn btn-alpha mr8">Button</a>
+                                
+                                <div class="mt92 mb92"/>
+                                
+                                <hr class="s_separator s_hr_1px s_hr_small s_hr_solid"/><br/>
+
+                                <hr class="s_separator s_hr_2px s_hr_half s_hr_dashed"/>
+
+                                <hr class="s_separator s_hr_5px s_hr_dotted"/>
+
+                                <div class="mt92 mb92"/>
+
+                                <div class="well s_well well-sm clearfix" data-oe-model="ir.ui.view" data-oe-id="370" data-oe-field="arch" data-oe-xpath="/t[1]/div[1]">
+                                    <p><b>Explain the benefits you offer.</b> Don't write about products or services here, write about solutions.</p>
+                                </div>
+
+                                <t t-call="website.s_well"/>
+
+                                <div class="well s_well well-lg clearfix" data-oe-model="ir.ui.view" data-oe-id="370" data-oe-field="arch" data-oe-xpath="/t[1]/div[1]">
+                                    <p><b>Explain the benefits you offer.</b> Don't write about products or services here, write about solutions.</p>
+                                </div>
+                                
+                                
+                                <div class="mt92 mb92"/>
+                                
+                                <t t-call="website.s_panel"/>
+
+                                <div class="panel panel-primary o_panel s_panel">
+                                    <div class="panel-heading ">
+                                        <h3 class="panel-title">Feature Title</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <p>
+                                            Panels are a great tool to compare offers or to emphasize on
+                                            key features. To compare products, use the inside columns.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="panel panel-success o_panel s_panel">
+                                    <div class="panel-heading ">
+                                        <h3 class="panel-title">Feature Title</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <p>
+                                            Panels are a great tool to compare offers or to emphasize on
+                                            key features. To compare products, use the inside columns.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt92 mb92"/>
+                                
+                                <t t-call="website.s_share"/>
+                                <div class="mt92 mb92"/>
+                                <t t-call="website.s_rating"/>
+                            
+                            </div>
+                        </div>
+                    </div>
+    
+<div class="clearfix mt92 mb92"/>
+
+            </div>
+        </t>
+    </template>
+
+</odoo>
