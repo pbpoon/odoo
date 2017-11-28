@@ -46,24 +46,18 @@ class AccountInvoice(models.Model):
             if mod == int(bbacomm[-2:]):
                 return True
 
-    def _get_reference_info(self):
-        reference = False
-        reference_type = self.company_id.out_inv_comm_type
-        if self.type == 'out_invoice' and reference_type == 'bba':
-            if self.company_id.out_inv_comm_algorithm == 'partner_ref' and self.partner_id:
-                reference = self.generate_bbacomm(self.type, self.company_id.id, self.partner_id.id)['value']['reference']
-            elif self.company_id.out_inv_comm_algorithm != 'partner_ref':
-                reference = self.generate_bbacomm(self.type, self.company_id.id)['value']['reference']
-        return (reference, reference_type or 'none')
-
     @api.onchange('company_id', 'partner_id', 'type')
     def _onchange_l10n_be_bba(self):
-        self.reference, self.reference_type = self._get_reference_info()
+        reference = False
+        reference_type = self.company_id.out_inv_comm_type
+        if self.type == 'out_invoice' and reference_type == 'bba' and self.partner_id:
+            reference = self.generate_bbacomm(self.type, reference_type, self.company_id.id, self.partner_id.id)['value']['reference']
+        self.reference_type = reference_type or 'none'
+        self.reference = reference
 
-    def generate_bbacomm(self, type, company_id, partner_id=None, reference=None):
+    def generate_bbacomm(self, type, reference_type, company_id, partner_id=None, reference=None):
         reference = reference or ''
         company = self.env['res.company'].browse(company_id)
-        reference_type = company.out_inv_comm_type
         if type == 'out_invoice' and reference_type:
             algorithm = company.out_inv_comm_algorithm
             if reference_type == 'bba':
@@ -140,7 +134,7 @@ class AccountInvoice(models.Model):
                 else:
                     raise ValidationError('Invalid BBA Structured Communication !')
             else:
-                reference = self.generate_bbacomm(vals['type'], vals['company_id'], vals['partner_id'])['value']['reference']
+                reference = self.generate_bbacomm(vals['type'], reference_type, company_id, vals['partner_id'])['value']['reference']
         vals.update({
             'reference_type': reference_type,
             'reference': reference,
@@ -171,8 +165,8 @@ class AccountInvoice(models.Model):
         self.ensure_one()
         default = default or {}
         if self.type in ['out_invoice']:
-            reference_type = self.company_id.out_inv_comm_type
+            reference_type = self.reference_type or 'none'
             default['reference_type'] = reference_type
             if reference_type == 'bba':
-                default['reference'] = self.generate_bbacomm(self.type, self.company_id.id, self.partner_id.id)['value']['reference']
+                default['reference'] = self.generate_bbacomm(self.type, reference_type, self.company_id.id, self.partner_id.id)['value']['reference']
         return super(AccountInvoice, self).copy(default)
