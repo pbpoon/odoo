@@ -88,7 +88,7 @@
                         </group>
                         <group string="Accounting Information">
                             <group>
-                                <field name="sale_journal" domain="[('type','=','sale')]"/>
+                                <field name="sale_journal" domain="[('type','=','sale')]" groups="account.group_account_manager"/>
                                 <field name="account_move" readonly="1"
                                         attrs="{'invisible':[('state','!=','done')]}"/>
                             </group>
