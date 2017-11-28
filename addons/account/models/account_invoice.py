@@ -10,7 +10,7 @@ from dateutil.relativedelta import relativedelta
 from werkzeug.urls import url_encode
 
 from odoo import api, exceptions, fields, models, _
-from odoo.tools import float_is_zero, float_compare, pycompat
+from odoo.tools import email_split, float_is_zero, float_compare, pycompat
 from odoo.tools.misc import formatLang
 
 from odoo.exceptions import AccessError, UserError, RedirectWarning, ValidationError, Warning
@@ -240,7 +240,7 @@ class AccountInvoice(models.Model):
             ('in_invoice','Vendor Bill'),
             ('out_refund','Customer Credit Note'),
             ('in_refund','Vendor Credit Note'),
-        ], readonly=True, index=True, change_default=True,
+        ], readonly=True, states={'draft': [('readonly', False)]}, index=True, change_default=True,
         default=lambda self: self._context.get('type', 'out_invoice'),
         track_visibility='always')
     access_token = fields.Char(
@@ -284,7 +284,7 @@ class AccountInvoice(models.Model):
              "term is not set on the invoice. If you keep the Payment terms and the due date empty, it "
              "means direct payment.")
     partner_id = fields.Many2one('res.partner', string='Partner', change_default=True,
-        required=True, readonly=True, states={'draft': [('readonly', False)]},
+        readonly=True, states={'draft': [('readonly', False)]},
         track_visibility='always')
     payment_term_id = fields.Many2one('account.payment.term', string='Payment Terms', oldname='payment_term',
         readonly=True, states={'draft': [('readonly', False)]},
@@ -297,7 +297,7 @@ class AccountInvoice(models.Model):
         readonly=True, states={'draft': [('readonly', False)]})
 
     account_id = fields.Many2one('account.account', string='Account',
-        required=True, readonly=True, states={'draft': [('readonly', False)]},
+        readonly=True, states={'draft': [('readonly', False)]},
         domain=[('deprecated', '=', False)], help="The partner account used for this invoice.")
     invoice_line_ids = fields.One2many('account.invoice.line', 'invoice_id', string='Invoice Lines', oldname='invoice_line',
         readonly=True, states={'draft': [('readonly', False)]}, copy=True)
@@ -463,7 +463,7 @@ class AccountInvoice(models.Model):
                 for field in changed_fields:
                     if field not in vals and invoice[field]:
                         vals[field] = invoice._fields[field].convert_to_write(invoice[field], invoice)
-        if not vals.get('account_id',False):
+        if vals.get('partner_id', False) and not vals.get('account_id', False):
             raise UserError(_('Configuration error!\nCould not find any account to create the invoice, are you sure you have a chart of account installed?'))
 
         invoice = super(AccountInvoice, self.with_context(mail_create_nolog=True)).create(vals)
@@ -591,6 +591,31 @@ class AccountInvoice(models.Model):
         if self.env.context.get('mark_invoice_as_sent'):
             self.filtered(lambda inv: not inv.sent).write({'sent': True})
         return super(AccountInvoice, self.with_context(mail_post_autofollow=True)).message_post(**kwargs)
+
+    @api.model
+    def get_empty_list_help(self, help_message):
+        if help_message and self.env.context.get('type', False) == 'in_invoice':
+            use_mailgateway = self.env['ir.config_parameter'].sudo().get_param('account.use_mailgateway')
+            alias_record = use_mailgateway and self.env.ref('account.mail_alias_vendor_bills') or False
+            if alias_record and alias_record.alias_domain and alias_record.alias_name:
+                link = "<a id='o_mail_test' href='mailto:%(email)s'>%(email)s</a>" % {
+                    'email': '%s@%s' % (alias_record.alias_name, alias_record.alias_domain)
+                }
+                return '<p class="oe_view_nocontent_create">%s or %s</p>%s' % (
+                    _('Click to record a new vendor bill'),
+                    _('send vendor bills by email to %s.') % (link,),
+                    help_message)
+        return super(AccountInvoice, self).get_empty_list_help(help_message)
+
+    @api.model
+    def message_new(self, msg_dict, custom_values=None):
+        if custom_values is None:
+            custom_values = {}
+        invoice_type = custom_values.get('type')
+        email_address = email_split(msg_dict.get('email_from', False))[0]
+        partner = self.env['res.partner'].search([('email', 'ilike', email_address)], limit=1)
+        custom_values['partner_id'] = partner.id
+        return super(AccountInvoice, self.with_context(type=invoice_type)).message_new(msg_dict, custom_values)
 
     @api.multi
     def compute_taxes(self):

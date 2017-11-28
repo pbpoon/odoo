@@ -2,6 +2,15 @@
 <odoo>
     <data noupdate="1">
 
+        <!--default alias for vendor bills-->
+        <record id="mail_alias_vendor_bills" model="mail.alias">
+            <field name="alias_name">billing</field>
+            <field name="alias_defaults">{'type': 'in_invoice'}</field>
+            <field name="alias_contact">partners</field>
+            <field name="alias_model_id" ref="model_account_invoice"/>
+            <field name="alias_user_id" ref="base.user_root"/>
+        </record>
+
         <!-- TAGS FOR CASH FLOW STATEMENT -->
 
         <record id="account_tag_operating" model="account.account.tag">
