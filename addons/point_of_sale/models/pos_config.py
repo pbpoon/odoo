@@ -164,7 +164,7 @@ class PosConfig(models.Model):
     module_pos_restaurant = fields.Boolean("Is a Bar/Restaurant")
     module_pos_discount = fields.Boolean("Global Discounts")
     module_pos_loyalty = fields.Boolean("Loyalty Program")
-    module_pos_mercury = fields.Boolean(string="Integrated Card Payments")
+    module_pos_mercury = fields.Boolean(string="Integrated Card Payments", help="The transactions are processed by Vantiv. Set your Vantiv credentials on the related payment journal.")
     module_pos_reprint = fields.Boolean(string="Reprint Receipt")
     is_posbox = fields.Boolean("PosBox")
     is_header_or_footer = fields.Boolean("Header & Footer")
