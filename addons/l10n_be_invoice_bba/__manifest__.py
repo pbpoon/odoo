@@ -10,8 +10,7 @@
     'website': 'https://www.odoo.com/page/accounting',
     'category': 'Localization',
     'description': """
-    
-Belgian localization for in- and outgoing invoices (prereq to account_coda):
+Belgian localization for in- and outgoing invoices:
 ============================================================================
     - Rename 'reference' field labels to 'Communication'
     - Add support for Belgian Structured Communication
@@ -26,13 +25,13 @@ A Structured Communication can be generated automatically on outgoing invoices a
         **R..R =** Customer Reference without non-numeric characters, **SSS =** Sequence Number, **DD =** Check Digits  
         
 The preferred type of Structured Communication and associated Algorithm can be
-specified on the Partner records. A 'random' Structured Communication will
-generated if no algorithm is specified on the Partner record. 
+specified on the Accounting Settings.
 
     """,
     'depends': ['account'],
     'data' : [
         'data/mail_template_data.xml',
+        'views/res_config_settings_views.xml',
         'views/account_invoice_view.xml',        
         'views/report_invoice.xml',
     ],
