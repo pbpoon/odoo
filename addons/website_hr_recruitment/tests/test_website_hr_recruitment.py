@@ -6,9 +6,12 @@ import odoo.tests
 
 @odoo.tests.common.at_install(False)
 @odoo.tests.common.post_install(True)
-class TestWebsiteHrRecruitmentForm(odoo.tests.HttpCase):
+class TestWebsiteHrRecruitmentForm(odoo.tests.HttpSeleniumCase):
     def test_tour(self):
-        self.phantom_js("/", "odoo.__DEBUG__.services['web_tour.tour'].run('website_hr_recruitment_tour')", "odoo.__DEBUG__.services['web_tour.tour'].tours.website_hr_recruitment_tour.ready")
+        self.selenium_run(
+            "/",
+            "odoo.__DEBUG__.services['web_tour.tour'].run('website_hr_recruitment_tour')",
+            ready="odoo.__DEBUG__.services['web_tour.tour'].tours.website_hr_recruitment_tour.ready")
 
         # get test cursor to read from same transaction browser is writing to
         cr = self.registry.cursor()

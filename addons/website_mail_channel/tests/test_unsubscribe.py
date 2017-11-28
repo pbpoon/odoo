@@ -6,7 +6,7 @@ from odoo.tests import common
 from odoo.tools.misc import mute_logger, ustr
 
 
-class TestConfirmUnsubscribe(common.HttpCase):
+class TestConfirmUnsubscribe(common.HttpSeleniumCase):
     def setUp(self):
         super(TestConfirmUnsubscribe, self).setUp()
 

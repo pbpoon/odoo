@@ -5,13 +5,23 @@ import odoo.tests
 
 @odoo.tests.common.at_install(False)
 @odoo.tests.common.post_install(True)
-class TestUi(odoo.tests.HttpCase):
+class TestUi(odoo.tests.HttpSeleniumCase):
 
     post_install = True
     at_install = False
 
     def test_01_admin_rte(self):
-        self.phantom_js("/web", "odoo.__DEBUG__.services['web_tour.tour'].run('rte')", "odoo.__DEBUG__.services['web_tour.tour'].tours.rte.ready", login='admin')
+        self.selenium_run(
+            "/web",
+            "odoo.__DEBUG__.services['web_tour.tour'].run('rte')",
+            ready="odoo.__DEBUG__.services['web_tour.tour'].tours.rte.ready",
+            login='admin',
+            max_tries=30)
 
     def test_02_admin_rte_inline(self):
-        self.phantom_js("/web", "odoo.__DEBUG__.services['web_tour.tour'].run('rte_inline')", "odoo.__DEBUG__.services['web_tour.tour'].tours.rte_inline.ready", login='admin')
+        self.selenium_run(
+            "/web",
+            "odoo.__DEBUG__.services['web_tour.tour'].run('rte_inline')",
+            ready="odoo.__DEBUG__.services['web_tour.tour'].tours.rte_inline.ready",
+            login='admin',
+            max_tries=30)

@@ -7,10 +7,13 @@ import odoo.tests
 
 @odoo.tests.common.at_install(False)
 @odoo.tests.common.post_install(True)
-class TestWebsiteCrm(odoo.tests.HttpCase):
+class TestWebsiteCrm(odoo.tests.HttpSeleniumCase):
 
     def test_tour(self):
-        self.phantom_js("/", "odoo.__DEBUG__.services['web_tour.tour'].run('website_crm_tour')", "odoo.__DEBUG__.services['web_tour.tour'].tours.website_crm_tour.ready")
+        self.selenium_run(
+            "/",
+            "odoo.__DEBUG__.services['web_tour.tour'].run('website_crm_tour')",
+            ready="odoo.__DEBUG__.services['web_tour.tour'].tours.website_crm_tour.ready")
 
         # need environment using the test cursor as it's not committed
         cr = self.registry.cursor()

@@ -15,7 +15,7 @@ from odoo.tools import pycompat
 _logger = logging.getLogger(__name__)
 
 
-class Crawler(odoo.tests.HttpCase):
+class Crawler(odoo.tests.HttpSeleniumCase):
     """ Test suite crawling an Odoo CMS instance and checking that all
     internal links lead to a 200 response.
 

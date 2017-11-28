@@ -4,7 +4,7 @@
 from odoo.tests import common
 
 
-class TestXMLRPC(common.HttpCase):
+class TestXMLRPC(common.HttpSeleniumCase):
     at_install = False
     post_install = True
 

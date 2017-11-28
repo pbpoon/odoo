@@ -5,11 +5,11 @@ import odoo.tests
 
 @odoo.tests.common.at_install(False)
 @odoo.tests.common.post_install(True)
-class TestUi(odoo.tests.HttpCase):
+class TestUi(odoo.tests.HttpSeleniumCase):
     def test_01_portal_load_tour(self):
-        self.phantom_js(
+        self.selenium_run(
             "/",
             "odoo.__DEBUG__.services['web_tour.tour'].run('portal_load_homepage')",
-            "odoo.__DEBUG__.services['web_tour.tour'].tours.portal_load_homepage.ready",
+            ready="odoo.__DEBUG__.services['web_tour.tour'].tours.portal_load_homepage.ready",
             login="portal"
         )
