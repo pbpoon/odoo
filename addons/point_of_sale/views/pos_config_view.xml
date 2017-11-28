@@ -330,9 +330,9 @@
                                 <field name="module_pos_mercury"/>
                             </div>
                             <div class="o_setting_right_pane">
-                                <label for="module_pos_mercury" string="Integrated Card Reader"/>
+                                <label for="module_pos_mercury" string="Credit Card Reader"/>
                                 <div class="text-muted">
-                                    Accept payments with an integrated card reader
+                                    Accept payments with a credit card reader
                                 </div>
                                 <div class="content-group" attrs="{'invisible': [('module_pos_mercury', '=', False)]}">
                                     <div class="mt16" id="btn_use_pos_mercury">
