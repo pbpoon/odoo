@@ -494,5 +494,22 @@ joining us as a ${object.job_id.name}
             <field name="name">Job Campaign</field>
     </record>
 
+    <record model="hr.recruitment.stage" id="stage_job1">
+        <field name="name">New</field>
+        <field name="sequence">1</field>
+    </record>
+    <record model="hr.recruitment.stage" id="stage_job2">
+        <field name="name">Qualified</field>
+        <field name="sequence">2</field>
+    </record>
+    <record model="hr.recruitment.stage" id="stage_job3">
+        <field name="name">First Interview</field>
+        <field name="sequence">3</field>
+    </record>
+    <record model="hr.recruitment.stage" id="stage_job4">
+        <field name="name">Recruited</field>
+        <field name="sequence">4</field>
+    </record>
+
 </data>
 </odoo>
