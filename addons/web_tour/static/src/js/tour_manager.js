@@ -414,7 +414,7 @@ return core.Class.extend(mixins.EventDispatcherMixin, ServicesMixin, {
                                 '<b>Good job!</b>' +
                                 ' You went through all steps of this tour.' +
                                 '</strong>');
-            new RainbowMan({message: $rainbow_message, click_close: false}).appendTo(this.$body);
+            new RainbowMan({message: $rainbow_message}).appendTo(this.$body);
         };
         this.tours[tour_name].current_step = 0;
         local_storage.removeItem(get_step_key(tour_name));
