@@ -296,6 +296,19 @@ class SaleOrder(models.Model):
             default['order_line'] = [(0, 0, line.copy_data()[0]) for line in self.order_line.filtered(lambda l: not l.is_downpayment)]
         return super(SaleOrder, self).copy_data(default)
 
+    def _write(self, vals):
+        pre_not_upselling = self.filtered(lambda order: order.invoice_status != 'upselling')
+        res = super(SaleOrder, self)._write(vals)
+        upselling = self.filtered(lambda order: order.invoice_status == 'upselling' and order in pre_not_upselling)
+        for order in upselling:
+            order.activity_schedule(
+                'sale.mail_act_sale_upsell', fields.Date.today(),
+                user_id=order.user_id.id,
+                note=_("Upsell <a href='#' data-oe-model='%s' data-oe-id='%d'>%s</a> for customer <a href='#' data-oe-model='%s' data-oe-id='%s'>%s</a>") % (
+                    order._name, order.id, order.name,
+                    order.partner_id._name, order.partner_id.id, order.partner_id.display_name))
+        return res
+
     @api.multi
     def name_get(self):
         if self._context.get('sale_show_partner_name'):
