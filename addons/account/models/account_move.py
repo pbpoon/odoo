@@ -688,7 +688,8 @@ class AccountMoveLine(models.Model):
             query = """
                     SELECT a.id, b.id
                     FROM account_move_line a, account_move_line b
-                    WHERE a.amount_residual = -b.amount_residual
+                    WHERE a.ref = b.ref
+                    AND a.amount_residual = -b.amount_residual
                     AND NOT a.reconciled AND NOT b.reconciled
                     AND a.account_id = %(account_id)s AND b.account_id = %(account_id)s
                     {partner_id_condition}
@@ -698,6 +699,21 @@ class AccountMoveLine(models.Model):
 
         self.env.cr.execute(query, locals())
         pairs = self.env.cr.fetchall()
+
+        if not pairs:
+            query = """
+                    SELECT a.id, b.id
+                    FROM account_move_line a, account_move_line b
+                    WHERE a.amount_residual = -b.amount_residual
+                    AND NOT a.reconciled AND NOT b.reconciled
+                    AND a.account_id = %(account_id)s AND b.account_id = %(account_id)s
+                    {partner_id_condition}
+                    ORDER BY a.date desc
+                    LIMIT 10
+                """.format(**locals())
+
+            self.env.cr.execute(query, locals())
+            pairs = self.env.cr.fetchall()
 
         # Apply ir_rules by filtering out
         all_pair_ids = [element for tupl in pairs for element in tupl]
