@@ -920,7 +920,7 @@ class Lead(models.Model):
         return super(Lead, self.with_context(
             empty_list_help_model='crm.team',
             empty_list_help_id=self._context.get('default_team_id', False),
-            empty_list_help_document_name=_("opportunities"),
+            empty_list_help_document_name= _('leads') if self._context.get('default_type') == 'lead' else _('opportunities'),
         )).get_empty_list_help(help)
 
     @api.multi

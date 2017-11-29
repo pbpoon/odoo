@@ -196,7 +196,15 @@ class IrActionsActWindow(models.Model):
             for values in result:
                 model = values.get('res_model')
                 if model in self.env:
-                    values['help'] = self.env[model].get_empty_list_help(values.get('help', ""))
+                    rec = self.filtered(lambda r: r.id == values['id'])
+                    eval_ctx = dict(self.env.context)
+                    eval_ctx.update({'context': dict(self.env.context)})
+                    try:
+                        ctx = safe_eval(rec.context, eval_ctx)
+                    except:
+                        ctx = {}
+
+                    values['help'] = self.with_context(**ctx).env[model].get_empty_list_help(values.get('help', ""))
         return result
 
     @api.model
