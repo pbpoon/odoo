@@ -40,6 +40,7 @@ Wizards provided by this module:
         'base_iban',
         'base_vat',
         'l10n_multilang',
+        'l10n_be_invoice_bba',
     ],
     'data': [
         'data/account_chart_template_data.xml',
