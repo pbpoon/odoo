@@ -807,6 +807,24 @@ class Menu(models.Model):
     child_id = fields.One2many('website.menu', 'parent_id', string='Child Menus')
     parent_left = fields.Integer('Parent Left', index=True)
     parent_right = fields.Integer('Parent Rigth', index=True)
+    is_visible = fields.Boolean(compute='_compute_visible', string='Is Visible')
+
+    @api.one
+    def _compute_visible(self):
+        # visible = True
+        # if self.page_id:
+        #     try:
+        #         self.page_id.check_access_rule('read')
+        #         self.page_id.check_access_rights('read')
+        #         if not self.page_id.sudo().is_visible and not self.user_has_groups('base.group_user'):
+        #             visible = False
+        #     except Exception:
+        #         visible = False
+        # self.is_visible = visible
+        visible = True
+        if self.page_id and not self.page_id.sudo().is_visible and not self.user_has_groups('base.group_user'):
+            visible = False
+        self.is_visible = visible
 
     @api.model
     def clean_url(self):
