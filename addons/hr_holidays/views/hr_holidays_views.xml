@@ -586,6 +586,9 @@
                                 <field name="name"/>
                                 <field name="double_validation"/>
                                 <field name="limit"/>
+                                <field name="validity_start" />
+                                <field name="validity_stop" />
+                                <field name="valid" readonly="1"/>
                             </group>
                             <group name="options" string="Options">
                                 <field name="categ_id"/>
@@ -641,6 +644,9 @@
                 <tree string="Leave Type">
                     <field name="name"/>
                     <field name="limit"/>
+                    <field name="validity_start" />
+                    <field name="validity_stop" />
+                    <field name="valid"/>
                 </tree>
             </field>
         </record>

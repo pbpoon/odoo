@@ -63,6 +63,20 @@ class HolidaysType(models.Model):
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
 
+    # Adding validity to types of leaves so that it cannot be selected outside
+    # this time period
+    validity_start = fields.Date()
+    validity_stop = fields.Date()
+
+    valid = fields.Boolean(compute='_is_valid', store=True)
+
+    @api.multi
+    def _is_valid(self):
+        for holiday in self:
+            today = fields.Date.today()
+            holiday.valid = holiday.limit or (today < holiday.validity_stop \
+                                              and today > holiday.validity_start)
+
     @api.multi
     def get_days(self, employee_id):
         # need to use `dict` constructor to create a dict per id
@@ -177,7 +191,7 @@ class Holidays(models.Model):
     date_to = fields.Datetime('End Date', readonly=True, copy=False,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, track_visibility='onchange')
     holiday_status_id = fields.Many2one("hr.holidays.status", string="Leave Type", required=True, readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, domain=[('valid', '=', True)])
     employee_id = fields.Many2one('hr.employee', string='Employee', index=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, track_visibility='onchange')
     manager_id = fields.Many2one('hr.employee', related='employee_id.parent_id', string='Manager', readonly=True, store=True)
