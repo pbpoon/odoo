@@ -400,7 +400,7 @@
             </field>
         </record>
         <record id="action_purchase_receipt" model="ir.actions.act_window">
-            <field name="name">Purchase Receipts</field>
+            <field name="name">Purchases Receipts</field>
             <field name="res_model">account.voucher</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban</field>

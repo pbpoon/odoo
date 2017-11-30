@@ -999,7 +999,7 @@
                     <field name="type_tax_use"/>
                     <field name="description"/>
                     <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
-                    <field name="active" widget="boolean_toggle"/>
+                    <field name="active" invisible="1"/>
                 </tree>
             </field>
         </record>
@@ -1121,7 +1121,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form</field>
             <field name="domain" eval="False"/> <!-- Force empty -->
-            <field name="context">{'search_default_sale': True, 'search_default_purchase': True, 'active_test': False}</field>
+            <field name="context">{'search_default_sale': True, 'search_default_purchase': True, 'search_default_active': True,'active_test': False}</field>
             <field name="view_id" ref="view_tax_tree"/>
         </record>
         <menuitem action="action_tax_form" id="menu_action_tax_form" parent="account_account_menu" sequence="1"/>
