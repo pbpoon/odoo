@@ -81,7 +81,7 @@ Best Regards,''')
         """
         self = self[0]
         date_str = date.strftime(DEFAULT_SERVER_DATE_FORMAT)
-        fiscalyear = self.env['account.fiscalyear'].search([
+        fiscalyear = self.env['account.fiscal.year'].search([
             ('company_id', '=', self.id),
             ('date_start', '<=', date_str),
             ('date_end', '>=', date_str)

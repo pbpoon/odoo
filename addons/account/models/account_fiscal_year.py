@@ -5,7 +5,7 @@ from odoo import api, fields, models, _
 
 
 class AccountFiscalYear(models.Model):
-    _name = 'account.fiscalyear'
+    _name = 'account.fiscal.year'
     _description = 'Fiscal Year'
 
     name = fields.Char(string='Name', required=True,
