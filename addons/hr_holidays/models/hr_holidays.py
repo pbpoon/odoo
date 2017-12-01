@@ -58,7 +58,14 @@ class HolidaysType(models.Model):
         help='Maximum Leaves Allowed - Leaves Already Taken')
     virtual_remaining_leaves = fields.Float(compute='_compute_leaves', string='Virtual Remaining Leaves',
         help='Maximum Leaves Allowed - Leaves Already Taken - Leaves Waiting Approval')
+"""
+    validation = fields.Selection([('manager', 'By the Manager of the department'),
+                                   ('hr', 'By the human ressources responsible'),
+                                   ('both', 'Both: the manager and the human resource responsible')],
+                                  default='hr')
 
+    # Will be computed based on the value of validation attribute
+"""
     double_validation = fields.Boolean(string='Apply Double Validation',
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
