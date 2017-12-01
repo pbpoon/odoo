@@ -23,6 +23,6 @@
         "data/account_tax_template_data.xml",
         "data/account_fiscal_position_template_data.xml",
         "data/account_chart_template_post_data.xml",  # 2nd last
-        "data/account_chart_template_data.yml",  # Load / evaluate this last
+        "data/account_chart_template_data.xml",  # Load / evaluate this last
     ],
 }
