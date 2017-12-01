@@ -59,7 +59,7 @@ class HolidaysType(models.Model):
     virtual_remaining_leaves = fields.Float(compute='_compute_leaves', string='Virtual Remaining Leaves',
         help='Maximum Leaves Allowed - Leaves Already Taken - Leaves Waiting Approval')
 
-    double_validation = fields.Boolean(compute='_compute_double_validation', store=True, string='Apply Double Validation',
+    double_validation = fields.Boolean(string='Apply Double Validation', # compute='_compute_double_validation', store=True, 
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
 
@@ -95,10 +95,11 @@ class HolidaysType(models.Model):
 
     def _search_valid(self, operator, value):
         today = fields.Date.today()
+        signs = ['>', '<'] if operator == '=' else ['<', '>']
 
         return ['|', ('limit', operator, value), '&',
-                ('validity_stop', '>' if value else '<', today),
-                ('validity_start', '<' if value else '>', today)]
+                ('validity_stop', signs[0] if value else signs[1], today),
+                ('validity_start', signs[1] if value else signs[0], today)]
 
     @api.multi
     def get_days(self, employee_id):
