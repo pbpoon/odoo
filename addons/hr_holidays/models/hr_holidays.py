@@ -59,9 +59,15 @@ class HolidaysType(models.Model):
     virtual_remaining_leaves = fields.Float(compute='_compute_leaves', string='Virtual Remaining Leaves',
         help='Maximum Leaves Allowed - Leaves Already Taken - Leaves Waiting Approval')
 
-    double_validation = fields.Boolean(string='Apply Double Validation',
+    double_validation = fields.Boolean(compute='_compute_double_validation', store=True, string='Apply Double Validation',
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
+
+    validation_type = fields.Selection([('manager', 'By the Manager of the department'),
+                                      ('hr', 'By the human resources responsible'),
+                                      ('both', 'Both: the manager and the human resource responsible')],
+                                     default='hr',
+                                     string='Validation')
 
     # Adding validity to types of leaves so that it cannot be selected outside
     # this time period
@@ -69,6 +75,12 @@ class HolidaysType(models.Model):
     validity_stop = fields.Date()
 
     valid = fields.Boolean(compute='_compute_valid', search='_search_valid')
+
+    @api.multi
+    @api.depends('validation_type')
+    def _compute_double_validation(self):
+        for holiday in self:
+            double_validation = holiday.validation_type == 'both'
 
     @api.multi
     @api.depends('validity_start', 'validity_stop', 'limit')
