@@ -326,6 +326,7 @@ class MaintenanceRequest(models.Model):
             request._add_followers()
         if request.equipment_id and not request.maintenance_team_id:
             request.maintenance_team_id = request.equipment_id.maintenance_team_id
+        request.activities_update()
         return request
 
     @api.multi
@@ -339,7 +340,21 @@ class MaintenanceRequest(models.Model):
             self._add_followers()
         if self.stage_id.done and 'stage_id' in vals:
             self.write({'close_date': fields.Date.today()})
+            self.activity_feedback(['maintenance.mail_act_maintenance_request'])
+        if 'schedule_date' in vals:
+            self.activities_update()
         return res
+
+    def activities_update(self):
+        for request in self.filtered(lambda request: not request.schedule_date):
+            request.activity_unlink(['maintenance.mail_act_maintenance_request'])
+        for request in self.filtered(lambda request: request.schedule_date):
+            request.activity_schedule(
+                'maintenance.mail_act_maintenance_request',
+                fields.Datetime.from_string(request.schedule_date).date(),
+                note=_('Request planned for <a href="#" data-oe-model="%s" data-oe-id="%s">%s</a>') %
+                      (request.equipment_id._name, request.equipment_id.id, request.equipment_id.display_name),
+                user_id=request.technician_user_id.id or request.owner_user_id.id or self.env.uid)
 
     def _add_followers(self):
         for request in self:
