@@ -75,8 +75,11 @@ class HolidaysType(models.Model):
     def _compute_valid(self):
         for holiday in self:
             today = fields.Date.today()
-            holiday.valid = holiday.limit or (today < holiday.validity_stop \
-                                              and today > holiday.validity_start)
+
+            if holiday.validity_start and holiday.validity_stop:
+                holiday.valid = holiday.limit or ((today < holiday.validity_stop) and (today > holiday.validity_start))
+            else:
+                holiday.valid = False
 
     def _search_valid(self, operator, value):
         today = fields.Date.today()
