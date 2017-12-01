@@ -58,14 +58,7 @@ class HolidaysType(models.Model):
         help='Maximum Leaves Allowed - Leaves Already Taken')
     virtual_remaining_leaves = fields.Float(compute='_compute_leaves', string='Virtual Remaining Leaves',
         help='Maximum Leaves Allowed - Leaves Already Taken - Leaves Waiting Approval')
-"""
-    validation = fields.Selection([('manager', 'By the Manager of the department'),
-                                   ('hr', 'By the human ressources responsible'),
-                                   ('both', 'Both: the manager and the human resource responsible')],
-                                  default='hr')
 
-    # Will be computed based on the value of validation attribute
-"""
     double_validation = fields.Boolean(string='Apply Double Validation',
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
@@ -75,14 +68,22 @@ class HolidaysType(models.Model):
     validity_start = fields.Date()
     validity_stop = fields.Date()
 
-    valid = fields.Boolean(compute='_is_valid', store=True)
+    valid = fields.Boolean(compute='_compute_valid', search='_search_valid')
 
     @api.multi
-    def _is_valid(self):
+    @api.depends('validity_start', 'validity_stop', 'limit')
+    def _compute_valid(self):
         for holiday in self:
             today = fields.Date.today()
             holiday.valid = holiday.limit or (today < holiday.validity_stop \
                                               and today > holiday.validity_start)
+
+    def _search_valid(self, operator, value):
+        today = fields.Date.today()
+
+        return ['|', ('limit', operator, value), '&',
+                ('validity_stop', '>' if value else '<', today),
+                ('validity_start', '<' if value else '>', today)]
 
     @api.multi
     def get_days(self, employee_id):
