@@ -633,6 +633,9 @@ var ListRenderer = BasicRenderer.extend({
         }
 
         var $table = $('<table>').addClass('o_list_view table table-condensed table-striped');
+        $('.o_content').on('scroll', function(){
+            $('thead').css('transform', 'translateY(' + this.scrollTop + 'px)');
+        });
         this.$el
             .addClass('table-responsive')
             .append($table);
