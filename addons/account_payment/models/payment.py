@@ -4,7 +4,6 @@
 import logging
 
 from odoo import fields, models, _
-from odoo.tools import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -40,86 +39,13 @@ class PaymentTransaction(models.Model):
         if self.payment_token_id and self.partner_id == self.account_invoice_id.partner_id:
             try:
                 s2s_result = self.s2s_do_transaction()
+                return True
             except Exception as e:
                 _logger.warning(
                     _("<%s> transaction (%s) failed : <%s>") %
                     (self.acquirer_id.provider, self.id, str(e)))
                 return 'pay_invoice_tx_fail'
-
-            valid_state = 'authorized' if self.acquirer_id.capture_manually else 'done'
-            if not s2s_result or self.state != valid_state:
-                _logger.warning(
-                    _("<%s> transaction (%s) invalid state : %s") %
-                    (self.acquirer_id.provider, self.id, self.state_mesage))
-                return 'pay_invoice_tx_state'
-
-            try:
-                # Auto-confirm SO if necessary
-                return self._confirm_invoice()
-            except Exception as e:
-                _logger.warning(
-                    _("<%s>  transaction (%s) invoice confirmation failed : <%s>") %
-                    (self.acquirer_id.provider, self.id, str(e)))
-                return 'pay_invoice_tx_confirm'
         return 'pay_invoice_tx_token'
-
-    def _confirm_invoice(self):
-        """ Check tx state, confirm and pay potential invoice """
-        self.ensure_one()
-        # check tx state, confirm the potential SO
-        if self.account_invoice_id.state != 'open':
-            _logger.warning('<%s> transaction STATE INCORRECT for invoice %s (ID %s, state %s)', self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id, self.account_invoice_id.state)
-            return 'pay_invoice_invalid_doc_state'
-        if not float_compare(self.amount, self.account_invoice_id.amount_total, 2) == 0:
-            _logger.warning(
-                '<%s> transaction AMOUNT MISMATCH for invoice %s (ID %s): expected %r, got %r',
-                self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id,
-                self.account_invoice_id.amount_total, self.amount,
-            )
-            self.account_invoice_id.message_post(
-                subject=_("Amount Mismatch (%s)") % self.acquirer_id.provider,
-                body=_("The invoice was not confirmed despite response from the acquirer (%s): invoice amount is %r but acquirer replied with %r.") % (
-                    self.acquirer_id.provider,
-                    self.account_invoice_id.amount_total,
-                    self.amount,
-                )
-            )
-            return 'pay_invoice_tx_amount'
-
-        if self.state == 'authorized' and self.acquirer_id.capture_manually:
-            _logger.info('<%s> transaction authorized, nothing to do with invoice %s (ID %s)', self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id)
-        elif self.state == 'done':
-            _logger.info('<%s> transaction completed, paying invoice %s (ID %s)', self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id)
-            self._pay_invoice()
-        else:
-            _logger.warning('<%s> transaction MISMATCH for invoice %s (ID %s)', self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id)
-            return 'pay_invoice_tx_state'
-        return True
-
-    def _pay_invoice(self):
-        self.ensure_one()
-
-        # force company to ensure journals/accounts etc. are correct
-        # company_id needed for default_get on account.journal
-        # force_company needed for company_dependent fields
-        ctx_company = {'company_id': self.account_invoice_id.company_id.id,
-                       'force_company': self.account_invoice_id.company_id.id}
-        invoice = self.account_invoice_id.with_context(**ctx_company)
-
-        if not self.acquirer_id.journal_id:
-            default_journal = self.env['account.journal'].search([('type', '=', 'bank')], limit=1)
-            if not default_journal:
-                _logger.warning('<%s> transaction completed, could not auto-generate payment for invoice %s (ID %s) (no journal set on acquirer)',
-                                self.acquirer_id.provider, self.account_invoice_id.number, self.account_invoice_id.id)
-                return False
-            self.acquirer_id.journal_id = default_journal
-
-        invoice.pay_and_reconcile(self.acquirer_id.journal_id, pay_amount=invoice.amount_total)
-        invoice.payment_ids.write({'payment_transaction_id': self.ids[0]})
-        _logger.info('<%s> transaction <%s> completed, reconciled invoice %s (ID %s))',
-                     self.acquirer_id.provider, self.ids[0], invoice.number, invoice.id)
-
-        return True
 
     def render_invoice_button(self, invoice, return_url, submit_txt=None, render_values=None):
         values = {
@@ -152,26 +78,11 @@ class PaymentTransaction(models.Model):
             tx = False
 
         if not tx:
-            tx_values = {
-                'acquirer_id': acquirer.id,
-                'type': tx_type,
-                'amount': invoice.amount_total,
-                'currency_id': invoice.currency_id.id,
-                'partner_id': invoice.partner_id.id,
-                'partner_country_id': invoice.partner_id.country_id.id,
-                'reference': self.get_next_reference(invoice.number),
-                'account_invoice_id': invoice.id,
-            }
+            if not add_tx_values:
+                add_tx_values = {}
+            add_tx_values['type'] = tx_type
+            tx = invoice.create_payment_transaction(acquirer, payment_token=payment_token)
             if add_tx_values:
-                tx_values.update(add_tx_values)
-            if payment_token and payment_token.sudo().partner_id == invoice.partner_id:
-                tx_values['payment_token_id'] = payment_token.id
-
-            tx = self.create(tx_values)
-
-        # update invoice
-        invoice.write({
-            'payment_tx_id': tx.id,
-        })
+                tx.write(add_tx_values)
 
         return tx

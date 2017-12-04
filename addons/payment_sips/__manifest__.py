@@ -20,4 +20,5 @@ payments acquirer using Worldline SIPS.""",
         'data/payment_acquirer_data.xml',
     ],
     'installable': True,
+    'post_init_hook': '_auto_create_journal',
 }

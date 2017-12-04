@@ -1,40 +1,40 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models, _
+from odoo import api, fields, models, _
 
 
 class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
-    payment_tx_ids = fields.One2many('payment.transaction', 'account_invoice_id', string='Transactions')
-    payment_tx_id = fields.Many2one('payment.transaction', string='Last Transaction', copy=False)
-    payment_acquirer_id = fields.Many2one(
-        'payment.acquirer', string='Payment Acquirer',
-        related='payment_tx_id.acquirer_id', store=True)
-    payment_tx_count = fields.Integer(string="Number of payment transactions", compute='_compute_payment_tx_count')
+    payment_ids_nbr = fields.Integer(string='# of Payments', compute='_compute_payment_ids')
+    payment_tx_id = fields.Many2one('payment.transaction', string='Last Transaction', compute='_compute_payment_ids')
 
-    def _compute_payment_tx_count(self):
-        tx_data = self.env['payment.transaction'].read_group(
-            [('account_invoice_id', 'in', self.ids)],
-            ['account_invoice_id'], ['account_invoice_id']
-        )
-        mapped_data = dict([(m['account_invoice_id'][0], m['account_invoice_id_count']) for m in tx_data])
-        for invoice in self:
-            invoice.payment_tx_count = mapped_data.get(invoice.id, 0)
+    @api.depends('payment_ids')
+    def _compute_payment_ids(self):
+        for inv in self:
+            inv.payment_ids_nbr = len(inv.payment_ids)
+            if not inv.payment_ids:
+                continue
+            inv.payment_tx_id = next(pay.payment_transaction_id for pay in inv.payment_ids if pay.payment_transaction_id)
 
-    def action_view_transactions(self):
+    @api.multi
+    def get_portal_transactions(self):
+        return self.mapped('payment_ids.payment_transaction_ids')\
+            .filtered(lambda trans: trans.state == 'posted' or (trans.state == 'draft' and trans.pending))
+
+    def action_view_payments(self):
         action = {
-            'name': _('Payment Transactions'),
+            'name': _('Payment(s)'),
             'type': 'ir.actions.act_window',
-            'res_model': 'payment.transaction',
+            'res_model': 'account.payment',
             'target': 'current',
         }
-        tx = self.env['payment.transaction'].search([('account_invoice_id', 'in', self.ids)])
-        if len(tx) == 1:
-            action['res_id'] = tx.ids[0]
+        payment_ids = self.mapped('payment_ids')
+        if len(payment_ids) == 1:
+            action['res_id'] = payment_ids.ids[0]
             action['view_mode'] = 'form'
         else:
             action['view_mode'] = 'tree,form'
-            action['domain'] = [('account_invoice_id', 'in', self.ids)]
+            action['domain'] = [('id', 'in', payment_ids.ids)]
         return action

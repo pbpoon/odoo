@@ -65,7 +65,7 @@ class sale_quote(http.Controller):
             return request.make_response(pdf, headers=pdfhttpheaders)
         transaction_id = request.session.get('quote_%s_transaction_id' % order_sudo.id)
         if not transaction_id:
-            Transaction = request.env['payment.transaction'].sudo().search([('reference', '=', order_sudo.name)])
+            Transaction = order_sudo.payment_tx_id
         else:
             Transaction = request.env['payment.transaction'].sudo().browse(transaction_id)
         values = {
@@ -176,7 +176,7 @@ class sale_quote(http.Controller):
         # find an already existing transaction
         acquirer = request.env['payment.acquirer'].browse(int(acquirer_id))
         token = request.env['payment.token'].sudo()  # currently no support of payment tokens
-        tx = request.env['payment.transaction'].sudo().search([('reference', '=', order.name)], limit=1)
+        tx = order.sudo().payment_tx_id
         tx_type = order._get_payment_type()
         tx = tx._check_or_create_sale_tx(order, acquirer, payment_token=token, tx_type=tx_type)
         request.session['quote_%s_transaction_id' % order.id] = tx.id
@@ -206,7 +206,7 @@ class sale_quote(http.Controller):
             return request.redirect('/quote/%s' % order_id)
 
         # find an already existing transaction
-        tx = request.env['payment.transaction'].sudo().search([('reference', '=', order.name)], limit=1)
+        tx = order.sudo().payment_tx_id
         # set the transaction type to server2server
         tx_type = 'server2server'
         # check if the transaction exists, if not then it create one

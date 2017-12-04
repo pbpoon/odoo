@@ -309,7 +309,7 @@ class Website(models.Model):
             # - Be redirected to SIPS website again => error
             # Since there is no link module between 'website_sale' and 'payment_sips', we prevent
             # here to reuse any previous transaction for SIPS.
-            if transaction.state != 'cancel' and transaction.acquirer_id.provider != 'sips':
+            if transaction.state != 'cancelled' and transaction.acquirer_id.provider != 'sips':
                 return transaction
             else:
                 request.session['sale_transaction_id'] = False

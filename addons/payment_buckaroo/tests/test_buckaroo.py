@@ -138,16 +138,25 @@ class BuckarooForm(BuckarooCommon):
             'currency_id': self.currency_euro.id,
             'reference': 'SO004',
             'partner_name': 'Norbert Buyer',
+            'partner_id': self.buyer_id,
             'partner_country_id': self.country_france.id})
 
         # validate it
         tx.form_feedback(buckaroo_post_data, 'buckaroo')
         # check state
-        self.assertEqual(tx.state, 'done', 'Buckaroo: validation did not put tx into done state')
+        self.assertEqual(tx.state, 'posted', 'Buckaroo: validation did not put tx into done state')
         self.assertEqual(tx.acquirer_reference, buckaroo_post_data.get('BRQ_TRANSACTIONS'), 'Buckaroo: validation did not update tx payid')
 
         # reset tx
-        tx.write({'state': 'draft', 'date_validate': False, 'acquirer_reference': False})
+        tx.unlink()
+        tx = self.env['payment.transaction'].create({
+            'amount': 2240.0,
+            'acquirer_id': self.buckaroo.id,
+            'currency_id': self.currency_euro.id,
+            'reference': 'SO004',
+            'partner_name': 'Norbert Buyer',
+            'partner_id': self.buyer_id,
+            'partner_country_id': self.country_france.id})
 
         # now buckaroo post is ok: try to modify the SHASIGN
         buckaroo_post_data['BRQ_SIGNATURE'] = '54d928810e343acf5fb0c3ee75fd747ff159ef7a'
@@ -160,4 +169,4 @@ class BuckarooForm(BuckarooCommon):
         tx.form_feedback(buckaroo_post_data, 'buckaroo')
 
         # check state
-        self.assertEqual(tx.state, 'error', 'Buckaroo: erroneous validation did not put tx into error state')
+        self.assertEqual(tx.state, 'cancelled', 'Buckaroo: erroneous validation did not put tx into error state')

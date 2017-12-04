@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="account_payment_transaction_sequence" model="ir.sequence">
+        <field name="name">Transactions sequence</field>
+        <field name="code">payment.transaction</field>
+    </record>
+
     <record id="account_payment_method_electronic_in" model="account.payment.method">
         <field name="name">Electronic</field>
         <field name="code">electronic</field>

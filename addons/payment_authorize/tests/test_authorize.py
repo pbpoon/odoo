@@ -165,21 +165,30 @@ class AuthorizeForm(AuthorizeCommon):
             'currency_id': self.currency_usd.id,
             'reference': 'SO004',
             'partner_name': 'Norbert Buyer',
+            'partner_id': self.buyer_id,
             'partner_country_id': self.country_france.id})
         # validate it
         self.env['payment.transaction'].form_feedback(authorize_post_data, 'authorize')
         # check state
-        self.assertEqual(tx.state, 'done', 'Authorize: validation did not put tx into done state')
+        self.assertEqual(tx.state, 'posted', 'Authorize: validation did not put tx into done state')
         self.assertEqual(tx.acquirer_reference, authorize_post_data.get('x_trans_id'), 'Authorize: validation did not update tx payid')
 
         # reset tx
-        tx.write({'state': 'draft', 'date_validate': False, 'acquirer_reference': False})
+        tx.unlink()
+        tx = self.env['payment.transaction'].create({
+            'amount': 320.0,
+            'acquirer_id': self.authorize.id,
+            'currency_id': self.currency_usd.id,
+            'reference': 'SO004',
+            'partner_name': 'Norbert Buyer',
+            'partner_id': self.buyer_id,
+            'partner_country_id': self.country_france.id})
 
         # simulate an error
         authorize_post_data['x_response_code'] = u'3'
         self.env['payment.transaction'].form_feedback(authorize_post_data, 'authorize')
         # check state
-        self.assertEqual(tx.state, 'error', 'Authorize: erroneous validation did not put tx into error state')
+        self.assertEqual(tx.state, 'cancelled', 'Authorize: erroneous validation did not put tx into error state')
 
     @unittest.skip("Authorize s2s test disabled: We do not want to overload Authorize.net with runbot's requests")
     def test_30_authorize_s2s(self):
@@ -218,7 +227,7 @@ class AuthorizeForm(AuthorizeCommon):
 
         })
         transaction.authorize_s2s_do_transaction()
-        self.assertEqual(transaction.state, 'done',)
+        self.assertEqual(transaction.state, 'posted',)
 
         # switch to 'authorize only'
         # create authorize only s2s transaction & capture it
@@ -231,12 +240,11 @@ class AuthorizeForm(AuthorizeCommon):
             'reference': 'test_%s' % int(time.time()),
             'payment_token_id': payment_token.id,
             'partner_id': self.buyer_id,
-
         })
         transaction.authorize_s2s_do_transaction()
-        self.assertEqual(transaction.state, 'authorized')
+        self.assertTrue(transaction.authorized)
         transaction.action_capture()
-        self.assertEqual(transaction.state, 'done')
+        self.assertEqual(transaction.state, 'posted')
 
         # create authorize only s2s transaction & void it
         self.authorize.capture_manually = True
@@ -248,26 +256,8 @@ class AuthorizeForm(AuthorizeCommon):
             'reference': 'test_%s' % int(time.time()),
             'payment_token_id': payment_token.id,
             'partner_id': self.buyer_id,
-
         })
         transaction.authorize_s2s_do_transaction()
-        self.assertEqual(transaction.state, 'authorized')
+        self.assertTrue(transaction.authorized)
         transaction.action_void()
-        self.assertEqual(transaction.state, 'cancel')
-
-        # try charging an unexisting profile
-        ghost_payment_token = payment_token.copy()
-        ghost_payment_token.authorize_profile = '99999999999'
-        # create normal s2s transaction
-        transaction = self.env['payment.transaction'].create({
-            'amount': 500,
-            'acquirer_id': authorize.id,
-            'type': 'server2server',
-            'currency_id': self.currency_usd.id,
-            'reference': 'test_ref_%s' % int(time.time()),
-            'payment_token_id': ghost_payment_token.id,
-            'partner_id': self.buyer_id,
-
-        })
-        transaction.authorize_s2s_do_transaction()
-        self.assertEqual(transaction.state, 'error')
+        self.assertEqual(transaction.state, 'cancelled')

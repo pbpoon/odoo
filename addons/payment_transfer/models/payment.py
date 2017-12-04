@@ -85,4 +85,5 @@ class TransferPaymentTransaction(models.Model):
 
     def _transfer_form_validate(self, data):
         _logger.info('Validated transfer payment for tx %s: set as pending' % (self.reference))
-        return self.write({'state': 'pending'})
+        self.mark_as_pending()
+        return True

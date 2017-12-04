@@ -14,4 +14,5 @@
     ],
     'installable': True,
     'auto_install': True,
+    'post_init_hook': '_auto_create_journal',
 }

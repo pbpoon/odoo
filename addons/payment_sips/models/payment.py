@@ -177,7 +177,7 @@ class TxSips(models.Model):
         data = {
             'acquirer_reference': data.get('transactionReference'),
             'partner_reference': data.get('customerId'),
-            'date_validate': data.get('transactionDateTime',
+            'payment_date': data.get('transactionDateTime',
                                       fields.Datetime.now())
         }
         res = False
@@ -185,33 +185,41 @@ class TxSips(models.Model):
             msg = 'Payment for tx ref: %s, got response [%s], set as done.' % \
                   (self.reference, status)
             _logger.info(msg)
-            data.update(state='done', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.post
             res = True
         elif status in self._sips_error_tx_status:
             msg = 'Payment for tx ref: %s, got response [%s], set as ' \
                   'error.' % (self.reference, status)
-            data.update(state='error', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.cancel
         elif status in self._sips_wait_tx_status:
             msg = 'Received wait status for payment ref: %s, got response ' \
                   '[%s], set as error.' % (self.reference, status)
-            data.update(state='error', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.cancel
         elif status in self._sips_refused_tx_status:
             msg = 'Received refused status for payment ref: %s, got response' \
                   ' [%s], set as error.' % (self.reference, status)
-            data.update(state='error', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.cancel
         elif status in self._sips_pending_tx_status:
             msg = 'Payment ref: %s, got response [%s] set as pending.' \
                   % (self.reference, status)
-            data.update(state='pending', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.mark_as_pending
         elif status in self._sips_cancel_tx_status:
             msg = 'Received notification for payment ref: %s, got response ' \
                   '[%s], set as cancel.' % (self.reference, status)
             data.update(state='cancel', state_message=msg)
+            post_func = self.cancel
         else:
             msg = 'Received unrecognized status for payment ref: %s, got ' \
                   'response [%s], set as error.' % (self.reference, status)
-            data.update(state='error', state_message=msg)
+            data.update(state_message=msg)
+            post_func = self.cancel
 
         _logger.info(msg)
         self.write(data)
+        post_func()
         return res

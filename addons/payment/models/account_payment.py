@@ -1,61 +1,99 @@
 # coding: utf-8
 
-import datetime
-
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
-    payment_transaction_id = fields.Many2one('payment.transaction', string="Payment Transaction")
-    payment_token_id = fields.Many2one('payment.token', string="Saved payment token", domain=[('acquirer_id.capture_manually', '=', False)],
-                                       help="Note that tokens from acquirers set to only authorize transactions (instead of capturing the amount) are not available.")
+    payment_transaction_ids = fields.One2many('payment.transaction', 'payment_id', string='Transactions')
+    payment_transaction_id = fields.Many2one('payment.transaction', string='Transaction',
+                                             compute='_compute_payment_transaction_id')
+    payment_transaction_authorized = fields.Boolean(related='payment_transaction_id.authorized')
+    refund_payment_id = fields.Many2one('account.payment', string='Payment to Refund')
 
-    @api.onchange('partner_id')
-    def _onchange_partner_id(self):
-        res = {}
-        if self.partner_id:
-            partners = self.partner_id | self.partner_id.commercial_partner_id | self.partner_id.commercial_partner_id.child_ids
-            res['domain'] = {'payment_token_id': [('partner_id', 'in', partners.ids), ('acquirer_id.capture_manually', '=', False)]}
+    @api.depends('payment_transaction_ids')
+    def _compute_payment_transaction_id(self):
+        '''Compute the payment_transaction_id field as the other side of a one2one relation
+        between account.payment / payment.transaction.
+        '''
+        for pay in self:
+            pay.payment_transaction_id = pay.payment_transaction_ids and pay.payment_transaction_ids[0] or False
 
-        return res
-
-    @api.onchange('payment_method_id', 'journal_id')
-    def _onchange_payment_method(self):
-        if self.payment_method_code == 'electronic':
-            self.payment_token_id = self.env['payment.token'].search([('partner_id', '=', self.partner_id.id), ('acquirer_id.capture_manually', '=', False)], limit=1)
-        else:
-            self.payment_token_id = False
-
-    @api.model
-    def create(self, vals):
-        account_payment = super(AccountPayment, self).create(vals)
-
-        if account_payment.payment_token_id:
-            account_payment._do_payment()
-        return account_payment
-
-    def _do_payment(self):
-        if self.payment_token_id.acquirer_id.capture_manually:
-            raise ValidationError(_('This feature is not available for payment acquirers set to the "Authorize" mode.\n'
-                                  'Please use a token from another provider than %s.') % self.payment_token_id.acquirer_id.name)
-        reference = "P-%s-%s" % (self.id, datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
-        tx = self.env['payment.transaction'].create({
-            'amount': self.amount,
-            'acquirer_id': self.payment_token_id.acquirer_id.id,
-            'type': 'server2server',
-            'currency_id': self.currency_id.id,
-            'reference': reference,
-            'payment_token_id': self.payment_token_id.id,
+    @api.multi
+    def _prepare_account_payment_refund_vals(self):
+        '''Create dictionary values to create an account.payment record representing
+        a refund of this payment.
+        :return: a dictionary.
+        '''
+        self.ensure_one()
+        payment_type_map = {'outbound': 'inbound', 'inbound': 'outbound'}
+        return {
+            'name': _('Refund: %s') % self.name,
+            'amount': -self.amount,
             'partner_id': self.partner_id.id,
-            'partner_country_id': self.partner_id.country_id.id,
-        })
+            'partner_type': self.partner_type,
+            'currency_id': self.currency_id.id,
+            'journal_id': self.journal_id.id,
+            'company_id': self.company_id.id,
+            'payment_method_id': self.payment_method_id.id,
+            'payment_type': payment_type_map.get(self.payment_type, self.payment_type),
+            'refund_payment_id': self.id,
+            'state': 'draft',
+        }
 
-        s2s_result = tx.s2s_do_transaction()
+    @api.multi
+    def post(self):
+        # If some payments are refunds of others ones, unreconcile them first and then,
+        # reconcile payments together.
+        super(AccountPayment, self).post()
+        for pay in self.filtered(lambda p: p.refund_payment_id):
+            pay.move_line_ids.mapped('move_id.line_ids').remove_move_reconcile()
+            (pay.move_line_ids + pay.refund_payment_id.move_line_ids).reconcile()
 
-        if not s2s_result or tx.state != 'done':
-            raise ValidationError(_("Payment transaction failed (%s)") % tx.state_message)
+    @api.multi
+    def refund(self):
+        '''Refund the selected posted payments.
+        :return: A list of draft payments to refund them.
+        '''
+        if any(p.state in ['draft', 'cancelled'] for p in self):
+            raise UserError(_('Only a posted payment can be refunded.'))
+        if any(p.refund_payment_id for p in self):
+            raise UserError(_('Only not refund payment can be refunded.'))
 
-        self.payment_transaction_id = tx
+        refund_payments = self.env['account.payment']
+        for pay in self:
+            refund_payments += self.create(pay._prepare_account_payment_refund_vals())
+
+        return refund_payments
+
+    @api.multi
+    def _check_payment_transaction_id(self):
+        if any(not p.payment_transaction_ids for p in self):
+            raise ValidationError(_('Only payments linked to some transactions can be proceeded.'))
+
+    @api.multi
+    def action_capture(self):
+        self._check_payment_transaction_id()
+        payment_transaction_ids = self.mapped('payment_transaction_ids')
+        if any(not t.authorized for t in payment_transaction_ids):
+            raise ValidationError(_('Only transactions having the Authorized status can be captured.'))
+        payment_transaction_ids.s2s_capture_transaction()
+
+    @api.multi
+    def action_void(self):
+        self._check_payment_transaction_id()
+        payment_transaction_ids = self.mapped('payment_transaction_ids')
+        if any(not t.authorized for t in payment_transaction_ids):
+            raise ValidationError(_('Only transactions having the Authorized status can be voided.'))
+        payment_transaction_ids.s2s_void_transaction()
+
+    @api.constrains('payment_transaction_ids')
+    def _check_only_one_transaction(self):
+        '''Because we are simulating an one2one relation between account.payment/payment.transaction,
+        We need to ensure the payment_transaction_ids has an arity of [0..1].
+        '''
+        for pay in self:
+            if len(pay.payment_transaction_ids) > 1:
+                raise UserError(_('Only one transaction per payment is allowed!'))
