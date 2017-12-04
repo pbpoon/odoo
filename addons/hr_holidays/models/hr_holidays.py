@@ -21,6 +21,7 @@ HOURS_PER_DAY = 8
 class HolidaysType(models.Model):
     _name = "hr.holidays.status"
     _description = "Leave Type"
+    _order = "sequence, id"
 
     name = fields.Char('Leave Type', required=True, translate=True)
     categ_id = fields.Many2one('calendar.event.type', string='Meeting Type',
@@ -69,6 +70,14 @@ class HolidaysType(models.Model):
                                      default='hr',
                                      string='Validation')
 
+    sequence = fields.Integer(default=100,
+                              help='The type with the smallest sequence is the default value in leave request')
+
+    employee_visibility = fields.Selection([('both', 'Can be used in both requests: Leaves and allocation'),
+                                            ('lr', 'Can be used in leave requests'),
+                                            ('ar', 'Can be used in allocation requests')],
+                                           default='both', string='Employee Visibility')
+
     # Adding validity to types of leaves so that it cannot be selected outside
     # this time period
     validity_start = fields.Date()
@@ -89,9 +98,9 @@ class HolidaysType(models.Model):
             today = fields.Date.today()
 
             if holiday.validity_start and holiday.validity_stop:
-                holiday.valid = holiday.limit or ((today < holiday.validity_stop) and (today > holiday.validity_start))
+                holiday.valid = ((today < holiday.validity_stop) and (today > holiday.validity_start))
             else:
-                holiday.valid = False
+                holiday.valid = holiday.limit or False
 
     def _search_valid(self, operator, value):
         today = fields.Date.today()
@@ -215,7 +224,9 @@ class Holidays(models.Model):
     date_to = fields.Datetime('End Date', readonly=True, copy=False,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, track_visibility='onchange')
     holiday_status_id = fields.Many2one("hr.holidays.status", string="Leave Type", required=True, readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, domain=[('valid', '=', True)])
+        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]},
+        domain="['&', ('valid', '=', True), ('employee_visibility', 'in', [(type == 'add') and 'ar' or 'lr', 'both'])]",
+        default= lambda self: self.env['hr.holidays.status'].search([], limit=1))
     employee_id = fields.Many2one('hr.employee', string='Employee', index=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, track_visibility='onchange')
     manager_id = fields.Many2one('hr.employee', related='employee_id.parent_id', string='Manager', readonly=True, store=True)
