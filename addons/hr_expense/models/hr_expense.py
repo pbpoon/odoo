@@ -17,7 +17,7 @@ class HrExpense(models.Model):
     _description = "Expense"
     _order = "date desc, id desc"
 
-    name = fields.Char(string='Description', readonly=True, required=True, states={'draft': [('readonly', False)], 'refused': [('readonly', False)]})
+    name = fields.Char(string='Description', readonly=True, required=True, states={'draft': [('readonly', False)], 'reported': [('readonly', False)],  'refused': [('readonly', False)]})
     date = fields.Date(readonly=True, states={'draft': [('readonly', False)], 'reported': [('readonly', False)], 'refused': [('readonly', False)]}, default=fields.Date.context_today, string="Date")
     employee_id = fields.Many2one('hr.employee', string="Employee", required=True, readonly=True, states={'draft': [('readonly', False)], 'reported': [('readonly', False)], 'refused': [('readonly', False)]}, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
     product_id = fields.Many2one('product.product', string='Product', readonly=True, states={'draft': [('readonly', False)], 'reported': [('readonly', False)], 'refused': [('readonly', False)]}, domain=[('can_be_expensed', '=', True)], required=True)
@@ -34,7 +34,7 @@ class HrExpense(models.Model):
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', states={'post': [('readonly', True)], 'done': [('readonly', True)]}, oldname='analytic_account')
     account_id = fields.Many2one('account.account', string='Account', states={'post': [('readonly', True)], 'done': [('readonly', True)]}, default=lambda self: self.env['ir.property'].get('property_account_expense_categ_id', 'product.category'),
         help="An expense account is expected")
-    description = fields.Text()
+    description = fields.Text(readonly=True, states={'draft': [('readonly', False)], 'reported': [('readonly', False)], 'refused': [('readonly', False)]})
     payment_mode = fields.Selection([
         ("own_account", "Employee (to reimburse)"),
         ("company_account", "Company")
@@ -452,7 +452,7 @@ class HrExpenseSheet(models.Model):
     employee_id = fields.Many2one('hr.employee', string="Employee", required=True, readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
     address_id = fields.Many2one('res.partner', string="Employee Home Address")
     payment_mode = fields.Selection([("own_account", "Employee (to reimburse)"), ("company_account", "Company")], related='expense_line_ids.payment_mode', default='own_account', readonly=True, string="Paid By")
-    responsible_id = fields.Many2one('res.users', 'Manager', readonly=True, copy=False, states={'submit': [('readonly', False)]})
+    responsible_id = fields.Many2one('res.users', 'Manager', readonly=True, copy=False, states={'submit': [('readonly', False)]}, track_visibility='onchange')
     total_amount = fields.Monetary('Total Amount', currency_field='currency_id', compute='_compute_amount', store=True, digits=dp.get_precision('Account'))
     company_id = fields.Many2one('res.company', string='Company', readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env.user.company_id)
     currency_id = fields.Many2one('res.currency', string='Currency', readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env.user.company_id.currency_id)
@@ -465,6 +465,7 @@ class HrExpenseSheet(models.Model):
     account_move_id = fields.Many2one('account.move', string='Journal Entry', ondelete='restrict', copy=False)
     department_id = fields.Many2one('hr.department', string='Department', states={'post': [('readonly', True)], 'done': [('readonly', True)]})
     is_multiple_currency = fields.Boolean("Handle lines with different currencies", compute='_compute_is_multiple_currency')
+    is_user_the_expense_responsible = fields.Boolean("Check if the current user is the expense responsible", compute='_compute_is_expense_responsible')
 
     @api.multi
     def check_consistency(self):
@@ -514,6 +515,8 @@ class HrExpenseSheet(models.Model):
             return 'hr_expense.mt_expense_refused'
         elif 'state' in init_values and self.state == 'done':
             return 'hr_expense.mt_expense_paid'
+        elif 'responsible_id' in init_values:
+            return 'hr_expense.mt_expense_responsible'
         return super(HrExpenseSheet, self)._track_subtype(init_values)
 
     def _get_users_to_subscribe(self, employee=False):
@@ -568,6 +571,10 @@ class HrExpenseSheet(models.Model):
     @api.one
     def _compute_attachment_number(self):
         self.attachment_number = sum(self.expense_line_ids.mapped('attachment_number'))
+
+    @api.one
+    def _compute_is_expense_responsible(self):
+        self.is_user_the_expense_responsible = self.env.user.id == self.responsible_id.id
 
     @api.multi
     def refuse_sheet(self, reason):
