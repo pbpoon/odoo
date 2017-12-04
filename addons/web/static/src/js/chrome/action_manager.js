@@ -718,8 +718,13 @@ var ActionManager = Widget.extend({
             });
         }
 
+        var self = this;
         return $.when(this[type](action, options)).then(function (executor_action) {
             options.on_load(executor_action);
+            // Display rainbowman on appropriate actions
+            if (action.effect) {
+                self.trigger_up('show_effect', action.effect);
+            }
             return action;
         });
     },
@@ -882,10 +887,6 @@ var ActionManager = Widget.extend({
             options.on_close();
         }
         this.dialog_stop();
-        // Display rainbowman on appropriate actions
-        if (action.effect) {
-            this.trigger_up('show_effect', action.effect);
-        }
 
         return $.when();
     },
