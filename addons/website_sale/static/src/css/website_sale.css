@@ -590,8 +590,19 @@ a.no-decoration {
   text-decoration: none !important;
 }
 
+.o_product_default_anchor {
+  position: absolute;
+  left: 0px;
+  right: 30px;
+  bottom: 12px;
+  pointer-events: none;
+}
+
 #o-carousel-product .carousel-inner div.item {
   height: 400px;
+}
+#o-carousel-product .carousel-inner div.item > div {
+  position: relative;
 }
 #o-carousel-product .carousel-inner div.item img {
   max-height: 100%;

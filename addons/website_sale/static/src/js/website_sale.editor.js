@@ -52,7 +52,13 @@ odoo.define('website_sale.editor', function (require) {
 'use strict';
 
 require('web.dom_ready');
+var core = require('web.core');
+var editor = require('web_editor.editor');
 var options = require('web_editor.snippets.options');
+var websiteRootData = require('website.WebsiteRoot');
+var Widget = require('web.Widget');
+
+var _t = core._t;
 
 if (!$('.js_sale').length) {
     return $.Deferred().reject("DOM doesn't contain '.js_sale'");
@@ -60,6 +66,43 @@ if (!$('.js_sale').length) {
 
 $('.oe_website_sale').on('click', '.oe_currency_value:o_editable', function (ev) {
     $(ev.currentTarget).selectContent();
+});
+
+var ProductDefaultImage = Widget.extend({
+    /**
+     * @override
+     */
+    start: function () {
+        var self = this;
+        var defaultImgPath = '/website_sale/static/src/img/product_default_img.png';
+        var $image = this.$el.find('img.product_detail_img');
+
+        $image.attr('src', defaultImgPath);
+        var $anchor = $('<a>', {
+            class: 'btn btn-link btn-lg o_product_default_anchor',
+            text: _t('Click to set a picture'),
+        });
+
+        $image.load(function () {
+            $anchor.appendTo(self.$el);
+            if (defaultImgPath !== $image.attr('src')) {
+                // Remove anchor if image changed
+                $anchor.remove();
+            }
+        });
+        return this._super.apply(this, arguments);
+    },
+});
+
+editor.Class.include({
+    /**
+     * @override
+     */
+    start: function () {
+        return this._super.apply(this, arguments).then(function () {
+            websiteRootData.websiteRootRegistry.add(ProductDefaultImage, '.o_product_default_image');
+        });
+    },
 });
 
 options.registry.website_sale = options.Class.extend({
