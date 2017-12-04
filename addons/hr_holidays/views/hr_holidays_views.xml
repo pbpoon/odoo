@@ -587,6 +587,8 @@
                                 <field name="validation_type" widget="radio" />
                                 <field name="limit"/>
                                 <!-- TODO: see if we have to add this here or in another group -->
+                                <field name="employee_visibility"/>
+                                <field name="sequence" attrs="{'invisible': [('limit', '=', 'False')]}" />
                                 <field name="validity_start" />
                                 <field name="validity_stop" />
                                 <field name="valid" readonly="1"/>
