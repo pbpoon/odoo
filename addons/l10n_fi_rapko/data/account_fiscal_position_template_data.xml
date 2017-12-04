@@ -24,6 +24,7 @@
         <field name="tax_src_id" ref="sales_vat24_goods"/>
         <field name="tax_dest_id" ref="sales_vat_ic_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_s24s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -38,6 +39,7 @@
         <field name="tax_src_id" ref="sales_vat14_goods"/>
         <field name="tax_dest_id" ref="sales_vat_ic_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_s14s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -52,6 +54,7 @@
         <field name="tax_src_id" ref="sales_vat10_goods"/>
         <field name="tax_dest_id" ref="sales_vat_ic_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_s10s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -66,6 +69,7 @@
         <field name="tax_src_id" ref="purchase_vat24_goods"/>
         <field name="tax_dest_id" ref="purchase_vat_ic_goods_24"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_p24s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -80,6 +84,7 @@
         <field name="tax_src_id" ref="purchase_vat14_goods"/>
         <field name="tax_dest_id" ref="purchase_vat_ic_goods_14"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_p14s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -94,6 +99,7 @@
         <field name="tax_src_id" ref="purchase_vat10_goods"/>
         <field name="tax_dest_id" ref="purchase_vat_ic_goods_10"/>
     </record>
+
     <record id="account_fiscal_position_tax_intracommunity_p10s"
             model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -108,18 +114,21 @@
         <field name="account_src_id" ref="a300000p"/> <!-- Service Sales -->
         <field name="account_dest_id" ref="a302200"/> <!-- IC Service Sales -->
     </record>
+
     <record id="account_fiscal_position_account_intracommunity_sg"
             model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
         <field name="account_src_id" ref="a300000"/> <!-- Goods Sales -->
         <field name="account_dest_id" ref="a302100"/> <!-- IC Goods Sales -->
     </record>
+
     <record id="account_fiscal_position_account_intracommunity_ps"
             model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
         <field name="account_src_id" ref="a4000p"/> <!-- Service Purchases -->
         <field name="account_dest_id" ref="a4720"/> <!-- IC Service Purchases -->
     </record>
+
     <record id="account_fiscal_position_account_intracommunity_pg"
             model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_intracommunity"/>
@@ -141,6 +150,7 @@
         <field name="tax_src_id" ref="sales_vat24_goods"/>
         <field name="tax_dest_id" ref="sales_vat_non_ic"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_s24s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="sales_vat24_services"/>
@@ -153,6 +163,7 @@
         <field name="tax_src_id" ref="sales_vat14_goods"/>
         <field name="tax_dest_id" ref="sales_vat_non_ic"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_s14s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="sales_vat14_services"/>
@@ -165,6 +176,7 @@
         <field name="tax_src_id" ref="sales_vat10_goods"/>
         <field name="tax_dest_id" ref="sales_vat_non_ic"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_s10s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="sales_vat10_services"/>
@@ -176,6 +188,7 @@
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat24_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_p24s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat24_services"/>
@@ -186,6 +199,7 @@
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat14_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_p14s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat14_services"/>
@@ -196,6 +210,7 @@
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat10_goods"/>
     </record>
+
     <record id="account_fiscal_position_tax_non_ic_p10s" model="account.fiscal.position.tax.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="tax_src_id" ref="purchase_vat10_services"/>
@@ -207,16 +222,19 @@
         <field name="account_src_id" ref="a300000p"/> <!-- Service Sales -->
         <field name="account_dest_id" ref="a303200"/> <!-- Service Sales Outside EU -->
     </record>
+
     <record id="account_fiscal_position_account_non_ic_sg" model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="account_src_id" ref="a300000"/> <!-- Goods Sales -->
         <field name="account_dest_id" ref="a303100"/> <!-- Goods Sales Outside EU -->
     </record>
+
     <record id="account_fiscal_position_account_non_ic_ps" model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="account_src_id" ref="a4000p"/> <!-- Service Purchases -->
         <field name="account_dest_id" ref="a4730"/> <!-- Service Purchases Outside EU -->
     </record>
+
     <record id="account_fiscal_position_account_non_ic_pg" model="account.fiscal.position.account.template">
         <field name="position_id" ref="fiscal_position_non_ic"/>
         <field name="account_src_id" ref="a4000"/> <!-- Goods Purchases -->

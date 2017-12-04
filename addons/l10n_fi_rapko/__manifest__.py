@@ -14,6 +14,17 @@
     "category": "Localization",
     "version": "1.0.0",
     "author": "RockIt Oy & Avoin.Systems",
+    'description': """
+
+Base module for Finland localization
+==========================================
+
+This module consists :
+
+ - Generic Finland chart of accounts
+ - Finlanda Taxes
+ - Finland Fiscal position
+ """,
     "depends": [
         "l10n_fi",
     ],

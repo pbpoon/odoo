@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record model="account.account.template" id="a19190">
+    <record id="a19190" model="account.account.template">
         <field name="code">19190</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="reconcile" eval="True"/>
@@ -16,7 +16,7 @@
         <field name="transfer_account_id" ref="a19190"/>
     </record>
 
-    <record model="account.account.template" id="a19190">
+    <record id="a19190" model="account.account.template">
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
     </record>
 

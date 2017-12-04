@@ -14,6 +14,16 @@
     "category": "Localization",
     "version": "1.0.0",
     "author": "RockIt Oy & Avoin.Systems",
+    'description': """
+
+This module for Finland localization
+==========================================
+
+This module consists :
+
+ - Finland accounts tags
+
+ """,
     "depends": [
         "account",
         "base_vat",
