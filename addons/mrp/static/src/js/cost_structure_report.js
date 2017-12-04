@@ -30,11 +30,12 @@ var BomReportAction = ReportAction.extend({
         window.parent.postMessage({
             'message': 'report:do_action',
             'action': action,
-        }, window.origin);
+        }, window.location.origin);
     },
     _make_table_expandable: function () {
         var $body = $(this.iframe).contents().find('html body');
         $body.find('.reports_m2o_web_action').on('click', this.openM2ORecord);
+        $body.find('.header').hide();  // hide header
         var $trExpandable = $body.find('.tr_expandable');
 
         $trExpandable.on('click', function (ev, collapse){

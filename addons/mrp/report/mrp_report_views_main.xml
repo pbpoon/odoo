@@ -18,7 +18,7 @@
             name="mrp.mrp_bom_cost_report"
             file="mrp.mrp_bom_cost_report"
             report_type="qweb-html"
-            multi="True"
+            menu="False"
             print_report_name="'BOM Cost - %s' % (object.product_id.name or object.product_tmpl_id.name or '')"
         />
     </data>

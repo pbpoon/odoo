@@ -6,65 +6,73 @@
                 <t t-call="web.internal_layout">
                     <div class="page">
                         <t t-set="currency" t-value="line['currency']"/>
-                        <h1>BoM Structure &amp; Cost</h1><br/>
-                        <b><t t-esc="line['product_uom_qty']"/> <t t-esc="line['product_uom'].name"/></b>
+                        <h1>BoM Structure &amp; Cost</h1>
+                        <a class="mt8 mb16 reports_m2o_web_action" href="#" t-att-res-id="line['id']" res-model="product.product">
+                            <h3 t-esc="line['name']"/>
+                        </a>
+                        <b>
+                            <t t-esc="line['product_uom_qty']"/>
+                            <t t-esc="line['product_uom'].name"/>
+                        </b>
                         <table>
                             <tbody>
                                 <tr t-foreach="line['attributes']" t-as="attrib">
-                                    <td><span t-esc="attrib[0]"/></td>
-                                    <td><span t-esc="attrib[1]"/></td>
+                                    <td><span t-esc="attrib[0]"/>:</td>
+                                    <td><span class="ml8" t-esc="attrib[1]"/></td>
                                 </tr>
                             </tbody>
                         </table>
-                        <a class="mt8 mb16 reports_m2o_web_action" t-att-res-id="line['id']" res-model="product.product">
-                            <h3 t-esc="line['name']"/>
-                        </a>
                         <table class="table table-condensed">
                             <thead>
                                 <tr>
                                     <th colspan="3">Product</th>
-                                    <th class="col-sm-2 text-left">Quantity</th>
+                                    <th class="col-sm-2 text-right">Quantity</th>
                                     <th class="col-sm-2 text-left" groups="product.group_uom">Unit of Measure</th>
-                                    <th class="col-sm-2 text-left">Unit Cost</th>
-                                    <th class="col-sm-2 text-left">Total Cost</th>
+                                    <th class="col-sm-2 text-right">Unit Cost</th>
+                                    <th class="col-sm-2 text-right">Total Cost</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="line['lines']" t-as="bom_line">
-                                    <tr t-att-data-id="bom_line['id']"
+                                    <tr
+                                        t-att-data-id="bom_line['id']"
                                         t-att-data-parent-id="bom_line['parent_id']"
-                                        t-attf-class="#{'tr_expandable' if bom_line['has_child'] else ''}#{' hidden' if bom_line['level'] and bom_line['print_mode'] == 'html' else ''}"
+                                        t-attf-class="#{'tr_expandable' if bom_line['has_child'] else ''}#{' hidden' if bom_line['level'] and print_mode == 'html' else ''}"
                                         t-attf-style="#{'cursor:pointer' if bom_line['has_child'] else ''}">
                                         <td colspan="3">
                                             <span style="color: white;" t-esc="'... '*(bom_line['level'])"/>
-                                            <t t-if="bom_line['has_child'] and bom_line['print_mode'] == 'html'">
+                                            <t t-if="bom_line['has_child'] and print_mode == 'html'">
                                                 <i class="fa fa-caret-right td-caret" aria-hidden="true"></i>
                                             </t>
-                                            <span t-esc="bom_line['product_id'].display_name"/>
+                                            <a class="mt8 mb16 reports_m2o_web_action" href="#" t-att-res-id="bom_line['product_id'].id" res-model="product.product">
+                                                <!-- <h3 t-esc="line['name']"/> -->
+                                                <span t-esc="bom_line['product_id'].display_name"/>
+                                            </a>
                                         </td>
-                                        <td class="text-left">
+                                        <td class="text-right">
                                             <span t-esc="bom_line['product_uom_qty']"/>
                                         </td>
                                         <td class="text-left" groups="product.group_uom">
                                             <span t-esc="bom_line['product_uom'].name"/>
                                         </td>
-                                        <td class="text-left">
+                                        <td class="text-right">
                                             <span t-esc="bom_line['price_unit']" t-options='{"widget": "monetary", "display_currency": currency}'/>
                                         </td>
-                                        <td class="text-left">
-                                            <span style="color: white;" t-esc="'... '*(bom_line['level'])"/>
+                                        <td class="text-right">
+                                            <!-- <span style="color: white;" t-esc="'... '*(bom_line['level'])"/> -->
                                             <span t-esc="bom_line['total_price']" t-options='{"widget": "monetary", "display_currency": currency}'/>
                                         </td>
                                     </tr>
                                 </t>
                                 <tr>
-                                    <th colspan="6" class="text-left">Total Cost of Components</th>
-                                    <th class="text-left">
+                                    <th t-att-colspan="'6' if request.env.user.user_has_groups('product.group_uom') else '5'" class="text-left">Total Cost of Components</th>
+                                    <th class="text-right">
                                         <span t-esc="line['total']" t-options='{"widget": "monetary", "display_currency": currency}'/>
                                     </th>
                                 </tr>
                             </tbody>
                         </table>
+                        <hr t-if="print_mode == 'html'" class="mt128"/>
                     </div>
                 </t>
             </t>

@@ -24,7 +24,6 @@ class MrpBomCost(models.AbstractModel):
         lines = []
         total = 0
         next_level = level + 1
-        print_mode = self.env.context.get('print_mode')
         for bom_line in bom_lines:
             if bom_line._skip_bom_line(product):
                 continue
@@ -49,7 +48,6 @@ class MrpBomCost(models.AbstractModel):
                 'product_uom_qty': line_quantity,
                 'total_price': total_price,
                 'has_child': has_child,
-                'print_mode': print_mode,
                 'id': bom_line.id,
                 'parent_id': parent_line and parent_line.id,
             }))
@@ -71,19 +69,21 @@ class MrpBomCost(models.AbstractModel):
                 attributes = []
                 for value in product.attribute_value_ids:
                     attributes += [(value.attribute_id.name, value.name)]
-                product_line = {'bom': bom, 'name': product.display_name, 'lines': [], 'total': 0.0,
-                                'currency': self.env.user.company_id.currency_id,
-                                'product_uom_qty': bom.product_qty,
-                                'product_uom': bom.product_uom_id,
-                                'attributes': attributes, 'id': product.id}
                 total, lines = self.get_bom_lines(bom.bom_line_ids, product, bom.product_qty, False, 0)
-                product_line['lines'] = lines
-                product_line['total'] = total
-                product_lines += [product_line]
+                if lines:
+                    product_line = {'bom': bom, 'name': product.display_name, 'lines': [], 'total': 0.0,
+                                    'currency': self.env.user.company_id.currency_id,
+                                    'product_uom_qty': bom.product_qty,
+                                    'product_uom': bom.product_uom_id,
+                                    'attributes': attributes, 'id': product.id}
+                    product_line['lines'] = lines
+                    product_line['total'] = total
+                    product_lines += [product_line]
         return product_lines
 
     @api.model
     def get_report_values(self, docids, data=None):
         boms = self.env['mrp.bom'].browse(docids)
         res = self.get_lines(boms)
-        return {'lines': res}
+        print_mode = self.env.context.get('print_mode')
+        return {'lines': res, 'print_mode': print_mode}
