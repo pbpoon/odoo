@@ -48,7 +48,7 @@ class TestHolidaysFlow(TestHrHolidaysBase):
         self.holidays_status_2 = HolidayStatusManagerGroup.create({
             'name': 'Limited',
             'limit': False,
-            'double_validation': True,
+            'validation_type': 'both',
         })
 
         # --------------------------------------------------
