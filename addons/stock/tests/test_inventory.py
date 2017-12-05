@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -267,3 +268,92 @@ class TestInventory(TransactionCase):
         move_stock_pack._action_done()
 
         self.assertEqual(self.env['stock.quant']._get_available_quantity(self.product1, self.pack_location), 0)
+
+    def test_inventory_7(self):
+        """ Test that during an onchange on an intentory line, the `name_get` of
+        product.product is called once by a thousand inventory lines (value of
+        PREFETCH_MAX).
+        """
+        inventory = self.env['stock.inventory'].create({
+            'name': 'test_inventory_7',
+            'filter': 'none',
+            'location_id': self.stock_location.id,
+        })
+        inventory.action_start()
+        from odoo.models import PREFETCH_MAX
+        self.assertLess(len(inventory.line_ids), PREFETCH_MAX)
+
+        # simulate the commands sent by the webclient
+        field_onchange = {
+            'category_id': '',
+            'company_id': '',
+            'date': '',
+            'exhausted': '',
+            'filter': '1',
+            'line_ids': '1',
+            'line_ids.location_id': '1',
+            'line_ids.package_id': '1',
+            'line_ids.partner_id': '1',
+            'line_ids.prod_lot_id': '1',
+            'line_ids.product_id': '1',
+            'line_ids.product_qty': '',
+            'line_ids.product_uom_id': '1',
+            'line_ids.state': '',
+            'line_ids.theoretical_qty': '',
+            'location_id': '1',
+            'lot_id': '',
+            'move_ids': '',
+            'move_ids.create_date': '',
+            'move_ids.date_expected': '',
+            'move_ids.location_dest_id': '1',
+            'move_ids.location_id': '',
+            'move_ids.picking_id': '',
+            'move_ids.product_id': '1',
+            'move_ids.product_uom': '1',
+            'move_ids.product_uom_qty': '',
+            'move_ids.scrapped': '',
+            'move_ids.state': '',
+            'name': '',
+            'package_id': '',
+            'partner_id': '',
+            'product_id': '',
+            'state': '1',
+        }
+        field_name = 'line_ids'
+        line = inventory.line_ids[0]
+        values = {
+            'category_id': False,
+            'company_id': inventory.company_id.id,
+            'date': inventory.date,
+            'exhausted': False,
+            'filter': 'none',
+            'id': inventory.id,
+            'line_ids': [
+                [1, line.id, {
+                    'location_id': line.location_id.id,
+                    'package_id': line.package_id.id,
+                    'partner_id': line.partner_id.id,
+                    'prod_lot_id': line.prod_lot_id.id,
+                    'product_id': line.product_id.id,
+                    'product_qty': line.product_qty - 1,
+                    'product_uom_id': line.product_uom_id.id,
+                    'state': 'confirm',
+                    'theoretical_qty': line.theoretical_qty
+                }],
+            ],
+            'location_id': inventory.location_id.id,
+            'lot_id': False,
+            'move_ids': [],
+            'name': inventory.name,
+            'package_id': False,
+            'partner_id': False,
+            'product_id': False,
+            'state': 'confirm',
+        }
+        for line in inventory.line_ids - line:
+            values['line_ids'] += [[4, line.id, False]]
+
+        from mock import Mock
+        self.patch(type(self.env['product.product']), 'name_get', Mock(return_value=[(False, 'dummy')]))
+        inventory.onchange(values, field_name, field_onchange)
+        self.assertEqual(self.env['product.product'].name_get.call_count, 1)
