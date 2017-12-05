@@ -124,11 +124,21 @@ var MessagingMenu = Widget.extend({
             var resID = $(event.currentTarget).data('res_id');
             var resModel = $(event.currentTarget).data('res_model');
             if (resModel && resID) {
-                this.do_action({
-                    type: 'ir.actions.act_window',
-                    res_model: resModel,
-                    views: [[false, 'form'], [false, 'kanban']],
-                    res_id: resID
+                // create a virtual channel of this record
+                var data = {
+                    id: 'record thread',
+                    name: 'virtual channel',
+                    channel_type: 'chat',
+                };
+                var options = {display_document_link: false};
+                var channel = chat_manager.make_channel(data, options);
+                chat_manager.get_messages({
+                        model: resModel,
+                        res_id: resID
+                    }).then(function (messages) {
+                        channel.model = resModel;
+                        channel.res_id = resID;
+                        chat_manager.bus.trigger('open_chat', channel);
                 });
             } else {
                 this.do_action('mail.mail_channel_action_client_chat', {clear_breadcrumbs: true})

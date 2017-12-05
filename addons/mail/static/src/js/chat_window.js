@@ -69,9 +69,10 @@ return Widget.extend({
         var def = this.thread.replace(this.$('.o_chat_content'));
         return $.when(this._super(), def);
     },
-    render: function (messages) {
+    render: function (messages, options) {
         this.update_unread(this.unread_msgs);
-        this.thread.render(messages, {display_load_more: false});
+        options = _.extend(options, {display_load_more: false});
+        this.thread.render(messages, options);
     },
     update_unread: function (counter) {
         this.unread_msgs = counter;

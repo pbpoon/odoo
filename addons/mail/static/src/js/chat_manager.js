@@ -862,7 +862,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             // get messages for a chatter, when it doesn't know the ids (use
             // case is when using the full composer)
             var domain = [['model', '=', options.model], ['res_id', '=', options.res_id]];
-            this._rpc({
+            return this._rpc({
                     model: 'mail.message',
                     method: 'message_fetch',
                     args: [domain],

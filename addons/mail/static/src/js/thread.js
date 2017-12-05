@@ -86,10 +86,10 @@ var Thread = Widget.extend({
     render: function (messages, options) {
         var self = this;
         var msgs = _.map(messages, this._preprocess_message.bind(this));
-        if (this.options.display_order === ORDER.DESC) {
+        options = _.extend({}, this.options, options);
+        if (options.display_order === ORDER.DESC) {
             msgs.reverse();
         }
-        options = _.extend({}, this.options, options);
 
         // Hide avatar and info of a message if that message and the previous
         // one are both comments wrote by the same author at the same minute

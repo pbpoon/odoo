@@ -103,9 +103,17 @@ function open_chat (session, options) {
         chat_session.window.appendTo($('body'))
             .then(function () {
                 reposition_windows({remove_new_chat: remove_new_chat});
+                if (chat_session.id === 'record thread') {
+                    return chat_manager.get_messages({model: session.model, res_id: session.res_id});
+                }
                 return chat_manager.get_messages({channel_id: chat_session.id});
             }).then(function (messages) {
-                chat_session.window.render(messages);
+                var options = {};
+                if (chat_session.id === 'record thread') {
+                    options.display_document_link = false;
+                    options.display_order = -1; // DESC
+                }
+                chat_session.window.render(messages, options);
                 chat_session.window.thread.scroll_to();
                 setTimeout(function () {
                     chat_session.window.thread.$el.on("scroll", null, _.debounce(function () {
