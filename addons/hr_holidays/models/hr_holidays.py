@@ -73,15 +73,15 @@ class HolidaysType(models.Model):
     sequence = fields.Integer(default=100,
                               help='The type with the smallest sequence is the default value in leave request')
 
-    employee_visibility = fields.Selection([('both', 'Can be used in both requests: Leaves and allocation'),
-                                            ('lr', 'Can be used in leave requests'),
-                                            ('ar', 'Can be used in allocation requests')],
-                                           default='both', string='Employee Visibility')
+    employee_visibility = fields.Selection([('both', 'both requests: Leaves and allocation'),
+                                            ('lr', 'leave requests'),
+                                            ('ar', 'allocation requests')],
+                                           default='both', string='Request Visibility')
 
     # Adding validity to types of leaves so that it cannot be selected outside
     # this time period
-    validity_start = fields.Date()
-    validity_stop = fields.Date()
+    validity_start = fields.Date(string='Start Date')
+    validity_stop = fields.Date(string='End Date')
 
     valid = fields.Boolean(compute='_compute_valid', search='_search_valid')
 

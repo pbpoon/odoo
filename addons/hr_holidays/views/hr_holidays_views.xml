@@ -584,16 +584,24 @@
                         <group>
                             <group name="description" string="Description">
                                 <field name="name"/>
-                                <field name="validation_type" widget="radio" />
-                                <field name="limit"/>
-                                <!-- TODO: see if we have to add this here or in another group -->
-                                <field name="employee_visibility"/>
-                                <field name="sequence" attrs="{'invisible': [('limit', '=', 'False')]}" />
-                                <field name="validity_start" />
-                                <field name="validity_stop" />
-                                <field name="valid" readonly="1"/>
                             </group>
-                            <group name="options" string="Options">
+                            <group name="leave_request" string="Leave Request">
+                                <field name="limit"/>
+                                <field name="sequence" attrs="{'invisible': [('limit', '=', 'False')]}"/>
+                            </group>
+                            <group name="validity" string="Validity">
+                                <field name="validity_start"/>
+                                <field name="validity_stop"/>
+                            </group>
+                            <group name="validation" string="Validation">
+                                <field name="validation_type" widget="radio"/>
+                            </group>
+                            <group name="visibility" string="Visibility">
+                                <field name="employee_visibility" widget="radio"/>
+                            </group>
+                            <group name="timesheet" string="Timesheet">
+                            </group>
+                            <group name="calendar" string="Calendar">
                                 <field name="categ_id"/>
                                 <field name="color_name"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
@@ -647,11 +655,9 @@
                 <tree string="Leave Type">
                     <field name="name"/>
                     <field name="limit"/>
-                    <!-- TODO: See what to add in this view -->
                     <field name="double_validation" />
                     <field name="validity_start" />
                     <field name="validity_stop" />
-                    <field name="valid"/>
                 </tree>
             </field>
         </record>
