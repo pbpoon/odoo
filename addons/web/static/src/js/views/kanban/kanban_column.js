@@ -9,6 +9,7 @@ var KanbanRecord = require('web.KanbanRecord');
 var view_dialogs = require('web.view_dialogs');
 var Widget = require('web.Widget');
 var KanbanColumnProgressBar = require('web.KanbanColumnProgressBar');
+var KanbanStageRegistry = require('web.KanbanStageRegistry');
 
 var _t = core._t;
 var QWeb = core.qweb;
@@ -30,6 +31,7 @@ var KanbanColumn = Widget.extend({
         'click .o_kanban_quick_add': '_onAddQuickCreate',
         'click .o_kanban_load_more': '_onLoadMore',
         'click .o_kanban_toggle_fold': '_onToggleFold',
+        'click .exampleDialog': '_openExampleDialog'
     },
     /**
      * @override
@@ -39,6 +41,7 @@ var KanbanColumn = Widget.extend({
         this.db_id = data.id;
         this.data_records = data.data;
         this.data = data;
+        this.stageTag = options.stageHelp;
 
         var value = data.value;
         this.id = data.res_id || value;
@@ -308,6 +311,7 @@ var KanbanColumn = Widget.extend({
      * @param {MouseEvent} event
      */
     _onToggleFold: function (event) {
+        this._openExampleDialog();
         event.preventDefault();
         this.trigger_up('column_toggle_fold');
     },
@@ -335,7 +339,18 @@ var KanbanColumn = Widget.extend({
         event.preventDefault();
         this.trigger_up('kanban_column_archive_records', {archive: false});
     },
+    _openExampleDialog: function (event) {
+        debugger;
+        this.data = KanbanStageRegistry.get(this.stageTag);
+        new Dialog(this, {
+            size: "large",
+            buttons: false,
+            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.data}),
+        }).open();
+    },
 });
+
+
 
 return KanbanColumn;
 

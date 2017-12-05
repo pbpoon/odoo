@@ -54,6 +54,7 @@
                 <button class="btn btn-primary o_kanban_add" type="button">Add</button>
               </span>
             </div>
+            <span class="btn-link exampleDialog">See Example</span>
         </div>
     </div>
 </t>
@@ -111,6 +112,25 @@
                 <span class="o_column_title"><t t-esc="group.value"/></span>
             </div>
         </t>
+    </div>
+</t>
+
+<!-- Mobile templates -->
+
+<t t-name="KanbanColumn.KananGuideDialog">
+    <div class='container'>
+        <div class="col-md-6">
+            <ul>
+                <t t-foreach="data" t-as="stage">
+                    <li><t t-esc="stage.title"/>
+                        <ul>
+                            <li><t t-esc="stage.stages"/></li>
+                            <li><t t-esc="stage.foot_note"/></li>
+                        </ul>
+                    </li>
+                </t>
+            </ul>
+        </div>
     </div>
 </t>
 

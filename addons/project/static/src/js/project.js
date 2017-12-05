@@ -4,9 +4,26 @@ odoo.define('project.update_kanban', function (require) {
 var core = require('web.core');
 var Dialog = require('web.Dialog');
 var KanbanRecord = require('web.KanbanRecord');
+var KanbanStageRegistry = require('web.KanbanStageRegistry');
 
 var QWeb = core.qweb;
 var _t = core._t;
+
+KanbanStageRegistry.add('project',{
+    title: 'Stage 1',
+    stages: ['Column 1','Column 2','Column 3','Column 4'],
+    foot_note: 'Something should inside footer',
+});
+KanbanStageRegistry.add('project',{
+    title: 'Stage 2',
+    stages: ['Column 1','Column 2','Column 3','Column 4'],
+    foot_note: 'Something should inside footer',
+});
+KanbanStageRegistry.add('project',{
+    title: 'Stage 3',
+    stages: ['Column 1','Column 2','Column 3','Column 4'],
+    foot_note: 'Something should inside footer',
+});
 
 KanbanRecord.include({
     //--------------------------------------------------------------------------
