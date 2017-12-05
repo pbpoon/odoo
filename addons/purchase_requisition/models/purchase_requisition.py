@@ -75,7 +75,7 @@ class PurchaseRequisition(models.Model):
     state_blanket_order = fields.Selection(PURCHASE_REQUISITION_STATES, compute='_set_state')
     account_analytic_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     picking_type_id = fields.Many2one('stock.picking.type', 'Operation Type', required=True, default=_get_picking_in)
-    is_quantity_copy = fields.Boolean(compute='_is_quantity_copy')
+    is_a_purchase_tender = fields.Boolean(compute='_is_a_purchase_tender')
     currency_id = fields.Many2one('res.currency', 'Currency', required=True,
         default=lambda self: self.env.user.company_id.currency_id.id)
 
@@ -85,21 +85,21 @@ class PurchaseRequisition(models.Model):
 
     @api.model
     def create(self, vals):
-        rec = super(PurchaseRequisition, self).create(vals)
-        if rec.name == 'New':
-            if rec.is_quantity_copy:
-                rec.name = self.env['ir.sequence'].next_by_code('purchase.requisition.purchase.tender')
+        # Set a name type reliant.
+        if 'name' not in vals and 'type_id' in vals:
+            if vals and self.env['purchase.requisition.type'].browse(vals.get('type_id')).quantity_copy == 'copy':
+                vals['name'] = self.env['ir.sequence'].next_by_code('purchase.requisition.purchase.tender')
             else:
-                rec.name = self.env['ir.sequence'].next_by_code('purchase.requisition.blanket.order')
-        return rec
+                vals['name'] = self.env['ir.sequence'].next_by_code('purchase.requisition.blanket.order')
+        return super(PurchaseRequisition, self).create(vals)
 
     @api.depends('type_id')
-    def _is_quantity_copy(self):
+    def _is_a_purchase_tender(self):
         for requisition in self:
             if requisition.type_id.quantity_copy == 'none':
-                requisition.is_quantity_copy = False
+                requisition.is_a_purchase_tender = False
             else:
-                requisition.is_quantity_copy = True
+                requisition.is_a_purchase_tender = True
 
     @api.onchange('vendor_id')
     def _onchange_vendor(self):
