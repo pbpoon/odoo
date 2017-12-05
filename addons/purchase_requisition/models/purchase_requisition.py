@@ -219,7 +219,7 @@ class PurchaseRequisitionLine(models.Model):
     @api.multi
     def create(self,vals):
         res = super(PurchaseRequisitionLine, self).create(vals)
-        if res.requisition_id.state not in ['draft', 'cancel', 'done'] and not res.requisition_id.is_quantity_copy:
+        if res.requisition_id.state not in ['draft', 'cancel', 'done'] and not res.requisition_id.is_a_purchase_tender:
             supplier_infos = self.env['product.supplierinfo'].search([
                 ('product_id', '=', vals.get('product_id')),
                 ('name', '=', res.requisition_id.vendor_id.id),
