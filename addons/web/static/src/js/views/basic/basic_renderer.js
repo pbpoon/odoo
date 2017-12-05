@@ -10,7 +10,8 @@ odoo.define('web.BasicRenderer', function (require) {
 var AbstractRenderer = require('web.AbstractRenderer');
 var config = require('web.config');
 var core = require('web.core');
-var Domain = require('web.Domain');
+var dom = require('web.dom');
+var widgetRegistry = require('web.widget_registry');
 
 var qweb = core.qweb;
 
@@ -100,8 +101,9 @@ var BasicRenderer = AbstractRenderer.extend({
         // which are configured to always be reset on any change
         var resetWidgets = [];
         _.each(this.allFieldWidgets[id], function (widget) {
-            if (_.contains(fields, widget.name) || widget.resetOnAnyFieldChange) {
-                defs.push(widget.reset(record, ev));
+            var fieldChanged = _.contains(fields, widget.name);
+            if (fieldChanged || widget.resetOnAnyFieldChange) {
+                defs.push(widget.reset(record, ev, fieldChanged));
                 resetWidgets.push(widget);
             }
         });
@@ -114,6 +116,20 @@ var BasicRenderer = AbstractRenderer.extend({
         return $.when.apply($, defs).then(function () {
             return resetWidgets;
         });
+    },
+    /**
+     * Activates the widget and move the cursor to the given offset
+     *
+     * @param {string} id
+     * @param {string} fieldName
+     * @param {integer} offset
+     */
+    focusField: function (id, fieldName, offset) {
+        this.editRecord(id);
+        if (typeof offset === "number") {
+            var field = _.findWhere(this.allFieldWidgets[id], {name: fieldName});
+            dom.setSelectionRange(field.getFocusableElement().get(0), {start: offset, end: offset});
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -273,18 +289,18 @@ var BasicRenderer = AbstractRenderer.extend({
      * from internal referencing.
      *
      * @private
-     * @param {Object} record
+     * @param {string} recordID id of the local resource
      * @param {AbstractField} widget
      * @returns {integer} the index of the removed widget
      */
-    _destroyFieldWidget: function (record, widget) {
-        var recordWidgets = this.allFieldWidgets[record.id];
+    _destroyFieldWidget: function (recordID, widget) {
+        var recordWidgets = this.allFieldWidgets[recordID];
         var index = recordWidgets.indexOf(widget);
         if (index >= 0) {
             recordWidgets.splice(index, 1);
         }
-        this._unregisterModifiersElement(widget.__node, record, widget);
-        widget.$el.destroy();
+        this._unregisterModifiersElement(widget.__node, recordID, widget);
+        widget.destroy();
         return index;
     },
     /**
@@ -316,6 +332,40 @@ var BasicRenderer = AbstractRenderer.extend({
      */
     _getModifiersData: function (node) {
         return _.findWhere(this.allModifiersData, {node: node});
+    },
+    /**
+     * @private
+     * @param {jQueryElement} $el
+     * @param {Object} node
+     */
+    _handleAttributes: function ($el, node) {
+        if (node.attrs.class) {
+            $el.addClass(node.attrs.class);
+        }
+        if (node.attrs.style) {
+            $el.attr('style', node.attrs.style);
+        }
+    },
+    /**
+     * Used by list and kanban renderers to determine whether or not to display
+     * the no content helper (if there is no data in the state to display)
+     *
+     * @private
+     * @returns {boolean}
+     */
+    _hasContent: function () {
+        return this.state.count !== 0;
+    },
+    /**
+     * This function is called each time a field widget is created, when it is
+     * ready (after its willStart and Start methods are complete).  This is the
+     * place where work having to do with $el should be done.
+     *
+     * @private
+     * @param {Widget} widget the field widget instance
+     * @param {Object} node the attrs coming from the arch
+     */
+    _postProcessField: function (widget, node) {
     },
     /**
      * Registers or updates the modifiers data associated to the given node.
@@ -368,7 +418,7 @@ var BasicRenderer = AbstractRenderer.extend({
         // If not, check the modifiers to see if it needs registration
         var modifiersData = this._getModifiersData(node);
         if (!modifiersData) {
-            var modifiers = JSON.parse(node.attrs.modifiers || "{}"); // FIXME parsed multiple times (record switching, no modifiers, ...)
+            var modifiers = node.attrs.modifiers || {};
             modifiersData = {
                 node: node,
                 modifiers: modifiers,
@@ -433,15 +483,18 @@ var BasicRenderer = AbstractRenderer.extend({
      * rendering of the widget will be started and the associated deferred will
      * be added to the 'defs' attribute. This is supposed to be created and
      * deleted by the calling code if necessary.
-     * Note: for this implementation to work, AbstractField willStart methods
-     * *must* be synchronous.
+     *
+     * Note: we always return a $el.  If the field widget is asynchronous, this
+     * $el will be replaced by the real $el, whenever the widget is ready (start
+     * method is done).  This means that this is not the correct place to make
+     * changes on the widget $el.  For this, @see _postProcessField method
      *
      * @private
      * @param {Object} node
      * @param {Object} record
      * @param {Object} [options]
      * @param {Object} [modifiersOptions]
-     * @returns {AbstractField}
+     * @returns {jQueryElement}
      */
     _renderFieldWidget: function (node, record, options, modifiersOptions) {
         var fieldName = node.attrs.name;
@@ -466,25 +519,48 @@ var BasicRenderer = AbstractRenderer.extend({
         widget.__node = node; // TODO get rid of this if possible one day
 
         // Prepare widget rendering and save the related deferred
-        var def = widget.__widgetRenderAndInsert(function () {});
-        if (def.state() === 'pending') {
+        var def = widget._widgetRenderAndInsert(function () {});
+        var async = def.state() === 'pending';
+        var $el = async ? $('<div>') : widget.$el;
+        if (async) {
             this.defs.push(def);
         }
 
         // Update the modifiers registration by associating the widget and by
         // giving the modifiers options now (as the potential callback is
         // associated to new widget)
-        this._registerModifiers(node, record, widget, _.extend({
-            callback: (function (element, modifiers, record) {
-                element.$el.toggleClass('o_field_empty', !!(
-                    record.data.id
-                    && (modifiers.readonly || this.mode === 'readonly')
-                    && !element.widget.isSet()
-                ));
-            }).bind(this),
-        }, modifiersOptions || {}));
+        var self = this;
+        def.then(function () {
+            if (async) {
+                $el.replaceWith(widget.$el);
+            }
+            self._registerModifiers(node, record, widget, _.extend({
+                callback: function (element, modifiers, record) {
+                    element.$el.toggleClass('o_field_empty', !!(
+                        record.data.id
+                        && (modifiers.readonly || self.mode === 'readonly')
+                        && !element.widget.isSet()
+                    ));
+                },
+            }, modifiersOptions || {}));
+            self._postProcessField(widget, node);
+        });
 
-        return widget;
+        return $el;
+    },
+    /**
+     * Renders the nocontent helper.
+     *
+     * This method is a helper for renderers that want to display a help
+     * message when no content is available.
+     *
+     * @private
+     */
+    _renderNoContentHelper: function () {
+        var $msg = $('<div>')
+            .addClass('oe_view_nocontent')
+            .html(this.noContentHelp);
+        this.$el.html($msg);
     },
     /**
      * Actual rendering. Supposed to be overridden by concrete renderers.
@@ -503,39 +579,61 @@ var BasicRenderer = AbstractRenderer.extend({
         return $.when();
     },
     /**
+     * Instantiate custom widgets
+     *
+     * @private
+     * @param {Object} record
+     * @param {Object} node
+     * @returns {jQueryElement}
+     */
+    _renderWidget: function (record, node) {
+        var Widget = widgetRegistry.get(node.attrs.name);
+        var widget = new Widget(this, record);
+
+        // Prepare widget rendering and save the related deferred
+        var def = widget._widgetRenderAndInsert(function () {});
+        if (def.state() === 'pending') {
+            this.defs.push(def);
+        }
+
+        // handle other attributes/modifiers
+        this._handleAttributes(widget.$el, node);
+        this._registerModifiers(node, record, widget);
+        widget.$el.addClass('o_widget');
+        return widget.$el;
+    },
+
+    /**
      * Rerenders a given widget and make sure the associated data which
      * referenced the old one is updated.
      *
      * @private
      * @param {Widget} widget
      * @param {Object} record
-     * @returns {AbstractField}
      */
     _rerenderFieldWidget: function (widget, record) {
         // Render the new field widget
-        var newWidget = this._renderFieldWidget(widget.__node, record);
-        widget.$el.replaceWith(newWidget.$el);
+        var $el = this._renderFieldWidget(widget.__node, record);
+        widget.$el.replaceWith($el);
 
         // Destroy the old widget and position the new one at the old one's
-        var oldIndex = this._destroyFieldWidget(record, widget);
+        var oldIndex = this._destroyFieldWidget(record.id, widget);
         var recordWidgets = this.allFieldWidgets[record.id];
+        var newWidget = recordWidgets.pop();
         recordWidgets.splice(oldIndex, 0, newWidget);
-        recordWidgets.pop();
-
-        return newWidget;
     },
     /**
      * Unregisters an element of the modifiers data associated to the given
      * node and record.
      *
      * @param {Object} node
-     * @param {Object} record
+     * @param {string} recordID id of the local resource
      * @param {jQuery|AbstractField} element
      */
-    _unregisterModifiersElement: function (node, record, element) {
+    _unregisterModifiersElement: function (node, recordID, element) {
         var modifiersData = this._getModifiersData(node);
         if (modifiersData) {
-            var elements = modifiersData.elementsByRecord[record.id];
+            var elements = modifiersData.elementsByRecord[recordID];
             var index = _.findIndex(elements, function (oldElement) {
                 return oldElement.widget === element
                     || oldElement.$el[0] === element[0];

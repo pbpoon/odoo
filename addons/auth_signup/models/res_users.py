@@ -9,7 +9,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.misc import ustr
 
-from odoo.addons.base.ir.ir_mail_server import MailDeliveryException
+from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 from odoo.addons.auth_signup.models.res_partner import SignupError, now
 
 _logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ class ResUsers(models.Model):
         # check that uninvited users may sign up
         if 'partner_id' not in values:
             if not literal_eval(get_param('auth_signup.allow_uninvited', 'False')):
-                raise SignupError('Signup is not allowed for uninvited users')
+                raise SignupError(_('Signup is not allowed for uninvited users'))
 
         assert values.get('login'), "Signup: no login given for new user"
         assert values.get('partner_id') or values.get('name'), "Signup: no name or partner given for new user"

@@ -5,8 +5,6 @@ from odoo import http
 from odoo.http import request
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 
-from odoo.tools import pycompat
-
 
 class WebsiteSaleOptions(WebsiteSale):
 
@@ -26,7 +24,7 @@ class WebsiteSaleOptions(WebsiteSale):
 
         option_ids = product.optional_product_ids.mapped('product_variant_ids').ids
         optional_product_ids = []
-        for k, v in pycompat.items(kw):
+        for k, v in kw.items():
             if "optional-product-" in k and int(kw.get(k.replace("product", "add"))) and int(v) in option_ids:
                 optional_product_ids.append(int(v))
 
@@ -36,8 +34,8 @@ class WebsiteSaleOptions(WebsiteSale):
         if add_qty or set_qty:
             value = order._cart_update(
                 product_id=int(product_id),
-                add_qty=int(add_qty),
-                set_qty=int(set_qty),
+                add_qty=add_qty,
+                set_qty=set_qty,
                 attributes=attributes,
                 optional_product_ids=optional_product_ids
             )
@@ -57,6 +55,7 @@ class WebsiteSaleOptions(WebsiteSale):
     def modal(self, product_id, **kw):
         pricelist = request.website.get_current_pricelist()
         product_context = dict(request.context)
+        quantity = kw['kwargs']['context']['quantity']
         if not product_context.get('pricelist'):
             product_context['pricelist'] = pricelist.id
         # fetch quantity from custom context
@@ -66,8 +65,18 @@ class WebsiteSaleOptions(WebsiteSale):
         to_currency = pricelist.currency_id
         compute_currency = lambda price: request.env['res.currency']._compute(from_currency, to_currency, price)
         product = request.env['product.product'].with_context(product_context).browse(int(product_id))
+
+        main_product_attr_ids = self.get_attribute_value_ids(product)
+        for variant in main_product_attr_ids:
+            if variant[0] == product.id:
+                # We indeed need a list of lists (even with only 1 element)
+                main_product_attr_ids = [variant]
+                break
+
         return request.env['ir.ui.view'].render_template("website_sale_options.modal", {
             'product': product,
+            'quantity': quantity,
             'compute_currency': compute_currency,
             'get_attribute_value_ids': self.get_attribute_value_ids,
+            'main_product_attr_ids': main_product_attr_ids,
         })

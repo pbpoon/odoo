@@ -7,6 +7,9 @@ from odoo.addons.sale.tests.test_sale_common import TestSale
 class TestSaleExpense(TestSale):
     def test_sale_expense(self):
         """ Test the behaviour of sales orders when managing expenses """
+        # force the pricelist to have the same currency as the company
+        self.env.ref('product.list0').currency_id = self.env.ref('base.main_company').currency_id
+
         # create a so with a product invoiced on delivery
         prod = self.env.ref('product.product_product_1')
         so = self.env['sale.order'].create({
@@ -37,7 +40,7 @@ class TestSaleExpense(TestSale):
         exp = self.env['hr.expense'].create({
             'name': 'Air Travel',
             'product_id': prod_exp_1.id,
-            'analytic_account_id': so.project_id.id,
+            'analytic_account_id': so.analytic_account_id.id,
             'unit_amount': 621.54,
             'employee_id': employee.id,
             'sheet_id': sheet.id
@@ -64,7 +67,7 @@ class TestSaleExpense(TestSale):
         exp = self.env['hr.expense'].create({
             'name': 'Car Travel',
             'product_id': prod_exp_2.id,
-            'analytic_account_id': so.project_id.id,
+            'analytic_account_id': so.analytic_account_id.id,
             'product_uom_id': self.env.ref('product.product_uom_km').id,
             'unit_amount': 0.15,
             'quantity': 100,

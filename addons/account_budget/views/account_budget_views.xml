@@ -33,7 +33,7 @@
             <field name="view_id" ref="view_budget_post_tree"/>
             <field name="search_view_id" ref="view_budget_post_search"/>
         </record>
-        <menuitem action="open_budget_post_form" id="menu_budget_post_form" parent="account.account_management_menu" sequence="1"/>
+        <menuitem action="open_budget_post_form" id="menu_budget_post_form" parent="account.account_management_menu" sequence="5"/>
 
 
         <record model="ir.ui.view" id="view_budget_post_form">
@@ -199,8 +199,8 @@
                     <field name="name" filter_domain="[('name','ilike',self)]" string="Budget"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
-                    <filter string="Draft" domain="[('state','=','draft')]" help="Draft Budgets"/>
-                    <filter string="To Approve" domain="[('state','=','confirm')]" help="To Approve Budgets" />
+                    <filter string="Draft" name="draft" domain="[('state','=','draft')]" help="Draft Budgets"/>
+                    <filter string="To Approve" name="toapprove" domain="[('state','=','confirm')]" help="To Approve Budgets" />
                     <field name="state"/>
                 </search>
             </field>
@@ -230,7 +230,7 @@
               </p>
             </field>
         </record>
-        <menuitem parent="account.menu_finance_entries"
+        <menuitem parent="account.menu_finance_entries_management"
             id="menu_act_crossovered_budget_view"
             name="Budgets"
             action="act_crossovered_budget_view" sequence="60" 

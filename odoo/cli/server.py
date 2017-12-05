@@ -12,7 +12,7 @@ GNU Public Licence.
 """
 
 import atexit
-import csv
+import csv # pylint: disable=deprecated-module
 import logging
 import os
 import signal
@@ -20,6 +20,8 @@ import sys
 import threading
 import traceback
 import time
+
+from psycopg2 import ProgrammingError, errorcodes
 
 import odoo
 
@@ -44,7 +46,7 @@ def check_postgres_user():
     This function assumes the configuration has been initialized.
     """
     config = odoo.tools.config
-    if config['db_user'] == 'postgres':
+    if (config['db_user'] or os.environ.get('PGUSER')) == 'postgres':
         sys.stderr.write("Using the database user 'postgres' is a security risk, aborting.")
         sys.exit(1)
 
@@ -96,7 +98,7 @@ def export_translation():
 
     fileformat = os.path.splitext(config["translate_out"])[-1][1:].lower()
 
-    with open(config["translate_out"], "w") as buf:
+    with open(config["translate_out"], "wb") as buf:
         registry = odoo.modules.registry.Registry.new(dbname)
         with odoo.api.Environment.manage():
             with registry.cursor() as cr:
@@ -136,6 +138,15 @@ def main(args):
         for db_name in preload:
             try:
                 odoo.service.db._create_empty_database(db_name)
+            except ProgrammingError as err:
+                if err.pgcode == errorcodes.INSUFFICIENT_PRIVILEGE:
+                    # We use an INFO loglevel on purpose in order to avoid
+                    # reporting unnecessary warnings on build environment
+                    # using restricted database access.
+                    _logger.info("Could not determine if database %s exists, "
+                                 "skipping auto-creation: %s", db_name, err)
+                else:
+                    raise err
             except odoo.service.db.DatabaseExists:
                 pass
 

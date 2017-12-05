@@ -27,10 +27,6 @@ class ProductCategory(models.Model):
         store=True)
     parent_id = fields.Many2one('product.category', 'Parent Category', index=True, ondelete='cascade')
     child_id = fields.One2many('product.category', 'parent_id', 'Child Categories')
-    type = fields.Selection([
-        ('view', 'View'),
-        ('normal', 'Normal')], 'Category Type', default='normal',
-        help="A category of the view type is a virtual category that can be used as the parent of another category to create a hierarchical structure.")
     parent_left = fields.Integer('Left Parent', index=1)
     parent_right = fields.Integer('Right Parent', index=1)
     product_count = fields.Integer(
@@ -57,6 +53,10 @@ class ProductCategory(models.Model):
             raise ValidationError(_('Error ! You cannot create recursive categories.'))
         return True
 
+    @api.model
+    def name_create(self, name):
+        return self.create({'name': name}).name_get()[0]
+
 
 class ProductPriceHistory(models.Model):
     """ Keep track of the ``product.template`` standard prices as they are changed. """
@@ -78,8 +78,8 @@ class ProductProduct(models.Model):
     _name = "product.product"
     _description = "Product"
     _inherits = {'product.template': 'product_tmpl_id'}
-    _inherit = ['mail.thread']
-    _order = 'default_code, id'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'default_code, name, id'
 
     price = fields.Float(
         'Price', compute='_compute_product_price',
@@ -127,8 +127,9 @@ class ProductProduct(models.Model):
         'Cost', company_dependent=True,
         digits=dp.get_precision('Product Price'),
         groups="base.group_user",
-        help="Cost of the product template used for standard stock valuation in accounting and used as a base price on purchase orders. "
-             "Expressed in the default unit of measure of the product.")
+        help = "Cost used for stock valuation in standard price and as a first price to set in average/fifo. "
+               "Also used as a base price for pricelists. "
+               "Expressed in the default unit of measure of the product.")
     volume = fields.Float('Volume', help="The volume in m3.")
     weight = fields.Float(
         'Weight', digits=dp.get_precision('Stock Weight'),
@@ -154,7 +155,7 @@ class ProductProduct(models.Model):
             quantity = self._context.get('quantity', 1.0)
 
             # Support context pricelists specified as display_name or ID for compatibility
-            if isinstance(pricelist_id_or_name, basestring):
+            if isinstance(pricelist_id_or_name, pycompat.string_types):
                 pricelist_name_search = self.env['product.pricelist'].name_search(pricelist_id_or_name, operator='=', limit=1)
                 if pricelist_name_search:
                     pricelist = self.env['product.pricelist'].browse([pricelist_name_search[0][0]])
@@ -260,6 +261,8 @@ class ProductProduct(models.Model):
 
     @api.one
     def _set_image_value(self, value):
+        if isinstance(value, pycompat.text_type):
+            value = value.encode('ascii')
         image = tools.image_resize_image_big(value)
         if self.product_tmpl_id.image:
             self.image_variant = image
@@ -280,7 +283,8 @@ class ProductProduct(models.Model):
             for value in product.attribute_value_ids:
                 if value.attribute_id in attributes:
                     raise ValidationError(_('Error! It is not allowed to choose more than one value for a given attribute.'))
-                attributes |= value.attribute_id
+                if value.attribute_id.create_variant:
+                    attributes |= value.attribute_id
         return True
 
     @api.onchange('uom_id', 'uom_po_id')
@@ -291,7 +295,9 @@ class ProductProduct(models.Model):
     @api.model
     def create(self, vals):
         product = super(ProductProduct, self.with_context(create_product_product=True)).create(vals)
-        product._set_standard_price(vals.get('standard_price', 0.0))
+        # When a unique variant is created from tmpl then the standard price is set by _set_standard_price
+        if not (self.env.context.get('create_from_tmpl') and len(product.product_tmpl_id.product_variant_ids) == 1):
+            product._set_standard_price(vals.get('standard_price') or 0.0)
         return product
 
     @api.multi
@@ -536,14 +542,8 @@ class ProductProduct(models.Model):
         history = self.env['product.price.history'].search([
             ('company_id', '=', company_id),
             ('product_id', 'in', self.ids),
-            ('datetime', '<=', date or fields.Datetime.now())], limit=1)
+            ('datetime', '<=', date or fields.Datetime.now())], order='datetime desc,id desc', limit=1)
         return history.cost or 0.0
-
-    def _need_procurement(self):
-        # When sale/product is installed alone, there is no need to create procurements. Only
-        # sale_stock and sale_service need procurements
-        return False
-
 
 class ProductPackaging(models.Model):
     _name = "product.packaging"
@@ -595,10 +595,11 @@ class SupplierInfo(models.Model):
     date_end = fields.Date('End Date', help="End date for this vendor price")
     product_id = fields.Many2one(
         'product.product', 'Product Variant',
-        help="When this field is filled in, the vendor data will only apply to the variant.")
+        help="If not set, the vendor price will apply to all variants of this products.")
     product_tmpl_id = fields.Many2one(
         'product.template', 'Product Template',
         index=True, ondelete='cascade', oldname='product_id')
+    product_variant_count = fields.Integer('Variant Count', related='product_tmpl_id.product_variant_count')
     delay = fields.Integer(
         'Delivery Lead Time', default=1, required=True,
         help="Lead time in days between the confirmation of the purchase order and the receipt of the products in your warehouse. Used by the scheduler for automatic computation of the purchase order planning.")

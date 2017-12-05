@@ -3,7 +3,7 @@
 
 from odoo import api, fields, models
 from odoo.tools.translate import _, html_translate
-from odoo.addons.website.models.website import slug
+from odoo.addons.http_routing.models.ir_http import slug
 
 
 class TrackTag(models.Model):
@@ -13,7 +13,7 @@ class TrackTag(models.Model):
 
     name = fields.Char('Tag')
     track_ids = fields.Many2many('event.track', string='Tracks')
-    color = fields.Integer(string='Color Index', default=10)
+    color = fields.Integer(string='Color Index')
 
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Tag name already exists !"),
@@ -50,7 +50,6 @@ class Track(models.Model):
     _description = 'Event Track'
     _order = 'priority, date'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'website.seo.metadata', 'website.published.mixin']
-    _mail_mass_mailing = _('Track Speakers')
 
     @api.model
     def _get_default_stage_id(self):

@@ -2,10 +2,12 @@
 import hashlib
 import hmac
 import logging
+import datetime
+import pprint
 
 from odoo import api, exceptions, fields, models, _
-from odoo.tools import consteq, float_round, image_resize_images, ustr, pycompat
-from odoo.addons.base.module import module
+from odoo.tools import consteq, float_round, image_resize_images, image_resize_image, ustr
+from odoo.addons.base.models import ir_module
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -116,13 +118,13 @@ class PaymentAcquirer(models.Model):
         help='Message displayed, if error is occur during the payment process.')
     save_token = fields.Selection([
         ('none', 'Never'),
-        ('ask', 'Let the customer decide (recommended for eCommerce)'),
-        ('always', 'Always (recommended for Subscriptions)')],
+        ('ask', 'Let the customer decide'),
+        ('always', 'Always')],
         string='Save Cards', default='none',
         help="This option allows customers to save their credit card as a payment token and to reuse it for a later purchase."
              "If you manage subscriptions (recurring invoicing), you need it to automatically charge the customer when you "
              "issue an invoice.")
-    token_implemented = fields.Boolean('Saving Card Data supported', compute='_compute_feature_support')
+    token_implemented = fields.Boolean('Saving Card Data supported', compute='_compute_feature_support', search='_search_is_tokenized')
     authorize_implemented = fields.Boolean('Authorize Mechanism Supported', compute='_compute_feature_support')
     fees_implemented = fields.Boolean('Fees Computation Supported', compute='_compute_feature_support')
     fees_active = fields.Boolean('Add Extra Fees')
@@ -133,7 +135,7 @@ class PaymentAcquirer(models.Model):
 
     # TDE FIXME: remove that brol
     module_id = fields.Many2one('ir.module.module', string='Corresponding Module')
-    module_state = fields.Selection(selection=module.STATES, string='Installation State', related='module_id.state')
+    module_state = fields.Selection(selection=ir_module.STATES, string='Installation State', related='module_id.state')
 
     image = fields.Binary(
         "Image", attachment=True,
@@ -149,6 +151,19 @@ class PaymentAcquirer(models.Model):
              "resized as a 64x64px image, with aspect ratio preserved. "
              "Use this field anywhere a small image is required.")
 
+    payment_icon_ids = fields.Many2many('payment.icon', string='Supported Payment Icons')
+    payment_flow = fields.Selection(selection=[('s2s','The customer encode his payment details on the website.'),
+        ('form', 'The customer is redirected to the website of the acquirer.')],
+        default='form', required=True, string='Payment flow',
+        help="""Note: Subscriptions does not take this field in account, it uses server to server by default.""")
+
+    def _search_is_tokenized(self, operator, value):
+        tokenized = self._get_feature_support()['tokenize']
+        if (operator, value) in [('=', True), ('!=', False)]:
+            return [('provider', 'in', tokenized)]
+        return [('provider', 'not in', tokenized)]
+
+    @api.multi
     def _compute_feature_support(self):
         feature_support = self._get_feature_support()
         for acquirer in self:
@@ -161,7 +176,7 @@ class PaymentAcquirer(models.Model):
         """ If the field has 'required_if_provider="<provider>"' attribute, then it
         required if record.provider is <provider>. """
         for acquirer in self:
-            if any(getattr(f, 'required_if_provider', None) == acquirer.provider and not acquirer[k] for k, f in pycompat.items(self._fields)):
+            if any(getattr(f, 'required_if_provider', None) == acquirer.provider and not acquirer[k] for k, f in self._fields.items()):
                 return False
         return True
 
@@ -212,6 +227,33 @@ class PaymentAcquirer(models.Model):
         if hasattr(self, '%s_get_form_action_url' % self.provider):
             return getattr(self, '%s_get_form_action_url' % self.provider)()
         return False
+
+    def _get_available_payment_input(self, partner=None, company=None):
+        """ Generic (model) method that fetches available payment mechanisms
+        to use in all portal / eshop pages that want to use the payment form.
+
+        It contains
+
+         * form_acquirers: record set of acquirers based on a local form that
+                           sends customer to the acquirer website;
+         * s2s_acquirers: reset set of acquirers that send customer data to
+                          acquirer without redirecting to any other website;
+         * pms: record set of stored credit card data (aka payment.token)
+                connected to a given partner to allow customers to reuse them """
+        if not company:
+            company = self.env.user.company_id
+        if not partner:
+            partner = self.env.user.partner_id
+        active_acquirers = self.sudo().search([('website_published', '=', True), ('company_id', '=', company.id)])
+        form_acquirers = active_acquirers.filtered(lambda acq: acq.payment_flow == 'form' and acq.view_template_id)
+        s2s_acquirers = active_acquirers.filtered(lambda acq: acq.payment_flow == 's2s' and acq.registration_view_template_id)
+        return {
+            'form_acquirers': form_acquirers,
+            's2s_acquirers': s2s_acquirers,
+            'pms': self.env['payment.token'].search([
+                ('partner_id', '=', partner.id),
+                ('acquirer_id', 'in', s2s_acquirers.ids)]),
+        }
 
     @api.multi
     def render(self, reference, amount, currency_id, partner_id=False, values=None):
@@ -334,18 +376,14 @@ class PaymentAcquirer(models.Model):
         })
         values.setdefault('return_url', False)
 
+        _logger.info('payment.acquirer.render: <%s> values rendered for form payment:\n%s', self.provider, pprint.pformat(values))
         return self.view_template_id.render(values, engine='ir.qweb')
 
-    @api.multi
-    def _registration_render(self, partner_id, qweb_context=None):
-        if qweb_context is None:
-            qweb_context = {}
-        qweb_context.update(id=self.ids[0], partner_id=partner_id)
-        method_name = '_%s_registration_form_generate_values' % (self.provider,)
-        if hasattr(self, method_name):
-            method = getattr(self, method_name)
-            qweb_context.update(method(qweb_context))
-        return self.registration_view_template_id.render(qweb_context, engine='ir.qweb')
+    def get_s2s_form_xml_id(self):
+        if self.registration_view_template_id:
+            model_data = self.env['ir.model.data'].search([('model', '=', 'ir.ui.view'), ('res_id', '=', self.registration_view_template_id.id)])
+            return ('%s.%s') % (model_data.module, model_data.name)
+        return False
 
     @api.multi
     def s2s_process(self, data):
@@ -353,6 +391,10 @@ class PaymentAcquirer(models.Model):
         if not self.s2s_validate(data):
             return False
         if hasattr(self, cust_method_name):
+            # As this method may be called in JSON and overriden in various addons
+            # let us raise interesting errors before having stranges crashes
+            if not data.get('partner_id'):
+                raise ValueError(_('Missing partner reference when trying to create a new payment token'))
             method = getattr(self, cust_method_name)
             return method(data)
         return True
@@ -386,6 +428,32 @@ class PaymentAcquirer(models.Model):
                 'context': context,
             }
 
+class PaymentIcon(models.Model):
+    _name = 'payment.icon'
+    _description = 'Payment Icon'
+
+    name = fields.Char(string='Name')
+    acquirer_ids = fields.Many2many('payment.acquirer', string="Acquirers", help="List of Acquirers supporting this payment icon.")
+    image = fields.Binary(
+        "Image", attachment=True,
+        help="This field holds the image used for this payment icon, limited to 1024x1024px")
+
+    image_payment_form = fields.Binary(
+        "Image displayed on the payment form", attachment=True)
+
+    @api.model
+    def create(self, vals):
+        if 'image' in vals:
+            vals['image_payment_form'] = image_resize_image(vals['image'], size=(45,30))
+            vals['image'] = image_resize_image(vals['image'], size=(64,64))
+        return super(PaymentIcon, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        if 'image' in vals:
+           vals['image_payment_form'] = image_resize_image(vals['image'], size=(45,30))
+           vals['image'] = image_resize_image(vals['image'], size=(64,64))
+        return super(PaymentIcon, self).write(vals)
 
 class PaymentTransaction(models.Model):
     """ Transaction Model. Each specific acquirer can extend the model by adding
@@ -421,6 +489,7 @@ class PaymentTransaction(models.Model):
     acquirer_id = fields.Many2one('payment.acquirer', 'Acquirer', required=True)
     provider = fields.Selection(string='Provider', related='acquirer_id.provider')
     type = fields.Selection([
+        ('validation', 'Validation of the bank card'),
         ('server2server', 'Server To Server'),
         ('form', 'Form'),
         ('form_save', 'Form with tokenization')], 'Type',
@@ -430,6 +499,8 @@ class PaymentTransaction(models.Model):
         ('pending', 'Pending'),
         ('authorized', 'Authorized'),
         ('done', 'Done'),
+        ('refunding', 'Refunding'),
+        ('refunded', 'Refunded'),
         ('error', 'Error'),
         ('cancel', 'Canceled')], 'Status',
         copy=False, default='draft', required=True, track_visibility='onchange')
@@ -527,7 +598,9 @@ class PaymentTransaction(models.Model):
             tx.write({'reference': str(tx.id)})
 
         # Generate callback hash if it is configured on the tx; avoid generating unnecessary stuff
-        if tx.callback_model_id and tx.callback_res_id and tx.sudo().callback_method:
+        # (limited sudo env for checking callback presence, must work for manual transactions too)
+        tx_sudo = tx.sudo()
+        if tx_sudo.callback_model_id and tx_sudo.callback_res_id and tx_sudo.callback_method:
             tx.write({'callback_hash': tx._generate_callback_hash()})
 
         return tx
@@ -570,7 +643,7 @@ class PaymentTransaction(models.Model):
         token = '%s%s%s' % (self.callback_model_id.model,
                             self.callback_res_id,
                             self.sudo().callback_method)
-        return hmac.new(str(secret), token, hashlib.sha256).hexdigest()
+        return hmac.new(secret.encode('utf-8'), token.encode('utf-8'), hashlib.sha256).hexdigest()
 
     # --------------------------------------------------
     # FORM RELATED METHODS
@@ -635,6 +708,12 @@ class PaymentTransaction(models.Model):
             return getattr(self, custom_method_name)(**kwargs)
 
     @api.multi
+    def s2s_do_refund(self, **kwargs):
+        custom_method_name = '%s_s2s_do_refund' % self.acquirer_id.provider
+        if hasattr(self, custom_method_name):
+            return getattr(self, custom_method_name)(**kwargs)
+
+    @api.multi
     def s2s_capture_transaction(self, **kwargs):
         custom_method_name = '%s_s2s_capture_transaction' % self.acquirer_id.provider
         if hasattr(self, custom_method_name):
@@ -657,7 +736,13 @@ class PaymentTransaction(models.Model):
     @api.multi
     def execute_callback(self):
         res = None
-        for transaction in self.filtered(lambda tx: tx.callback_model_id and tx.callback_res_id and tx.sudo().callback_method):
+        for transaction in self:
+            # limited sudo env, only for checking callback presence, not for running it!
+            # manual transactions have no callback, and can pass without being run by admin user
+            tx_sudo = transaction.sudo()
+            if not (tx_sudo.callback_model_id and tx_sudo.callback_res_id and tx_sudo.callback_method):
+                continue
+
             valid_token = transaction._generate_callback_hash()
             if not consteq(ustr(valid_token), transaction.callback_hash):
                 _logger.warning("Invalid callback signature for transaction %d" % (transaction.id))
@@ -665,7 +750,7 @@ class PaymentTransaction(models.Model):
 
             record = self.env[transaction.callback_model_id.model].browse(transaction.callback_res_id).exists()
             if record:
-                res = getattr(record, transaction.sudo().callback_method)(transaction)
+                res = getattr(record, transaction.callback_method)(transaction)
             else:
                 _logger.warning("Did not found record %s.%s for callback of transaction %d" % (transaction.callback_model_id.model, transaction.callback_res_id, transaction.id))
         return res
@@ -696,6 +781,7 @@ class PaymentToken(models.Model):
     acquirer_ref = fields.Char('Acquirer Ref.', required=True)
     active = fields.Boolean('Active', default=True)
     payment_ids = fields.One2many('payment.transaction', 'payment_token_id', 'Payment Transactions')
+    verified = fields.Boolean(string='Verified', default=False)
 
     @api.model
     def create(self, values):
@@ -711,9 +797,96 @@ class PaymentToken(models.Model):
                 fields_wl = set(self._fields) & set(values)
                 values = {field: values[field] for field in fields_wl}
         return super(PaymentToken, self).create(values)
+    """
+        @TBE: stolen shamelessly from there https://www.paypal.com/us/selfhelp/article/why-is-there-a-$1.95-charge-on-my-card-statement-faq554
+        Most of them are ~1.50€s
+        TODO: See this with @AL & @DBO
+    """
+    VALIDATION_AMOUNTS = {
+        'CAD': 2.45,
+        'EUR': 1.50,
+        'GBP': 1.00,
+        'JPY': 200,
+        'AUD': 2.00,
+        'NZD': 3.00,
+        'CHF': 3.00,
+        'HKD': 15.00,
+        'SEK': 15.00,
+        'DKK': 12.50,
+        'PLN': 6.50,
+        'NOK': 15.00,
+        'HUF': 400.00,
+        'CZK': 50.00,
+        'BRL': 4.00,
+        'MYR': 10.00,
+        'MXN': 20.00,
+        'ILS': 8.00,
+        'PHP': 100.00,
+        'TWD': 70.00,
+        'THB': 70.00
+        }
+
+    @api.model
+    def validate(self, **kwargs):
+        """
+            This method allow to verify if this payment method is valid or not.
+            It does this by withdrawing a certain amount and then refund it right after.
+        """
+        currency = self.partner_id.currency_id
+
+        if self.VALIDATION_AMOUNTS.get(currency.name):
+            amount = self.VALIDATION_AMOUNTS.get(currency.name)
+        else:
+            # If we don't find the user's currency, then we set the currency to EUR and the amount to 1€50.
+            currency = self.env['res.currency'].search([('name', '=', 'EUR')])
+            amount = 1.5
+
+        if len(currency) != 1:
+            _logger.error("Error 'EUR' currency not found for payment method validation!")
+            return False
+
+        reference = "VALIDATION-%s-%s" % (self.id, datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
+        tx = self.env['payment.transaction'].sudo().create({
+            'amount': amount,
+            'acquirer_id': self.acquirer_id.id,
+            'type': 'validation',
+            'currency_id': currency.id,
+            'reference': reference,
+            'payment_token_id': self.id,
+            'partner_id': self.partner_id.id,
+            'partner_country_id': self.partner_id.country_id.id,
+        })
+
+        try:
+            kwargs.update({'3d_secure': True})
+            tx.s2s_do_transaction(**kwargs)
+            # if 3D secure is called, then we do not refund right now
+            if tx.html_3ds:
+                return tx
+        except:
+            _logger.error('Error while validating a payment method')
+        finally:
+            tx.s2s_do_refund()
+        return tx
 
     @api.multi
     @api.depends('name')
     def _compute_short_name(self):
         for token in self:
             token.short_name = token.name.replace('XXXXXXXXXXXX', '***')
+
+    @api.multi
+    def get_linked_records(self):
+        """ This method returns a dict containing all the records linked to the payment.token (e.g Subscriptions),
+            the key is the id of the payment.token and the value is an array that must follow the scheme below.
+
+            {
+                token_id: [
+                    'description': The model description (e.g 'Sale Subscription'),
+                    'id': The id of the record,
+                    'name': The name of the record,
+                    'url': The url to access to this record.
+                ]
+            }
+        """
+        return {r.id:[] for r in self}

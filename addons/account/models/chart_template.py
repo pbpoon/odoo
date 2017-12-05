@@ -3,10 +3,9 @@
 from odoo.exceptions import AccessError
 from odoo import api, fields, models, _
 from odoo import SUPERUSER_ID
+from odoo.exceptions import UserError
 
 import logging
-
-from odoo.tools import pycompat
 
 _logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ def migrate_set_tags_and_taxes_updatable(cr, registry, module):
         cr.execute("update ir_model_data set noupdate = 'f' where id in %s", (tuple(xml_record_ids),))
 
 def migrate_tags_on_taxes(cr, registry):
-    ''' This is a utiliy function to help migrate the tags of taxes when the localization has been modified on stable version. If
+    ''' This is a utility function to help migrate the tags of taxes when the localization has been modified on stable version. If
     called accordingly in a post_init_hooked function, it will reset the tags set on taxes as per their equivalent template.
 
     Note: This unusual decision has been made in order to help the improvement of VAT reports on version 9.0, to have them more flexible
@@ -41,9 +40,14 @@ def migrate_tags_on_taxes(cr, registry):
             ('type_tax_use', '=', tax_template.type_tax_use),
             ('description', '=', tax_template.description)
         ])
-        if len(tax_id.ids) == 1:
-            tax_id.sudo().write({'tag_ids': [(6, 0, tax_template.tag_ids.ids)]})
+        tax_id.sudo().write({'tag_ids': [(6, 0, tax_template.tag_ids.ids)]})
 
+def preserve_existing_tags_on_taxes(cr, registry, module):
+    ''' This is a utility function used to preserve existing previous tags during upgrade of the module.'''
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    xml_records = env['ir.model.data'].search([('model', '=', 'account.account.tag'), ('module', 'like', module)])
+    if xml_records:
+        cr.execute("update ir_model_data set noupdate = 't' where id in %s", [tuple(xml_records.ids)])
 
 #  ---------------------------------------------------------------
 #   Account Templates: Account, Tax, Tax Code and chart. + Wizard
@@ -71,6 +75,7 @@ class AccountAccountTemplate(models.Model):
         help="This optional field allow you to link an account template to a specific chart template that may differ from the one its root parent belongs to. This allow you "
             "to define chart templates that extend another and complete it with few new accounts (You don't need to define the whole structure that is common to both several times).")
     tag_ids = fields.Many2many('account.account.tag', 'account_account_template_account_tag', string='Account tag', help="Optional tags you may want to assign for custom reporting")
+    group_id = fields.Many2one('account.group')
 
     @api.multi
     @api.depends('name', 'code')
@@ -147,7 +152,7 @@ class AccountChartTemplate(models.Model):
             todo = self.env['ir.actions.todo']
             action_rec = self.env['ir.model.data'].xmlid_to_object('account.action_wizard_multi_chart')
             if action_rec:
-                todo.create({'action_id': action_rec.id, 'name': _('Choose Accounting Template'), 'type': 'automatic'})
+                todo.create({'action_id': action_rec.id, 'name': _('Choose Accounting Template')})
         return True
 
     @api.model
@@ -185,8 +190,8 @@ class AccountChartTemplate(models.Model):
                     default_account = acc_template_ref.get(self.expense_currency_exchange_account_id.id)
             return default_account
 
-        journals = [{'name': _('Customer Invoices'), 'type': 'sale', 'code': _('INV'), 'favorite': True, 'sequence': 5},
-                    {'name': _('Vendor Bills'), 'type': 'purchase', 'code': _('BILL'), 'favorite': True, 'sequence': 6},
+        journals = [{'name': _('Customer Invoices'), 'type': 'sale', 'code': _('INV'), 'favorite': True, 'color': 11, 'sequence': 5},
+                    {'name': _('Vendor Bills'), 'type': 'purchase', 'code': _('BILL'), 'favorite': True, 'color': 11, 'sequence': 6},
                     {'name': _('Miscellaneous Operations'), 'type': 'general', 'code': _('MISC'), 'favorite': False, 'sequence': 7},
                     {'name': _('Exchange Difference'), 'type': 'general', 'code': _('EXCH'), 'favorite': False, 'sequence': 9},
                     {'name': _('Cash Basis Tax Journal'), 'type': 'general', 'code': _('CABA'), 'favorite': False, 'sequence': 10}]
@@ -204,6 +209,7 @@ class AccountChartTemplate(models.Model):
                 'default_credit_account_id': _get_default_account(journal, 'credit'),
                 'default_debit_account_id': _get_default_account(journal, 'debit'),
                 'show_on_dashboard': journal['favorite'],
+                'color': journal.get('color', False),
                 'sequence': journal['sequence']
             }
             journal_data.append(vals)
@@ -316,7 +322,7 @@ class AccountChartTemplate(models.Model):
         AccountTaxObj = self.env['account.tax']
 
         # Generate taxes from templates.
-        generated_tax_res = self.tax_template_ids._generate_tax(company)
+        generated_tax_res = self.with_context(active_test=False).tax_template_ids._generate_tax(company)
         taxes_ref.update(generated_tax_res['tax_template_to_tax'])
 
         # Generating Accounts from templates.
@@ -325,7 +331,7 @@ class AccountChartTemplate(models.Model):
 
         # writing account values after creation of accounts
         company.transfer_account_id = account_template_ref[transfer_account_id.id]
-        for key, value in pycompat.items(generated_tax_res['account_dict']):
+        for key, value in generated_tax_res['account_dict'].items():
             if value['refund_account_id'] or value['account_id'] or value['cash_basis_account']:
                 AccountTaxObj.browse(key).write({
                     'refund_account_id': account_ref.get(value['refund_account_id'], False),
@@ -350,7 +356,7 @@ class AccountChartTemplate(models.Model):
 
     @api.multi
     def create_record_with_xmlid(self, company, template, model, vals):
-        # Create a record for the given model with the given vals and 
+        # Create a record for the given model with the given vals and
         # also create an entry in ir_model_data to have an xmlid for the newly created record
         # xmlid is the concatenation of company_id and template_xml_id
         ir_model_data = self.env['ir.model.data']
@@ -359,7 +365,7 @@ class AccountChartTemplate(models.Model):
         return ir_model_data._update(model, template_xmlid.module, vals, xml_id=new_xml_id, store=True, noupdate=True, mode='init', res_id=False)
 
     def _get_account_vals(self, company, account_template, code_acc, tax_template_ref):
-        """ This method generates a dictionnary of all the values for the account that will be created.
+        """ This method generates a dictionary of all the values for the account that will be created.
         """
         self.ensure_one()
         tax_ids = []
@@ -375,6 +381,7 @@ class AccountChartTemplate(models.Model):
                 'tax_ids': [(6, 0, tax_ids)],
                 'company_id': company.id,
                 'tag_ids': [(6, 0, [t.id for t in account_template.tag_ids])],
+                'group_id': account_template.group_id.id,
             }
         return val
 
@@ -383,7 +390,7 @@ class AccountChartTemplate(models.Model):
         """ This method for generating accounts from templates.
 
             :param tax_template_ref: Taxes templates reference for write taxes_id in account_account.
-            :param acc_template_ref: dictionary with the mappping between the account templates and the real accounts.
+            :param acc_template_ref: dictionary with the mapping between the account templates and the real accounts.
             :param code_digits: number of digits got from wizard.multi.charts.accounts, this is use for account code.
             :param company_id: company_id selected from wizard.multi.charts.accounts.
             :returns: return acc_template_ref for reference purpose.
@@ -403,7 +410,7 @@ class AccountChartTemplate(models.Model):
         return acc_template_ref
 
     def _prepare_reconcile_model_vals(self, company, account_reconcile_model, acc_template_ref, tax_template_ref):
-        """ This method generates a dictionnary of all the values for the account.reconcile.model that will be created.
+        """ This method generates a dictionary of all the values for the account.reconcile.model that will be created.
         """
         self.ensure_one()
         return {
@@ -428,7 +435,7 @@ class AccountChartTemplate(models.Model):
         """ This method for generating accounts from templates.
 
             :param tax_template_ref: Taxes templates reference for write taxes_id in account_account.
-            :param acc_template_ref: dictionary with the mappping between the account templates and the real accounts.
+            :param acc_template_ref: dictionary with the mapping between the account templates and the real accounts.
             :param company_id: company_id selected from wizard.multi.charts.accounts.
             :returns: return new_account_reconcile_model for reference purpose.
             :rtype: dict
@@ -519,18 +526,21 @@ class AccountTaxTemplate(models.Model):
     analytic = fields.Boolean(string="Analytic Cost", help="If set, the amount computed by this tax will be assigned to the same analytic account as the invoice line (if any)")
     tag_ids = fields.Many2many('account.account.tag', string='Account tag', help="Optional tags you may want to assign for custom reporting")
     tax_group_id = fields.Many2one('account.tax.group', string="Tax Group")
-    use_cash_basis = fields.Boolean(
-        'Use Cash Basis',
-        help="Select this if the tax should use cash basis,"
-        "which will create an entry for this tax on a given account during reconciliation")
+    tax_exigibility = fields.Selection(
+        [('on_invoice', 'Based on Invoice'),
+         ('on_payment', 'Based on Payment'),
+        ], string='Tax Due', default='on_invoice',
+        oldname='use_cash_basis',
+        help="Based on Invoice: the tax is due as soon as the invoice is validated.\n"
+        "Based on Payment: the tax is due as soon as the payment of the invoice is received.")
     cash_basis_account = fields.Many2one(
         'account.account.template',
         string='Tax Received Account',
         domain=[('deprecated', '=', False)],
-        help='Account use when creating entry for tax cash basis')
+        help='Account used as counterpart for the journal entry, for taxes eligible based on payments.')
 
     _sql_constraints = [
-        ('name_company_uniq', 'unique(name, company_id, type_tax_use)', 'Tax names must be unique !'),
+        ('name_company_uniq', 'unique(name, company_id, type_tax_use, chart_template_id)', 'Tax names must be unique !'),
     ]
 
     @api.multi
@@ -543,7 +553,7 @@ class AccountTaxTemplate(models.Model):
         return res
 
     def _get_tax_vals(self, company, tax_template_to_tax):
-        """ This method generates a dictionnary of all the values for the tax that will be created.
+        """ This method generates a dictionary of all the values for the tax that will be created.
         """
         # Compute children tax ids
         children_ids = []
@@ -566,7 +576,7 @@ class AccountTaxTemplate(models.Model):
             'tag_ids': [(6, 0, [t.id for t in self.tag_ids])],
             'children_tax_ids': [(6, 0, children_ids)],
             'tax_adjustment': self.tax_adjustment,
-            'use_cash_basis': self.use_cash_basis,
+            'tax_exigibility': self.tax_exigibility,
         }
 
         if self.tax_group_id:
@@ -596,6 +606,11 @@ class AccountTaxTemplate(models.Model):
                 'cash_basis_account': tax.cash_basis_account.id,
             }
 
+        if any([tax.tax_exigibility == 'on_payment' for tax in self]):
+            # When a CoA is being installed automatically and if it is creating account tax(es) whose field `Use Cash Basis`(tax_exigibility) is set to True by default
+            # (example of such CoA's are l10n_fr and l10n_mx) then in the `Accounting Settings` the option `Cash Basis` should be checked by default.
+            company.tax_exigibility = True
+
         return {
             'tax_template_to_tax': tax_template_to_tax,
             'account_dict': todo_dict
@@ -618,7 +633,7 @@ class AccountFiscalPositionTemplate(models.Model):
     country_id = fields.Many2one('res.country', string='Country',
         help="Apply only if delivery or invoicing country match.")
     country_group_id = fields.Many2one('res.country.group', string='Country Group',
-        help="Apply only if delivery or invocing country match the group.")
+        help="Apply only if delivery or invoicing country match the group.")
     state_ids = fields.Many2many('res.country.state', string='Federal States')
     zip_from = fields.Integer(string='Zip Range From', default=0)
     zip_to = fields.Integer(string='Zip Range To', default=0)
@@ -712,7 +727,7 @@ class WizardMultiChartsAccounts(models.TransientModel):
             self.complete_tax_set = self.chart_template_id.complete_tax_set
             self.currency_id = currency_id
             if self.chart_template_id.complete_tax_set:
-            # default tax is given by the lowest sequence. For same sequence we will take the latest created as it will be the case for tax created while isntalling the generic chart of account
+            # default tax is given by the lowest sequence. For same sequence we will take the latest created as it will be the case for tax created while installing the generic chart of account
                 chart_ids = self._get_chart_parent_ids(self.chart_template_id)
                 base_tax_domain = [('chart_template_id', 'parent_of', chart_ids)]
                 sale_tax_domain = base_tax_domain + [('type_tax_use', '=', 'sale')]
@@ -811,7 +826,7 @@ class WizardMultiChartsAccounts(models.TransientModel):
         it's not the case, it creates the templates for account.tax object accordingly to the provided sale/purchase rates.
         Then it saves the new tax templates as default taxes to use for this chart template.
 
-        :param company_id: id of the company for wich the wizard is running
+        :param company_id: id of the company for which the wizard is running
         :return: True
         '''
         obj_tax_temp = self.env['account.tax.template']
@@ -827,23 +842,49 @@ class WizardMultiChartsAccounts(models.TransientModel):
         return True
 
     @api.multi
+    def existing_accounting(self, company_id):
+        model_to_check = ['account.move.line', 'account.invoice', 'account.move', 'account.payment', 'account.bank.statement']
+        for model in model_to_check:
+            if len(self.env[model].search([('company_id', '=', company_id.id)])) > 0:
+                return True
+        return False
+
+    @api.multi
     def execute(self):
         '''
         This function is called at the confirmation of the wizard to generate the COA from the templates. It will read
         all the provided information to create the accounts, the banks, the journals, the taxes, the
         accounting properties... accordingly for the chosen company.
         '''
-        if len(self.env['account.account'].search([('company_id', '=', self.company_id.id)])) > 0:
-            # We are in a case where we already have some accounts existing, meaning that user has probably
-            # created its own accounts and does not need a coa, so skip installation of coa.
-            _logger.info('Could not install chart of account since some accounts already exists for the company (%s)', (self.company_id.id,))
-            return {}
         if not self.env.user._is_admin():
             raise AccessError(_("Only administrators can change the settings"))
-        ir_values_obj = self.env['ir.values']
+
+        existing_accounts = self.env['account.account'].search([('company_id', '=', self.company_id.id)])
+        if existing_accounts:
+            # we tolerate switching from accounting package (localization module) as long as there isn't yet any accounting
+            # entries created for the company.
+            if self.existing_accounting(self.company_id):
+                raise UserError(_('Could not install new chart of account as there are already accounting entries existing'))
+
+            # delete accounting properties
+            prop_values = ['account.account,%s' % (account_id,) for account_id in existing_accounts.ids]
+            existing_journals = self.env['account.journal'].search([('company_id', '=', self.company_id.id)])
+            if existing_journals:
+                prop_values.extend(['account.journal,%s' % (journal_id,) for journal_id in existing_journals.ids])
+            accounting_props = self.env['ir.property'].search([('value_reference', 'in', prop_values)])
+            if accounting_props:
+                accounting_props.unlink()
+
+            # delete account, journal, tax, fiscal position and reconciliation model
+            models_to_delete = ['account.reconcile.model', 'account.fiscal.position', 'account.tax', 'account.journal']
+            for model in models_to_delete:
+                res = self.env[model].search([('company_id', '=', self.company_id.id)])
+                if len(res):
+                    res.unlink()
+            existing_accounts.unlink()
+
         company = self.company_id
         self.company_id.write({'currency_id': self.currency_id.id,
-                               'accounts_code_digits': self.code_digits,
                                'anglo_saxon_accounting': self.use_anglo_saxon,
                                'bank_account_code_prefix': self.bank_account_code_prefix,
                                'cash_account_code_prefix': self.cash_account_code_prefix,
@@ -866,24 +907,15 @@ class WizardMultiChartsAccounts(models.TransientModel):
         # Install all the templates objects and generate the real objects
         acc_template_ref, taxes_ref = self.chart_template_id._install_template(company, code_digits=self.code_digits, transfer_account_id=self.transfer_account_id)
 
-        # write values of default taxes for product as super user
-        if self.sale_tax_id and taxes_ref:
-            ir_values_obj.sudo().set_default('product.template', "taxes_id", [taxes_ref[self.sale_tax_id.id]], for_all_users=True, company_id=company.id)
-        if self.purchase_tax_id and taxes_ref:
-            ir_values_obj.sudo().set_default('product.template', "supplier_taxes_id", [taxes_ref[self.purchase_tax_id.id]], for_all_users=True, company_id=company.id)
-
         # Create Bank journals
         self._create_bank_journals_from_o2m(company, acc_template_ref)
 
         # Create the current year earning account if it wasn't present in the CoA
-        account_obj = self.env['account.account']
-        unaffected_earnings_xml = self.env.ref("account.data_unaffected_earnings")
-        if unaffected_earnings_xml and not account_obj.search([('company_id', '=', company.id), ('user_type_id', '=', unaffected_earnings_xml.id)]):
-            account_obj.create({
-                'code': '999999',
-                'name': _('Undistributed Profits/Losses'),
-                'user_type_id': unaffected_earnings_xml.id,
-                'company_id': company.id,})
+        company.get_unaffected_earnings_account()
+
+        # set the default taxes on the company
+        company.account_sale_tax_id = self.env['account.tax'].search([('type_tax_use', 'in', ('sale', 'all')), ('company_id', '=', company.id)], limit=1).id
+        company.account_purchase_tax_id = self.env['account.tax'].search([('type_tax_use', 'in', ('purchase', 'all')), ('company_id', '=', company.id)], limit=1).id
         return {}
 
     @api.multi
@@ -897,15 +929,17 @@ class WizardMultiChartsAccounts(models.TransientModel):
             of the accounts that have been generated from them.
         '''
         self.ensure_one()
+        bank_journals = self.env['account.journal']
         # Create the journals that will trigger the account.account creation
         for acc in self.bank_account_ids:
-            self.env['account.journal'].create({
+            bank_journals += self.env['account.journal'].create({
                 'name': acc.acc_name,
                 'type': acc.account_type,
                 'company_id': company.id,
                 'currency_id': acc.currency_id.id,
                 'sequence': 10
             })
+        return bank_journals
 
 
 class AccountBankAccountsWizard(models.TransientModel):

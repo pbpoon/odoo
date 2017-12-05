@@ -4,7 +4,6 @@
 from datetime import datetime
 
 from odoo import api, fields, models, tools, SUPERUSER_ID
-from odoo.tools import pycompat
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 
@@ -59,7 +58,7 @@ class RecruitmentStage(models.Model):
                              help='Specific job that uses this stage. Other jobs will not use this stage.')
     requirements = fields.Text("Requirements")
     template_id = fields.Many2one(
-        'mail.template', "Use template",
+        'mail.template', "Automated Email",
         help="If set, a message is posted on the applicant using the template when the applicant is set to the stage.")
     fold = fields.Boolean(
         "Folded in Recruitment Pipe",
@@ -90,7 +89,6 @@ class Applicant(models.Model):
     _description = "Applicant"
     _order = "priority desc, id desc"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
-    _mail_mass_mailing = _('Applicants')
 
     def _default_stage_id(self):
         if self._context.get('default_job_id'):
@@ -151,7 +149,7 @@ class Applicant(models.Model):
     reference = fields.Char("Referred By")
     day_open = fields.Float(compute='_compute_day', string="Days to Open")
     day_close = fields.Float(compute='_compute_day', string="Days to Close")
-    delay_close = fields.Float(compute="_compute_day", string='Delay to Close', readonly=True, group_operator="avg", help="Number of Delay to close", store=True)
+    delay_close = fields.Float(compute="_compute_day", string='Delay to Close', readonly=True, group_operator="avg", help="Number of days to close", store=True)
     color = fields.Integer("Color Index", default=0)
     emp_id = fields.Many2one('hr.employee', string="Employee", track_visibility="onchange", help="Employee linked to the applicant.")
     user_email = fields.Char(related='user_id.email', type="char", string="User Email", readonly=True)
@@ -251,7 +249,7 @@ class Applicant(models.Model):
             self = self.with_context(default_department_id=vals.get('department_id'))
         if vals.get('job_id') or self._context.get('default_job_id'):
             job_id = vals.get('job_id') or self._context.get('default_job_id')
-            for key, value in pycompat.items(self._onchange_job_id_internal(job_id)['value']):
+            for key, value in self._onchange_job_id_internal(job_id)['value'].items():
                 if key not in vals:
                     vals[key] = value
         if vals.get('user_id'):
@@ -397,19 +395,32 @@ class Applicant(models.Model):
         """ Create an hr.employee from the hr.applicants """
         employee = False
         for applicant in self:
-            address_id = contact_name = False
+            contact_name = False
             if applicant.partner_id:
                 address_id = applicant.partner_id.address_get(['contact'])['contact']
                 contact_name = applicant.partner_id.name_get()[0][1]
+            else :
+                new_partner_id = self.env['res.partner'].create({
+                    'is_company': False,
+                    'name': applicant.partner_name,
+                    'email': applicant.email_from,
+                    'phone': applicant.partner_phone,
+                    'mobile': applicant.partner_mobile
+                })
+                address_id = new_partner_id.address_get(['contact'])['contact']
             if applicant.job_id and (applicant.partner_name or contact_name):
                 applicant.job_id.write({'no_of_hired_employee': applicant.job_id.no_of_hired_employee + 1})
-                employee = self.env['hr.employee'].create({'name': applicant.partner_name or contact_name,
-                                               'job_id': applicant.job_id.id,
-                                               'address_home_id': address_id,
-                                               'department_id': applicant.department_id.id or False,
-                                               'address_id': applicant.company_id and applicant.company_id.partner_id and applicant.company_id.partner_id.id or False,
-                                               'work_email': applicant.department_id and applicant.department_id.company_id and applicant.department_id.company_id.email or False,
-                                               'work_phone': applicant.department_id and applicant.department_id.company_id and applicant.department_id.company_id.phone or False})
+                employee = self.env['hr.employee'].create({
+                    'name': applicant.partner_name or contact_name,
+                    'job_id': applicant.job_id.id,
+                    'address_home_id': address_id,
+                    'department_id': applicant.department_id.id or False,
+                    'address_id': applicant.company_id and applicant.company_id.partner_id
+                            and applicant.company_id.partner_id.id or False,
+                    'work_email': applicant.department_id and applicant.department_id.company_id
+                            and applicant.department_id.company_id.email or False,
+                    'work_phone': applicant.department_id and applicant.department_id.company_id
+                            and applicant.department_id.company_id.phone or False})
                 applicant.write({'emp_id': employee.id})
                 applicant.job_id.message_post(
                     body=_('New Employee %s Hired') % applicant.partner_name if applicant.partner_name else applicant.name,

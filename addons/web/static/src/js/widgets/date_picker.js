@@ -42,6 +42,8 @@ var DateWidget = Widget.extend({
             locale : moment.locale(),
             allowInputToggle: true,
             keyBinds: null,
+            widgetParent: 'body',
+            useCurrent: false,
         });
     },
     /**
@@ -73,9 +75,16 @@ var DateWidget = Widget.extend({
      * set datetime value
      */
     changeDatetime: function () {
-        if(this.isValid()) {
+        if (this.isValid()) {
+            var oldValue = this.getValue();
             this._setValueFromUi();
-            this.trigger("datetime_changed");
+            var newValue = this.getValue();
+
+            if (!oldValue !== !newValue || oldValue && newValue && !oldValue.isSame(newValue)) {
+                // The condition is strangely written; this is because the
+                // values can be false/undefined
+                this.trigger("datetime_changed");
+            }
         }
     },
     /**
@@ -102,7 +111,7 @@ var DateWidget = Widget.extend({
         }
     },
     /**
-     * @param {Moment|false}
+     * @param {Moment|false} value
      */
     setValue: function (value) {
         this.set({'value': value});
@@ -119,7 +128,7 @@ var DateWidget = Widget.extend({
 
     /**
      * @private
-     * @param {Moment}
+     * @param {Moment} v
      * @returns {string}
      */
     _formatClient: function (v) {
@@ -127,7 +136,7 @@ var DateWidget = Widget.extend({
     },
     /**
      * @private
-     * @param {string|false}
+     * @param {string|false} v
      * @returns {Moment}
      */
     _parseClient: function (v) {
@@ -135,7 +144,7 @@ var DateWidget = Widget.extend({
     },
     /**
      * @private
-     * @param {boolean}
+     * @param {boolean} readonly
      */
     _setReadonly: function (readonly) {
         this.readonly = readonly;
@@ -163,11 +172,11 @@ var DateWidget = Widget.extend({
     _onShow: function () {
         //when opening datetimepicker the date and time by default should be the one from
         //the input field if any or the current day otherwise
-        var value = moment().second(0);
         if(this.$input.val().length !== 0 && this.isValid()) {
-            value = this._parseClient(this.$input.val());
+            var value = this._parseClient(this.$input.val());
+            this.picker.date(value);
+            this.$input.select();
         }
-        this.picker.date(value);
     },
 });
 

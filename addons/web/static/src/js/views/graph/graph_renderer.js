@@ -34,7 +34,6 @@ return AbstractRenderer.extend({
     init: function (parent, state, params) {
         this._super.apply(this, arguments);
         this.stacked = params.stacked;
-        this.$el.css({minWidth: '100px', minHeight: '100px'});
     },
     /**
      * @override
@@ -161,8 +160,8 @@ return AbstractRenderer.extend({
 
         var chart = nv.models.multiBarChart();
         chart.options({
-          margin: {left: 120, bottom: 60},
-          delay: 250,
+          margin: {left: 80, bottom: 100, top: 80, right: 0},
+          delay: 100,
           transition: 10,
           showLegend: _.size(data) <= MAX_LEGEND_LENGTH,
           showXAxis: true,
@@ -310,7 +309,7 @@ return AbstractRenderer.extend({
 
         var chart = nv.models.lineChart();
         chart.options({
-          margin: {left: 120, bottom: 60},
+          margin: {left: 80, bottom: 100, top: 80, right: 0},
           useInteractiveGuideline: true,
           showLegend: _.size(data) <= MAX_LEGEND_LENGTH,
           showXAxis: true,

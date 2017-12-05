@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from . import controllers
 from . import models
-
 from . import wizard
 from . import report
 
@@ -22,6 +22,9 @@ def _auto_install_l10n(cr, registry):
             module_list.append('l10n_syscohada')
         elif country_code == 'GB':
             module_list.append('l10n_uk')
+        elif country_code == 'DE':
+            module_list.append('l10n_de_skr03')
+            module_list.append('l10n_de_skr04')
         else:
             if env['ir.module.module'].search([('name', '=', 'l10n_' + country_code.lower())]):
                 module_list.append('l10n_' + country_code.lower())
@@ -38,7 +41,7 @@ def _auto_install_l10n(cr, registry):
             ]:
             module_list.append('base_vat')
 
-        #european countries will be using SEPA
+        # European countries will be using SEPA
         europe = env.ref('base.europe', raise_if_not_found=False)
         if europe:
             europe_country_codes = [x.code for x in europe.country_ids]

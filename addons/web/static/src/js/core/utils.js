@@ -86,28 +86,44 @@ var utils = {
         return "";
     },
     /**
-     * Returns a human readable number
+     * Returns a human readable number (e.g. 34000 -> 34k).
      *
-     * @param {Number} number
+     * @param {number} number
+     * @param {integer} [decimals=0]
+     *        maximum number of decimals to use in human readable representation
+     * @param {integer} [minDigits=1]
+     *        the minimum number of digits to preserve when switching to another
+     *        level of thousands (e.g. with a value of '2', 4321 will still be
+     *        represented as 4321 otherwise it will be down to one digit (4k))
+     * @param {function} [formatterCallback]
+     *        a callback to transform the final number before adding the
+     *        thousands symbol (default to adding thousands separators (useful
+     *        if minDigits > 1))
+     * @returns {string}
      */
-    human_number: function (number, decimals) {
-        decimals = decimals | 0;
+    human_number: function (number, decimals, minDigits, formatterCallback) {
         number = Math.round(number);
+        decimals = decimals | 0;
+        minDigits = minDigits || 1;
+        formatterCallback = formatterCallback || utils.insert_thousand_seps;
+
         var d2 = Math.pow(10, decimals);
-        var val = _t("kMGTPE");
-        var i = val.length-1, s;
-        while( i ) {
-            s = Math.pow(10,i--*3);
-            if( s <= number ) {
-                number = Math.round(number*d2/s)/d2 + val[i];
+        var val = _t('kMGTPE');
+        var symbol = '';
+        for (var i = val.length - 1 ; i > 0 ; i--) {
+            var s = Math.pow(10, i * 3);
+            if (s <= number / Math.pow(10, minDigits - 1)) {
+                number = Math.round(number * d2 / s) / d2;
+                symbol = val[i - 1];
+                break;
             }
         }
-        return number;
+        return formatterCallback('' + number) + symbol;
     },
     /**
      * Returns a human readable size
      *
-     * @param {Number} number of bytes
+     * @param {Number} size number of bytes
      */
     human_size: function (size) {
         var units = _t("Bytes,Kb,Mb,Gb,Tb,Pb,Eb,Zb,Yb").split(',');
@@ -271,8 +287,8 @@ var utils = {
     /**
      * performs a half up rounding with a fixed amount of decimals, correcting for float loss of precision
      * See the corresponding float_round() in server/tools/float_utils.py for more info
-     * @param {Number} the value to be rounded
-     * @param {Number} the number of decimals. eg: round_decimals(3.141592,2) -> 3.14
+     * @param {Number} value the value to be rounded
+     * @param {Number} decimals the number of decimals. eg: round_decimals(3.141592,2) -> 3.14
      */
     round_decimals: function (value, decimals) {
         return utils.round_precision(value, Math.pow(10,-decimals));
@@ -319,9 +335,9 @@ var utils = {
     },
     /**
      * Create a cookie
-     * @param {String} name : the name of the cookie
-     * @param {String} value : the value stored in the cookie
-     * @param {Integer} ttl : time to live of the cookie in millis. -1 to erase the cookie.
+     * @param {String} name the name of the cookie
+     * @param {String} value the value stored in the cookie
+     * @param {Integer} ttl time to live of the cookie in millis. -1 to erase the cookie.
      */
     set_cookie: function (name, value, ttl) {
         ttl = ttl || 24*60*60*365;
@@ -440,6 +456,20 @@ var utils = {
         if (f(tree)) {
             _.each(tree.children, function (c) { utils.traverse(c, f); });
         }
+    },
+    /**
+     * Enhanced traverse function with 'path' building on traverse.
+     *
+     * @param {Object} tree an object describing a tree structure
+     * @param {function} f a callback
+     * @param {Object} path the path to the current 'tree' object
+     */
+    traversePath: function (tree, f, path) {
+        path = path || [];
+        f(tree, path);
+        _.each(tree.children, function (node) {
+            utils.traversePath(node, f, path.concat(tree));
+        });
     },
     /**
      * Visit a tree of objects and freeze all

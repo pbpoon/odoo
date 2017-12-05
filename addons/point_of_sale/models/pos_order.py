@@ -5,9 +5,10 @@ from datetime import timedelta
 from functools import partial
 
 import psycopg2
+import pytz
 
 from odoo import api, fields, models, tools, _
-from odoo.tools import float_is_zero, pycompat
+from odoo.tools import float_is_zero
 from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.addons import decimal_precision as dp
@@ -40,7 +41,8 @@ class PosOrder(models.Model):
             'pos_reference': ui_order['name'],
             'partner_id':   ui_order['partner_id'] or False,
             'date_order':   ui_order['creation_date'],
-            'fiscal_position_id': ui_order['fiscal_position_id']
+            'fiscal_position_id': ui_order['fiscal_position_id'],
+            'pricelist_id': ui_order['pricelist_id'],
         }
 
     def _payment_fields(self, ui_paymentline):
@@ -163,6 +165,7 @@ class PosOrder(models.Model):
             'origin': self.name,
             'account_id': self.partner_id.property_account_receivable_id.id,
             'journal_id': self.session_id.config_id.invoice_journal_id.id,
+            'company_id': self.company_id.id,
             'type': 'out_invoice',
             'reference': self.name,
             'partner_id': self.partner_id.id,
@@ -171,6 +174,33 @@ class PosOrder(models.Model):
             'currency_id': self.pricelist_id.currency_id.id,
             'user_id': self.env.uid,
         }
+
+    @api.model
+    def _get_account_move_line_group_data_type_key(self, data_type, values):
+        """
+        Return a tuple which will be used as a key for grouping account
+        move lines in _create_account_move_line method.
+        :param data_type: 'product', 'tax', ....
+        :param values: account move line values
+        :return: tuple() representing the data_type key
+        """
+        if data_type == 'product':
+            return ('product',
+                    values['partner_id'],
+                    (values['product_id'], tuple(values['tax_ids'][0][2]), values['name']),
+                    values['analytic_account_id'],
+                    values['debit'] > 0)
+        elif data_type == 'tax':
+            return ('tax',
+                    values['partner_id'],
+                    values['tax_line_id'],
+                    values['debit'] > 0)
+        elif data_type == 'counter_part':
+            return ('counter_part',
+                    values['partner_id'],
+                    values['account_id'],
+                    values['debit'] > 0)
+        return False
 
     def _action_create_invoice_line(self, line=False, invoice_id=False):
         InvoiceLine = self.env['account.invoice.line']
@@ -193,7 +223,7 @@ class PosOrder(models.Model):
         # We convert a new id object back to a dictionary to write to
         # bridge between old and new api
         inv_line = invoice_line._convert_to_write({name: invoice_line[name] for name in invoice_line._cache})
-        inv_line.update(price_unit=line.price_unit, discount=line.discount)
+        inv_line.update(price_unit=line.price_unit, discount=line.discount, name=inv_name)
         return InvoiceLine.sudo().create(inv_line)
 
     def _create_account_move_line(self, session=None, move=None):
@@ -209,7 +239,7 @@ class PosOrder(models.Model):
         have_to_group_by = session and session.config_id.group_by or False
         rounding_method = session and session.config_id.company_id.tax_calculation_rounding_method
 
-        for order in self.filtered(lambda o: not o.account_move or order.state == 'paid'):
+        for order in self.filtered(lambda o: not o.account_move or o.state == 'paid'):
             current_company = order.sale_journal.company_id
             account_def = IrProperty.get(
                 'property_account_receivable_id', 'res.partner')
@@ -229,13 +259,8 @@ class PosOrder(models.Model):
                     'move_id': move.id,
                 })
 
-                if data_type == 'product':
-                    key = ('product', values['partner_id'], (values['product_id'], tuple(values['tax_ids'][0][2]), values['name']), values['analytic_account_id'], values['debit'] > 0)
-                elif data_type == 'tax':
-                    key = ('tax', values['partner_id'], values['tax_line_id'], values['debit'] > 0)
-                elif data_type == 'counter_part':
-                    key = ('counter_part', values['partner_id'], values['account_id'], values['debit'] > 0)
-                else:
+                key = self._get_account_move_line_group_data_type_key(data_type, values)
+                if not key:
                     return
 
                 grouped_data.setdefault(key, [])
@@ -309,7 +334,7 @@ class PosOrder(models.Model):
 
             # round tax lines per order
             if rounding_method == 'round_globally':
-                for group_key, group_value in pycompat.items(grouped_data):
+                for group_key, group_value in grouped_data.items():
                     if group_key[0] == 'tax':
                         for line in group_value:
                             line['credit'] = cur.round(line['credit'])
@@ -327,7 +352,7 @@ class PosOrder(models.Model):
             order.write({'state': 'done', 'account_move': move.id})
 
         all_lines = []
-        for group_key, group_data in pycompat.items(grouped_data):
+        for group_key, group_data in grouped_data.items():
             for value in group_data:
                 all_lines.append((0, 0, value),)
         if move:  # In case no order was changed
@@ -610,11 +635,11 @@ class PosOrder(models.Model):
                     'location_id': location_id,
                     'location_dest_id': destination_id,
                 }
-                pos_qty = any([x.qty > 0 for x in order.lines])
+                pos_qty = any([x.qty > 0 for x in order.lines if x.product_id.type in ['product', 'consu']])
                 if pos_qty:
                     order_picking = Picking.create(picking_vals.copy())
                     order_picking.message_post(body=message)
-                neg_qty = any([x.qty < 0 for x in order.lines])
+                neg_qty = any([x.qty < 0 for x in order.lines if x.product_id.type in ['product', 'consu']])
                 if neg_qty:
                     return_vals = picking_vals.copy()
                     return_vals.update({
@@ -625,7 +650,7 @@ class PosOrder(models.Model):
                     return_picking = Picking.create(return_vals)
                     return_picking.message_post(body=message)
 
-            for line in order.lines.filtered(lambda l: l.product_id.type in ['product', 'consu'] and l.qty != 0):
+            for line in order.lines.filtered(lambda l: l.product_id.type in ['product', 'consu'] and not float_is_zero(l.qty, precision_rounding=l.product_id.uom_id.rounding)):
                 moves |= Move.create({
                     'name': line.name,
                     'product_uom': line.product_id.uom_id.id,
@@ -648,9 +673,9 @@ class PosOrder(models.Model):
 
             # when the pos.config has no picking_type_id set only the moves will be created
             if moves and not return_picking and not order_picking:
-                moves.action_assign()
+                moves._action_assign()
                 moves.filtered(lambda m: m.state in ['confirmed', 'waiting']).force_assign()
-                moves.filtered(lambda m: m.product_id.tracking == 'none').action_done()
+                moves.filtered(lambda m: m.product_id.tracking == 'none')._action_done()
 
         return True
 
@@ -670,7 +695,7 @@ class PosOrder(models.Model):
         PosPackOperationLot = self.env['pos.pack.operation.lot']
         has_wrong_lots = False
         for order in self:
-            for pack_operation in (picking or self.picking_id).pack_operation_ids:
+            for move in (picking or self.picking_id).move_lines:
                 picking_type = (picking or self.picking_id).picking_type_id
                 lots_necessary = True
                 if picking_type:
@@ -678,30 +703,42 @@ class PosOrder(models.Model):
                 qty = 0
                 qty_done = 0
                 pack_lots = []
-                pos_pack_lots = PosPackOperationLot.search([('order_id', '=', order.id), ('product_id', '=', pack_operation.product_id.id)])
+                pos_pack_lots = PosPackOperationLot.search([('order_id', '=', order.id), ('product_id', '=', move.product_id.id)])
                 pack_lot_names = [pos_pack.lot_name for pos_pack in pos_pack_lots]
 
                 if pack_lot_names and lots_necessary:
                     for lot_name in list(set(pack_lot_names)):
-                        stock_production_lot = StockProductionLot.search([('name', '=', lot_name), ('product_id', '=', pack_operation.product_id.id)])
+                        stock_production_lot = StockProductionLot.search([('name', '=', lot_name), ('product_id', '=', move.product_id.id)])
                         if stock_production_lot:
                             if stock_production_lot.product_id.tracking == 'lot':
                                 # if a lot nr is set through the frontend it will refer to the full quantity
-                                qty = pack_operation.product_qty
+                                qty = move.product_uom_qty
                             else: # serial numbers
                                 qty = 1.0
                             qty_done += qty
                             pack_lots.append({'lot_id': stock_production_lot.id, 'qty': qty})
                         else:
                             has_wrong_lots = True
-                elif pack_operation.product_id.tracking == 'none' or not lots_necessary:
-                    qty_done = pack_operation.product_qty
+                elif move.product_id.tracking == 'none' or not lots_necessary:
+                    qty_done = move.product_uom_qty
                 else:
                     has_wrong_lots = True
-                pack_operation.write({'pack_lot_ids': [(0, 0, x) for x in pack_lots], 'qty_done': qty_done})
+                for pack_lot in pack_lots:
+                    lot_id, qty = pack_lot['lot_id'], pack_lot['qty']
+                    self.env['stock.move.line'].create({
+                        'move_id': move.id,
+                        'product_id': move.product_id.id,
+                        'product_uom_id': move.product_uom.id,
+                        'qty_done': qty,
+                        'location_id': move.location_id.id,
+                        'location_dest_id': move.location_dest_id.id,
+                        'lot_id': lot_id,
+                    })
+                if not pack_lots:
+                    move.quantity_done = qty_done
         return has_wrong_lots
 
-    def add_payment(self, data):
+    def _prepare_bank_statement_line_payment_values(self, data):
         """Create a new payment for the order"""
         args = {
             'amount': data['amount'],
@@ -746,8 +783,16 @@ class PosOrder(models.Model):
             'journal_id': journal_id,
             'ref': self.session_id.name,
         })
+
+        return args
+
+    def add_payment(self, data):
+        """Create a new payment for the order"""
+        args = self._prepare_bank_statement_line_payment_values(data)
+        context = dict(self.env.context)
+        context.pop('pos_session_id', False)
         self.env['account.bank.statement.line'].with_context(context).create(args)
-        return statement_id
+        return args.get('statement_id', False)
 
     @api.multi
     def refund(self):
@@ -826,7 +871,7 @@ class PosOrderLine(models.Model):
     def create(self, values):
         if values.get('order_id') and not values.get('name'):
             # set name based on the sequence specified on the config
-            config_id = self.env['pos.order'].browse(values['order_id']).session_id.config_id.id
+            config_id = self.order_id.browse(values['order_id']).session_id.config_id.id
             # HACK: sequence created in the same transaction as the config
             # cf TODO master is pos.config create
             # remove me saas-15
@@ -850,20 +895,14 @@ class PosOrderLine(models.Model):
     @api.depends('price_unit', 'tax_ids', 'qty', 'discount', 'product_id')
     def _compute_amount_line_all(self):
         for line in self:
-            currency = line.order_id.pricelist_id.currency_id
-            taxes = line.tax_ids.filtered(lambda tax: tax.company_id.id == line.order_id.company_id.id)
-            fiscal_position_id = line.order_id.fiscal_position_id
-            if fiscal_position_id:
-                taxes = fiscal_position_id.map_tax(taxes, line.product_id, line.order_id.partner_id)
+            fpos = line.order_id.fiscal_position_id
+            tax_ids_after_fiscal_position = fpos.map_tax(line.tax_ids, line.product_id, line.order_id.partner_id) if fpos else line.tax_ids
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-            line.price_subtotal = line.price_subtotal_incl = price * line.qty
-            if taxes:
-                taxes = taxes.compute_all(price, currency, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
-                line.price_subtotal = taxes['total_excluded']
-                line.price_subtotal_incl = taxes['total_included']
-
-            line.price_subtotal = currency.round(line.price_subtotal)
-            line.price_subtotal_incl = currency.round(line.price_subtotal_incl)
+            taxes = tax_ids_after_fiscal_position.compute_all(price, line.order_id.pricelist_id.currency_id, line.qty, product=line.product_id, partner=line.order_id.partner_id)
+            line.update({
+                'price_subtotal_incl': taxes['total_included'],
+                'price_subtotal': taxes['total_excluded'],
+            })
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
@@ -875,8 +914,10 @@ class PosOrderLine(models.Model):
             price = self.order_id.pricelist_id.get_product_price(
                 self.product_id, self.qty or 1.0, self.order_id.partner_id)
             self._onchange_qty()
-            self.price_unit = price
-            self.tax_ids = self.product_id.taxes_id
+            self.tax_ids = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
+            fpos = self.order_id.fiscal_position_id
+            tax_ids_after_fiscal_position = fpos.map_tax(self.tax_ids, self.product_id, self.order_id.partner_id) if fpos else self.tax_ids
+            self.price_unit = self.env['account.tax']._fix_tax_included_price_company(price, self.product_id.taxes_id, tax_ids_after_fiscal_position, self.company_id)
 
     @api.onchange('qty', 'discount', 'price_unit', 'tax_ids')
     def _onchange_qty(self):
@@ -920,7 +961,9 @@ class ReportSaleDetails(models.AbstractModel):
         if not configs:
             configs = self.env['pos.config'].search([])
 
-        today = fields.Datetime.from_string(fields.Date.context_today(self))
+        user_tz = pytz.timezone(self.env.context.get('tz') or self.env.user.tz or 'UTC')
+        today = user_tz.localize(fields.Datetime.from_string(fields.Date.context_today(self)))
+        today = today.astimezone(pytz.timezone('UTC'))
         if date_start:
             date_start = fields.Datetime.from_string(date_start)
         else:
@@ -990,7 +1033,7 @@ class ReportSaleDetails(models.AbstractModel):
             'total_paid': user_currency.round(total),
             'payments': payments,
             'company_name': self.env.user.company_id.name,
-            'taxes': list(pycompat.values(taxes)),
+            'taxes': list(taxes.values()),
             'products': sorted([{
                 'product_id': product.id,
                 'product_name': product.name,
@@ -999,7 +1042,7 @@ class ReportSaleDetails(models.AbstractModel):
                 'price_unit': price_unit,
                 'discount': discount,
                 'uom': product.uom_id.name
-            } for (product, price_unit, discount), qty in pycompat.items(products_sold)], key=lambda l: l['product_name'])
+            } for (product, price_unit, discount), qty in products_sold.items()], key=lambda l: l['product_name'])
         }
 
     @api.multi

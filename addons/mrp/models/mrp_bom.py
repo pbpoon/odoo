@@ -24,9 +24,8 @@ class MrpBom(models.Model):
         help="If the active field is set to False, it will allow you to hide the bills of material without removing it.")
     type = fields.Selection([
         ('normal', 'Manufacture this product'),
-        ('phantom', 'Ship this product as a set of components (kit)')], 'BoM Type',
-        default='normal', required=True,
-        help="Kit (Phantom): When processing a sales order for this product, the delivery order will contain the raw materials, instead of the finished product.")
+        ('phantom', 'Kit')], 'BoM Type',
+        default='normal', required=True)
     product_tmpl_id = fields.Many2one(
         'product.template', 'Product',
         domain="[('type', 'in', ['product', 'consu'])]", required=True)
@@ -53,9 +52,9 @@ class MrpBom(models.Model):
         default='asap', required=True)
     picking_type_id = fields.Many2one(
         'stock.picking.type', 'Operation Type', domain=[('code', '=', 'mrp_operation')],
-        help="When a procurement has a ‘produce’ route with a operation type set, it will try to create "
+        help=u"When a procurement has a ‘produce’ route with a operation type set, it will try to create "
              "a Manufacturing Order for that product using a BoM of the same operation type. That allows "
-             "to define procurement rules which trigger different manufacturing orders with different BoMs. ")
+             "to define procurement rules which trigger different manufacturing orders with different BoMs.")
     company_id = fields.Many2one(
         'res.company', 'Company',
         default=lambda self: self.env['res.company']._company_default_get('mrp.bom'),
@@ -117,26 +116,48 @@ class MrpBom(models.Model):
             Quantity describes the number of times you need the BoM: so the quantity divided by the number created by the BoM
             and converted into its UoM
         """
+        from collections import defaultdict
+
+        graph = defaultdict(list)
+        V = set()
+
+        def check_cycle(v, visited, recStack, graph):
+            visited[v] = True
+            recStack[v] = True
+            for neighbour in graph[v]:
+                if visited[neighbour] == False:
+                    if check_cycle(neighbour, visited, recStack, graph) == True:
+                        return True
+                elif recStack[neighbour] == True:
+                    return True
+            recStack[v] = False
+            return False
+
         boms_done = [(self, {'qty': quantity, 'product': product, 'original_qty': quantity, 'parent_line': False})]
         lines_done = []
-        templates_done = product.product_tmpl_id
+        V |= set([product.product_tmpl_id.id])
 
         bom_lines = [(bom_line, product, quantity, False) for bom_line in self.bom_line_ids]
+        for bom_line in self.bom_line_ids:
+            V |= set([bom_line.product_id.product_tmpl_id.id])
+            graph[product.product_tmpl_id.id].append(bom_line.product_id.product_tmpl_id.id)
         while bom_lines:
             current_line, current_product, current_qty, parent_line = bom_lines[0]
             bom_lines = bom_lines[1:]
 
             if current_line._skip_bom_line(current_product):
                 continue
-            if current_line.product_id.product_tmpl_id in templates_done:
-                raise UserError(_('Recursion error!  A product with a Bill of Material should not have itself in its BoM or child BoMs!'))
 
             line_quantity = current_qty * current_line.product_qty
             bom = self._bom_find(product=current_line.product_id, picking_type=picking_type or self.picking_type_id, company_id=self.company_id.id)
             if bom.type == 'phantom':
                 converted_line_quantity = current_line.product_uom_id._compute_quantity(line_quantity / bom.product_qty, bom.product_uom_id)
                 bom_lines = [(line, current_line.product_id, converted_line_quantity, current_line) for line in bom.bom_line_ids] + bom_lines
-                templates_done |= current_line.product_id.product_tmpl_id
+                for bom_line in bom.bom_line_ids:
+                    graph[current_line.product_id.product_tmpl_id.id].append(bom_line.product_id.product_tmpl_id.id)
+                    if bom_line.product_id.product_tmpl_id.id in V and check_cycle(bom_line.product_id.product_tmpl_id.id, {key: False for  key in V}, {key: False for  key in V}, graph):
+                        raise UserError(_('Recursion error!  A product with a Bill of Material should not have itself in its BoM or child BoMs!'))
+                    V |= set([bom_line.product_id.product_tmpl_id.id])
                 boms_done.append((bom, {'qty': converted_line_quantity, 'product': current_product, 'original_qty': quantity, 'parent_line': current_line}))
             else:
                 # We round up here because the user expects that if he has to consume a little more, the whole UOM unit
@@ -150,7 +171,7 @@ class MrpBom(models.Model):
 
 class MrpBomLine(models.Model):
     _name = 'mrp.bom.line'
-    _order = "sequence"
+    _order = "sequence, id"
     _rec_name = "product_id"
 
     def _get_default_product_uom_id(self):
@@ -192,7 +213,8 @@ class MrpBomLine(models.Model):
     has_attachments = fields.Boolean('Has Attachments', compute='_compute_has_attachments')
 
     _sql_constraints = [
-        ('bom_qty_zero', 'CHECK (product_qty>0)', 'All product quantities must be greater than 0.\n'
+        ('bom_qty_zero', 'CHECK (product_qty>=0)', 'All product quantities must be greater or equal to 0.\n'
+            'Lines with 0 quantities can be used as optional lines. \n'
             'You should install the mrp_byproduct module if you want to manage extra products on BoMs !'),
     ]
 

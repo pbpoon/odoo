@@ -1,24 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # * website_forum_doc
-#
+# 
 # Translators:
-# Ahmet Altınışık <aaltinisik@altinkaya.com.tr>, 2016
-# AYHAN KIZILTAN <akiziltan76@hotmail.com>, 2016
-# Martin Trigaux, 2016
-# Ramiz Deniz Öner <deniz@denizoner.com>, 2016
+# Martin Trigaux <mat@odoo.com>, 2017
+# Ramiz Deniz Öner <deniz@denizoner.com>, 2017
+# Murat Kaplan <muratk@projetgrup.com>, 2017
+# Ediz Duman <neps1192@gmail.com>, 2017
+# Ayhan KIZILTAN <akiziltan76@hotmail.com>, 2017
+# Ahmet Altinisik <aaltinisik@altinkaya.com.tr>, 2017
+# Saban Yildiz <sabany@projetgrup.com>, 2017
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 9.0\n"
+"Project-Id-Version: Odoo Server 10.saas~18\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-18 14:08+0000\n"
-"PO-Revision-Date: 2016-05-02 10:12+0000\n"
-"Last-Translator: Martin Trigaux\n"
-"Language-Team: Turkish (http://www.transifex.com/odoo/odoo-9/language/tr/)\n"
-"Language: tr\n"
+"POT-Creation-Date: 2017-10-02 11:26+0000\n"
+"PO-Revision-Date: 2017-10-02 11:26+0000\n"
+"Last-Translator: Saban Yildiz <sabany@projetgrup.com>, 2017\n"
+"Language-Team: Turkish (https://www.transifex.com/odoo/teams/41243/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
+"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #. module: website_forum_doc
@@ -58,7 +61,7 @@ msgstr ""
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "Benefits of having done this setup"
-msgstr "Bu kurulumu yaptığı faydalar"
+msgstr "Bu kurulumun sağladığı faydalar"
 
 #. module: website_forum_doc
 #: model:forum.documentation.toc,name:website_forum_doc.toc_cms_ecommerce
@@ -78,7 +81,7 @@ msgstr "Şikayetler"
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_post_color
 msgid "Color Index"
-msgstr "Renk Dizini"
+msgstr "Renk İndeksi"
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_create_uid
@@ -90,7 +93,7 @@ msgstr "Oluşturan"
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_create_date
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc_create_date
 msgid "Created on"
-msgstr "Oluşturuldu"
+msgstr "Oluşturulma"
 
 #. module: website_forum_doc
 #: model:forum.documentation.toc,name:website_forum_doc.toc_crm
@@ -110,13 +113,13 @@ msgstr "Sil"
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "Describe the business solution"
-msgstr "İş çözümünü açıklama"
+msgstr "İş çözümünü tanımlayın"
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_display_name
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc_display_name
 msgid "Display Name"
-msgstr "Adı Göster"
+msgstr "Görünüm Adı"
 
 #. module: website_forum_doc
 #: model:ir.actions.act_url,name:website_forum_doc.action_open_documentation
@@ -124,13 +127,13 @@ msgstr "Adı Göster"
 #: model:ir.ui.view,arch_db:website_forum_doc.header_footer_custom
 #: model:website.menu,name:website_forum_doc.menu_questions
 msgid "Documentation"
-msgstr "Belgelendirme"
+msgstr "Dokümantasyon"
 
 #. module: website_forum_doc
 #: model:ir.actions.act_window,name:website_forum_doc.action_forum_doc_post
 #: model:ir.ui.menu,name:website_forum_doc.menu_forum_doc_posts
 msgid "Documentation Posts"
-msgstr "Belgelendirme"
+msgstr "Dokümanlar"
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_post_documentation_stage_id
@@ -140,14 +143,14 @@ msgstr "Aşama"
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.view_documentation_toc_list
 msgid "Documentation TOC"
-msgstr "Dökümantasyon TOC"
+msgstr "Döküman Ağacı"
 
 #. module: website_forum_doc
 #: model:ir.model,name:website_forum_doc.model_forum_documentation_toc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_post_documentation_toc_id
 #: model:ir.ui.menu,name:website_forum_doc.menu_documentation
 msgid "Documentation ToC"
-msgstr "Documentation TOC"
+msgstr "Doküman Ağacı"
 
 #. module: website_forum_doc
 #: model:forum.documentation.stage,name:website_forum_doc.stage_draft
@@ -162,23 +165,23 @@ msgstr "Gönderiyi Düzenle"
 #. module: website_forum_doc
 #: model:forum.documentation.toc,name:website_forum_doc.toc_hrm_contract
 msgid "Employee Contract"
-msgstr "Çalışan Sözleşmesi"
+msgstr "Personel Sözleşmesi"
 
 #. module: website_forum_doc
-#: constraint:forum.documentation.toc:0
+#: code:addons/website_forum_doc/models/forum_documentation_toc.py:38
+#, python-format
 msgid "Error ! You cannot create recursive categories."
-msgstr "Hata! Özyinelenen kategoriler oluşturamazsınız."
+msgstr "Hata! Tekrarlayan kategoriler oluşturamazsınız."
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
-#, fuzzy
 msgid "Explain how to configure Odoo"
-msgstr "Odoo yapılandırmak nasıl açıklamak"
+msgstr "Odoo konfigürasyonunun nasıl yapılacağını açıklayın"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "Explain how to implement it in Odoo"
-msgstr "Odoo'da nasıl implementasyon yapıldığını açıklamak"
+msgstr "Odoo konfigürasyonunun nasıl yapılacağını açıklayın"
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc_forum_id
@@ -208,12 +211,12 @@ msgstr "İyi soru başlıkları"
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "How to compute future inventories for a product?"
-msgstr "Nasıl Bir ürün için gelecek stoklarını hesaplamak için?"
+msgstr "Bir ürün için gelecek stoklar nasıl hesaplanır?"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "How to forecast sales revenues?"
-msgstr "Satış gelirlerini tahmin etmek?"
+msgstr "Satış gelirlerini nasıl tahmin edebilirim?"
 
 #. module: website_forum_doc
 #: model:forum.documentation.toc,name:website_forum_doc.toc_hrm
@@ -240,7 +243,7 @@ msgstr "Giriş"
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage___last_update
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc___last_update
 msgid "Last Modified on"
-msgstr "Son değiştirme tarihi"
+msgstr "Son Güncelleme"
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_write_uid
@@ -252,7 +255,7 @@ msgstr "Son Güncelleyen"
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_write_date
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc_write_date
 msgid "Last Updated on"
-msgstr "Son Güncellenen"
+msgstr "Son Güncelleme"
 
 #. module: website_forum_doc
 #: model:forum.documentation.toc,name:website_forum_doc.toc_crm_lead
@@ -267,7 +270,7 @@ msgstr "Sol Üst"
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_toc_name
 msgid "Name"
-msgstr "Ad"
+msgstr "İsim"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.documentation_post
@@ -317,7 +320,7 @@ msgstr "Bu Bölümde Yayınla:"
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "Push to documentation"
-msgstr "Belgelerde yayınla"
+msgstr "Dokümantasyonu yayınla"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
@@ -374,7 +377,7 @@ msgstr "Arama"
 #: model:ir.ui.view,arch_db:website_forum_doc.documentation
 #: model:ir.ui.view,arch_db:website_forum_doc.documentation_post
 msgid "Search..."
-msgstr "Arama..."
+msgstr "Ara..."
 
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_sequence
@@ -385,17 +388,18 @@ msgstr "Sıra"
 #. module: website_forum_doc
 #: model:ir.model.fields,field_description:website_forum_doc.field_forum_documentation_stage_name
 msgid "Stage Name"
-msgstr "Aşama"
+msgstr "Aşama Adı"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "The answer is understandable for someone who does not know Odoo"
-msgstr "Cevap Odoo bilmiyor kimse için anlaşılabilir bir durumdur"
+msgstr "Cevap Odoo'yu tanımayan birisi için anlaşılabilir"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "The question describes a real business problem, not a software problem"
-msgstr "Soru gerçek bir iş sorunu açıklayan değil, bir yazılım sorunu"
+msgstr ""
+"Soru gerçek bir ticaret problemini anlatıyor, bir yazılım sorunu değil"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
@@ -411,8 +415,7 @@ msgstr "Bu belge, şuradaki en iyi iletilerden üretilmiştir:"
 #: model:ir.ui.view,arch_db:website_forum_doc.documentation_post
 msgid ""
 "This documentation page has been extracted\n"
-"                                        from the Q&amp;A section where you "
-"can\n"
+"                                        from the Q&amp;A section where you can\n"
 "                                        discuss it and get feedback."
 msgstr ""
 "Bu dokümantasyon sayfası tartışabileceğiniz\n"
@@ -451,7 +454,7 @@ msgstr "Websitesi"
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
 msgid "What report should I use to compute probabilities per stage?"
 msgstr ""
-"Ne Raporda Ben sahnede başına olasılıkları hesaplamak için kullanmalıyım?"
+"Aşama baazında olasılıkları hesaplamak için hangi raporu kullanmalıyım?"
 
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.promote_question
@@ -481,13 +484,4 @@ msgstr "Denemeler"
 #. module: website_forum_doc
 #: model:ir.ui.view,arch_db:website_forum_doc.forum_question_doc
 msgid "official documentation"
-msgstr "Resmi belgeler"
-
-#~ msgid "Website meta description"
-#~ msgstr "Web sitesi meta açıklaması"
-
-#~ msgid "Website meta keywords"
-#~ msgstr "Web Sitesi meta anahtar kelimeleri"
-
-#~ msgid "Website meta title"
-#~ msgstr "Web sitesi meta başlık"
+msgstr "Onaylı Dokümantasyon"

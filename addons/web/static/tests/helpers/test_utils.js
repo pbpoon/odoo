@@ -10,9 +10,11 @@ odoo.define('web.test_utils', function (require) {
  * instance of a view, appended in the dom, ready to be tested.
  */
 
+var ajax = require('web.ajax');
 var basic_fields = require('web.basic_fields');
 var config = require('web.config');
 var core = require('web.core');
+var dom = require('web.dom');
 var session = require('web.session');
 var MockServer = require('web.MockServer');
 var Widget = require('web.Widget');
@@ -97,8 +99,7 @@ function createView(params) {
  * @param {any[]} [params.domain] the initial domain for the view
  * @param {Object} [params.context] the initial context for the view
  * @param {Object} [params.debug=false] if true, the widget will be appended in
- *   the DOM. Also, the logLevel will be forced to 2 and the uncaught OdooEvent
- *   will be logged
+ *   the DOM. Also, RPCs and uncaught OdooEvent will be logged
  * @param {string[]} [params.groupBy] the initial groupBy for the view
  * @param {integer} [params.fieldDebounce=0] the debounce value to use for the
  *   duration of the test.
@@ -114,21 +115,14 @@ function createView(params) {
 function createAsyncView(params) {
     var $target = $('#qunit-fixture');
     var widget = new Widget();
-
-    // handle debug parameter: render target, log stuff, ...
     if (params.debug) {
         $target = $('body');
-        params.logLevel = 2;
-        observe(widget);
-        var separator = window.location.href.indexOf('?') !== -1 ? "&" : "?";
-        var url = window.location.href + separator + 'testId=' + QUnit.config.current.testId;
-        console.log('%c[debug] debug mode activated', 'color: blue; font-weight: bold;', url);
         $target.addClass('debug');
     }
 
     // add mock environment: mock server, session, fieldviewget, ...
     var mockServer = addMockEnvironment(widget, params);
-    var viewInfo = mockServer.fieldsViewGet(params.arch, params.model, params.toolbar);
+    var viewInfo = mockServer.fieldsViewGet(params);
 
     // create the view
     var viewOptions = {
@@ -150,17 +144,10 @@ function createAsyncView(params) {
     });
 
     // reproduce the DOM environment of views
-    var $web_client = $('<div>').addClass('o_web_client').appendTo($target);
+    var $web_client = $('<div>').addClass('o_web_client').prependTo($target);
     var $control_panel = $('<div>').addClass('o_control_panel').appendTo($web_client);
     var $content = $('<div>').addClass('o_content').appendTo($web_client);
     var $view_manager = $('<div>').addClass('o_view_manager_content').appendTo($content);
-
-    // make sure all Odoo events bubbling up are intercepted
-    if (params.intercepts) {
-        _.each(params.intercepts, function (cb, name) {
-            intercept(widget, name, cb);
-        });
-    }
 
     return view.getController(widget).then(function (view) {
         // override the view's 'destroy' so that it calls 'destroy' on the widget
@@ -172,7 +159,14 @@ function createAsyncView(params) {
             widget.destroy();
             $('#qunit-fixture').off('DOMNodeInserted.removeSRC');
         };
-        return view.appendTo($view_manager).then(function () {
+        // render the view in a fragment as they must be able to render correctly
+        // without being in the DOM
+        var fragment = document.createDocumentFragment();
+        return view.appendTo(fragment).then(function () {
+            dom.append($view_manager, fragment, {
+                callbacks: [{widget: view}],
+                in_DOM: true,
+            });
             view.$el.on('click', 'a', function (ev) {
                 ev.preventDefault();
             });
@@ -216,10 +210,8 @@ function createAsyncView(params) {
  *   date. It is given to the mock server.
  * @param {Object} params.data the data given to the created mock server. It is
  *   used to generate mock answers for every kind of routes supported by odoo
- * @param {number} [params.logLevel] the log level. If it is 0, no logging is
- *   done, if 1, some light logging is done, if 2, detailed logs will be
- *   displayed for all rpcs.  Most of the time, when working on a test, it is
- *   frequent to set this parameter to 2
+ * @param {number} [params.debug] if set to true, logs RPCs and uncaught Odoo
+ *   events.
  * @param {function} [params.mockRPC] a function that will be used to override
  *   the _performRpc method from the mock server. It is really useful to add
  *   some custom rpc mocks, or to check some assertions.
@@ -230,6 +222,17 @@ function createAsyncView(params) {
  * @param {Object} [params.translateParameters] if given, it will be used to
  *   extend the core._t.database.parameters object. After the widget
  *   destruction, the original parameters will be restored.
+ * @param {Object} [params.intercepts] an object with event names as key, and
+ *   callback as value.  Each key,value will be used to intercept the event.
+ *   Note that this is particularly useful if you want to intercept events going
+ *   up in the init process of the view, because there are no other way to do it
+ *   after this method returns. Some events ('call_service', "load_views",
+ *   "get_session", "load_filters") have a special treatment beforehand.
+ * @param {boolean} [debounce=true] set to false to completely remove the
+ *   debouncing, forcing the handler to be called directly (not on the next
+ *   execution stack, like it does with delay=0).
+ * @param {boolean} [throttle=false] set to true to keep the throttling, which
+ *   is completely removed by default.
  *
  * @returns {MockServer} the instance of the mock server, created by this
  *   function. It is necessary for createAsyncView so that method can call some
@@ -240,56 +243,91 @@ function addMockEnvironment(widget, params) {
     if (params.mockRPC) {
         Server = MockServer.extend({_performRpc: params.mockRPC});
     }
+    if (params.debug) {
+        observe(widget);
+        var separator = window.location.href.indexOf('?') !== -1 ? "&" : "?";
+        var url = window.location.href + separator + 'testId=' + QUnit.config.current.testId;
+        console.log('%c[debug] debug mode activated', 'color: blue; font-weight: bold;', url);
+    }
     var mockServer = new Server(params.data, {
-        logLevel: params.logLevel,
+        archs: params.archs,
         currentDate: params.currentDate,
+        debug: params.debug,
     });
-    var widgetDestroy;
-
     // make sure the debounce value for input fields is set to 0
-    var initialDebounce = DebouncedField.prototype.DEBOUNCE;
+    var initialDebounceValue = DebouncedField.prototype.DEBOUNCE;
     DebouncedField.prototype.DEBOUNCE = params.fieldDebounce || 0;
-
+    var initialSession, initialConfig, initialParameters, initialDebounce, initialThrottle;
+    initialSession = _.extend({}, session);
+    session.getTZOffset = function () {
+        return 0; // by default, but may be overriden in specific tests
+    };
     if ('session' in params) {
-        var initialSession = _.extend({}, session);
         _.extend(session, params.session);
-        widgetDestroy = widget.destroy;
-        widget.destroy = function () {
-            for (var key in session) {
-                delete session[key];
-            }
-            _.extend(session, initialSession);
-            widgetDestroy.call(this);
+    }
+    if ('config' in params) {
+        initialConfig = _.clone(config);
+        initialConfig.device = _.clone(config.device);
+        if ('device' in params.config) {
+            _.extend(config.device, params.config.device);
+        }
+        if ('debug' in params.config) {
+            config.debug = params.config.debug;
+        }
+    }
+    if ('translateParameters' in params) {
+        initialParameters = _.extend({}, core._t.database.parameters);
+        _.extend(core._t.database.parameters, params.translateParameters);
+    }
+    if (params.debounce === false) {
+        initialDebounce = _.debounce;
+        _.debounce = function (func) {
+            return func;
+        };
+    }
+    if (!('throttle' in params) || !params.throttle) {
+        initialThrottle = _.throttle;
+        _.throttle = function (func) {
+            return func;
         };
     }
 
-    if ('config' in params) {
-        var initialConfig = _.extend({}, config);
-        _.extend(config, params.config);
-        widgetDestroy = widget.destroy;
-        widget.destroy = function () {
-            for (var key in config) {
+    var widgetDestroy = widget.destroy;
+    widget.destroy = function () {
+        // clear the caches (e.g. data_manager, ModelFieldSelector) when the
+        // widget is destroyed, at the end of each test to avoid collisions
+        core.bus.trigger('clear_cache');
+
+        DebouncedField.prototype.DEBOUNCE = initialDebounceValue;
+        if (params.debounce === false) {
+            _.debounce = initialDebounce;
+        }
+        if (!('throttle' in params) || !params.throttle) {
+            _.throttle = initialThrottle;
+        }
+
+        var key;
+        if ('session' in params) {
+            for (key in session) {
+                delete session[key];
+            }
+        }
+        _.extend(session, initialSession);
+        if ('config' in params) {
+            for (key in config) {
                 delete config[key];
             }
             _.extend(config, initialConfig);
-            DebouncedField.prototype.DEBOUNCE = initialDebounce;
-            widgetDestroy.call(this);
-        };
-    }
-
-    if ('translateParameters' in params) {
-        var initialParameters = _.extend({}, core._t.database.parameters);
-        _.extend(core._t.database.parameters, params.translateParameters);
-        var oldDestroy = widget.destroy;
-        widget.destroy = function () {
-            for (var key in core._t.database.parameters) {
+        }
+        if ('translateParameters' in params) {
+            for (key in core._t.database.parameters) {
                 delete core._t.database.parameters[key];
             }
             _.extend(core._t.database.parameters, initialParameters);
-            oldDestroy.call(this);
-        };
-    }
+        }
 
+        widgetDestroy.call(this);
+    };
 
     intercept(widget, 'call_service', function (event) {
         if (event.data.service === 'ajax') {
@@ -299,23 +337,21 @@ function addMockEnvironment(widget, params) {
     });
 
     intercept(widget, "load_views", function (event) {
-        if (params.logLevel === 2) {
-            console.log('[mock] load_views', event.data);
-        }
-        var views = {};
-        var model = event.data.modelName;
-        _.each(event.data.views, function (view_descr) {
-            var view_id = view_descr[0] || false;
-            var view_type = view_descr[1];
-            var key = [model, view_id, view_type].join(',');
-            var arch = params.archs[key];
-            if (!arch) {
-                throw new Error('No arch found for key ' + key);
-            }
-            views[view_type] = mockServer.fieldsViewGet(arch, model);
+        mockServer.performRpc('/web/dataset/call_kw/' + event.data.modelName, {
+            args: [],
+            kwargs: {
+                context: event.data.context,
+                options: event.data.options,
+                views: event.data.views,
+            },
+            method: 'load_views',
+            model: event.data.modelName,
+        }).then(function (views) {
+            views = _.mapObject(views, function (viewParams) {
+                return mockServer.fieldsViewGet(viewParams);
+            });
+            event.data.on_success(views);
         });
-
-        event.data.on_success(views);
     });
 
     intercept(widget, "get_session", function (event) {
@@ -323,11 +359,18 @@ function addMockEnvironment(widget, params) {
     });
 
     intercept(widget, "load_filters", function (event) {
-        if (params.logLevel === 2) {
+        if (params.debug) {
             console.log('[mock] load_filters', event.data);
         }
         event.data.on_success([]);
     });
+
+    // make sure all Odoo events bubbling up are intercepted
+    if ('intercepts' in params) {
+        _.each(params.intercepts, function (cb, name) {
+            intercept(widget, name, cb);
+        });
+    }
 
     return mockServer;
 }
@@ -347,7 +390,29 @@ function createModel(params) {
 
     addMockEnvironment(widget, params);
 
+    // override the model's 'destroy' so that it calls 'destroy' on the widget
+    // instead, as the widget is the parent of the model and the mockServer.
+    model.destroy = function () {
+        // remove the override to properly destroy the model when it will be
+        // called the second time (by its parent)
+        delete model.destroy;
+        widget.destroy();
+    };
+
     return model;
+}
+
+/**
+ * create a widget parent from given parameters.
+ *
+ * @param {Object} params This object will be given to addMockEnvironment, so
+ *   any parameters from that method applies
+ * @returns {Widget}
+ */
+function createParent(params) {
+    var widget = new Widget();
+    addMockEnvironment(widget, params);
+    return widget;
 }
 
 /**
@@ -360,6 +425,7 @@ function createModel(params) {
  * @param {jqueryElement} $to
  * @param {Object} [options]
  * @param {string} [options.position=center] target position
+ * @param {string} [options.disableDrop=false] whether to trigger the drop action
  */
 function dragAndDrop($el, $to, options) {
     var position = (options && options.position) || 'center';
@@ -387,11 +453,21 @@ function dragAndDrop($el, $to, options) {
         pageY: toOffset.top
     }));
 
-    $el.trigger($.Event("mouseup", {
-        which: 1,
-        pageX: toOffset.left,
-        pageY: toOffset.top
-    }));
+    if (!(options && options.disableDrop)) {
+        $el.trigger($.Event("mouseup", {
+            which: 1,
+            pageX: toOffset.left,
+            pageY: toOffset.top
+        }));
+    } else {
+        // It's impossible to drag another element when one is already
+        // being dragged. So it's necessary to finish the drop when the test is
+        // over otherwise it's impossible for the next tests to drag and
+        // drop elements.
+        $el.on("remove", function () {
+            $el.trigger($.Event("mouseup"));
+        });
+    }
 }
 
 /**
@@ -437,6 +513,20 @@ function triggerPositionalMouseEvent(x, y, type){
 }
 
 /**
+ * simulate a keypress event for a given character
+ * @param {string} the character
+ */
+function triggerKeypressEvent(char) {
+    var keycode;
+    if (char === "Enter") {
+        keycode = $.ui.keyCode.ENTER;
+    } else {
+        keycode = char.charCodeAt(0);
+    }
+    return $('body').trigger($.Event('keypress', {which: keycode, keyCode: keycode}));
+}
+
+/**
  * Removes the src attribute on images and iframes to prevent not found errors,
  * and optionally triggers an rpc with the src url as route on a widget.
  *
@@ -461,7 +551,15 @@ function removeSrcAttribute($el, widget) {
     });
 }
 
-return session.is_bound.then(function () {
+// Loading static files cannot be properly simulated when their real content is
+// really needed. This is the case for static XML files so we load them here,
+// before starting the qunit test suite.
+// (session.js is in charge of loading the static xml bundle and we also have
+// to load xml files that are normally lazy loaded by specific widgets).
+return $.when(
+    session.is_bound,
+    ajax.loadXML('/web/static/src/xml/dialog.xml', core.qweb)
+).then(function () {
     setTimeout(function () {
         // this is done with the hope that tests are
         // only started all together...
@@ -473,10 +571,12 @@ return session.is_bound.then(function () {
         createView: createView,
         createAsyncView: createAsyncView,
         createModel: createModel,
+        createParent: createParent,
         addMockEnvironment: addMockEnvironment,
         dragAndDrop: dragAndDrop,
         triggerMouseEvent: triggerMouseEvent,
         triggerPositionalMouseEvent: triggerPositionalMouseEvent,
+        triggerKeypressEvent: triggerKeypressEvent,
         removeSrcAttribute: removeSrcAttribute,
     };
 });

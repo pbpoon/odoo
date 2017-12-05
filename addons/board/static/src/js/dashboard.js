@@ -20,7 +20,6 @@ FormView.include({
      */
     init: function (viewInfo) {
         this._super.apply(this, arguments);
-        this.rendererParams.noContentHelp = this.controllerParams.noContentHelp;
         this.controllerParams.viewID = viewInfo.view_id;
     },
 });
@@ -85,13 +84,16 @@ FormController.include({
         var dialog = new Dialog(this, {
             title: _t("Edit Layout"),
             $content: QWeb.render('DashBoard.layouts', _.clone(event.data))
-        }).open();
-        dialog.$el.find('li').click(function () {
-            var layout = $(this).attr('data-layout');
-            self.renderer.changeLayout(layout);
-            self._saveDashboard();
-            dialog.close();
         });
+        dialog.opened().then(function () {
+            dialog.$('li').click(function () {
+                var layout = $(this).attr('data-layout');
+                self.renderer.changeLayout(layout);
+                self._saveDashboard();
+                dialog.close();
+            });
+        });
+        dialog.open();
     },
 
     /**
@@ -186,13 +188,9 @@ FormRenderer.include({
                 var actionID = $(this).attr('data-id');
                 var newAttrs = _.clone(self.actionsDescr[actionID]);
 
-                if (newAttrs.domain) {
-                    newAttrs.domain = newAttrs.domain_string;
-                    delete(newAttrs.domain_string);
-                }
-                if (newAttrs.context) {
-                    newAttrs.context = newAttrs.context_string;
-                    delete(newAttrs.context_string);
+                /* prepare attributes as they should be saved */
+                if (newAttrs.modifiers) {
+                    newAttrs.modifiers = JSON.stringify(newAttrs.modifiers);
                 }
                 actions.push(newAttrs);
             });
@@ -223,16 +221,21 @@ FormRenderer.include({
                 params: {action_id: params.actionID}
             })
             .then(function (action) {
+                if (!action) {
+                    // the action does not exist anymore
+                    return $.when();
+                }
                 var view = _.find(action.views, function (descr) {
                     return descr[1] === params.viewType;
                 });
-                return self.loadViews(action.res_model, params.context, [view])
+                return self.loadViews(action.res_model, context, [view])
                            .then(function (viewsInfo) {
                     var viewInfo = viewsInfo[params.viewType];
                     var View = viewRegistry.get(params.viewType);
                     var view = new View(viewInfo, {
                         action: action,
                         context: context,
+                        domain: params.domain,
                         groupBy: context.group_by,
                         modelName: action.res_model,
                         hasSelectors: false,

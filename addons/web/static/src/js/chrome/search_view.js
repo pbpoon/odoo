@@ -232,7 +232,7 @@ var SearchView = Widget.extend({
         'click .o_searchview_more': function (e) {
             $(e.target).toggleClass('fa-search-plus fa-search-minus');
             var visibleSearchMenu = this.call('local_storage', 'getItem', 'visible_search_menu');
-            this.call('local_storage', 'setItem', visibleSearchMenu !== 'true');
+            this.call('local_storage', 'setItem', 'visible_search_menu', visibleSearchMenu !== 'true');
             this.toggle_buttons();
         },
         'keydown .o_searchview_input, .o_searchview_facet': function (e) {
@@ -265,7 +265,7 @@ var SearchView = Widget.extend({
      *
      * @param parent
      * @param dataset
-     * @param fields_view
+     * @param fvg
      * @param {Object} [options]
      * @param {Boolean} [options.hidden=false] hide the search view
      * @param {Boolean} [options.disable_custom_filters=false] do not load custom filters from ir.filters
@@ -499,8 +499,8 @@ var SearchView = Widget.extend({
                 .$el.focus();
     },
     /**
-     * @param {openerp.web.search.SearchQuery | undefined} Undefined if event is change
-     * @param {openerp.web.search.Facet}
+     * @param {openerp.web.search.SearchQuery | undefined} collection Undefined if event is change
+     * @param {openerp.web.search.Facet} model
      * @param {Object} [options]
      */
     renderFacets: function (collection, model, options) {

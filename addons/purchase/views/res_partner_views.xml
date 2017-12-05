@@ -41,7 +41,7 @@
                 <field name="mobile" position="after">
                     <field name="purchase_order_count"/>
                 </field>
-                <xpath expr="//div[@class='oe_kanban_partner_links']" position="inside">
+                <xpath expr="//div[hasclass('oe_kanban_partner_links')]" position="inside">
                     <span t-if="record.purchase_order_count.value>0" class="badge"><i class="fa fa-fw fa-shopping-cart"/><t t-esc="record.purchase_order_count.value"/></span>
                 </xpath>
             </field>
@@ -100,7 +100,7 @@
                 <button name="toggle_active" position="before">
                     <button class="oe_stat_button" name="%(purchase.act_res_partner_2_supplier_invoices)d" type="action"
                         attrs="{'invisible': [('supplier', '=', False)]}" icon="fa-pencil-square-o" help="Vendor Bills">
-                        <field string="Vendor Bills." name="supplier_invoice_count" widget="statinfo"/>
+                        <field string="Vendor Bills" name="supplier_invoice_count" widget="statinfo"/>
                     </button>
                 </button>
             </field>

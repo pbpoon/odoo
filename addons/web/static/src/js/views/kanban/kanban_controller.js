@@ -28,6 +28,7 @@ var KanbanController = BasicController.extend({
         kanban_column_resequence: '_onColumnResequence',
         kanban_column_archive_records: '_onArchiveRecords',
         kanban_load_more: '_onLoadMore',
+        kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
     }),
     /**
@@ -74,29 +75,24 @@ var KanbanController = BasicController.extend({
 
     /**
      * @override method comes from field manager mixin
+     * @private
      * @param {string} id local id from the basic record data
      * @returns {Deferred}
      */
     _confirmSave: function (id) {
+        var data = this.model.get(this.handle, {raw: true});
+        var grouped = data.groupedBy.length;
+        if (grouped) {
+            var columnState = this.model.getColumn(id);
+            return this.renderer.updateColumn(columnState.id, columnState);
+        }
         return this.renderer.updateRecord(this.model.get(id));
-    },
-    /**
-     * The nocontent helper should be displayed in kanban:
-     *   - ungrouped: if there is no records
-     *   - grouped: if there is no groups and no column quick create
-     *
-     * @override
-     * @private
-     */
-    _hasContent: function (state) {
-        return this._super.apply(this, arguments) ||
-               this.createColumnEnabled ||
-               (state.groupedBy.length && state.data.length);
     },
     /**
      * The column quick create should be displayed in kanban iff grouped by an
      * m2o field and group_create action enabled.
      *
+     * @private
      * @returns {boolean}
      */
     _isCreateColumnEnabled: function () {
@@ -115,17 +111,22 @@ var KanbanController = BasicController.extend({
      * does not rerender the user interface, because in most case, the
      * resequencing operation has already been displayed by the renderer.
      *
+     * @private
      * @param {string} column_id
      * @param {string[]} ids
      * @returns {Deferred}
      */
     _resequenceRecords: function (column_id, ids) {
-        return this.model.resequence(this.modelName, ids, column_id);
+        var self = this;
+        return this.model.resequence(this.modelName, ids, column_id).then(function () {
+            self._updateEnv();
+        });
     },
     /**
      * In grouped mode, set 'Create' button as btn-default if there is no column
      * (except if we can't create new columns)
      *
+     * @private
      * @override from abstract controller
      */
     _updateButtons: function () {
@@ -138,17 +139,6 @@ var KanbanController = BasicController.extend({
                 .toggleClass('btn-default', createMuted);
         }
     },
-    /**
-     * @override
-     * @param {Object} state
-     * @returns {Deferred}
-     */
-    _update: function (state) {
-        var hasNoContent = !this._hasContent(state);
-        this.$el.toggleClass('o_kanban_nocontent', hasNoContent);
-        this._toggleNoContentHelper(hasNoContent);
-        return this._super.apply(this, arguments);
-    },
 
     //--------------------------------------------------------------------------
     // Handlers
@@ -159,17 +149,20 @@ var KanbanController = BasicController.extend({
      * event bubbles up. When that happens, we need to ask the model to create
      * a group and to update the renderer
      *
+     * @private
      * @param {OdooEvent} event
      */
     _onAddColumn: function (event) {
         var self = this;
         this.model.createGroup(event.data.value, this.handle).then(function () {
-            self.update({}, {reload: false});
+            return self.update({}, {reload: false});
+        }).then(function () {
             self._updateButtons();
-            self.trigger_up('scrollTo', {selector: '.o_column_quick_create'});
+            self.renderer.quickCreateToggleFold();
         });
     },
     /**
+     * @private
      * @param {OdooEvent} event
      */
     _onAddRecordToColumn: function (event) {
@@ -184,13 +177,14 @@ var KanbanController = BasicController.extend({
                             var data = self.model.get(db_id);
                             self.renderer.updateColumn(db_id, data);
                         });
-                });
+                    });
             }).fail(this.reload.bind(this));
     },
     /**
      * The interface allows in some case the user to archive a column. This is
      * what this handler is for.
      *
+     * @private
      * @param {OdooEvent} event
      */
     _onArchiveRecords: function (event) {
@@ -204,46 +198,12 @@ var KanbanController = BasicController.extend({
                 .then(function (db_id) {
                     var data = self.model.get(db_id);
                     self.renderer.updateColumn(db_id, data);
+                    self._updateEnv();
                 });
         }
     },
     /**
-     * @param {OdooEvent} event
-     */
-    _onColumnResequence: function (event) {
-        this._resequenceRecords(event.target.db_id, event.data.ids);
-    },
-    /**
-     * @param {OdooEvent} event
-     */
-    _onDeleteColumn: function (event) {
-        var self = this;
-        var column = event.target;
-        var state = this.model.get(this.handle, {raw: true});
-        var relatedModelName = state.fields[state.groupedBy[0]].relation;
-        this.model
-            .deleteRecords([column.db_id], relatedModelName)
-            .done(function () {
-                if (column.isEmpty()) {
-                    self.renderer.removeWidget(column);
-                    self._updateButtons();
-                } else {
-                    self.reload();
-                }
-            });
-    },
-    /**
-     * @param {OdooRevent} event
-     */
-    _onLoadMore: function (event) {
-        var self = this;
-        var column = event.target;
-        this.model.loadMore(column.db_id).then(function (db_id) {
-            var data = self.model.get(db_id);
-            self.renderer.updateColumn(db_id, data);
-        });
-    },
-    /**
+     * @private
      * @param {OdooEvent} event
      */
     _onButtonClicked: function (event) {
@@ -260,8 +220,12 @@ var KanbanController = BasicController.extend({
         }
         this.trigger_up('execute_action', {
             action_data: attrs,
-            model: record.model,
-            res_ids: [record.res_id],
+            env: {
+                context: record.getContext(),
+                currentID: record.res_id,
+                model: record.model,
+                resIDs: record.res_ids,
+            },
             on_closed: function () {
                 self.model.reload(record.id).then(function (db_id) {
                     var data = self.model.get(db_id);
@@ -294,6 +258,65 @@ var KanbanController = BasicController.extend({
         }
     },
     /**
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onColumnResequence: function (event) {
+        this._resequenceRecords(event.target.db_id, event.data.ids);
+    },
+    /**
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onDeleteColumn: function (event) {
+        var self = this;
+        var column = event.target;
+        var state = this.model.get(this.handle, {raw: true});
+        var relatedModelName = state.fields[state.groupedBy[0]].relation;
+        this.model
+            .deleteRecords([column.db_id], relatedModelName)
+            .done(function () {
+                if (column.isEmpty()) {
+                    self.renderer.removeWidget(column);
+                    self._updateButtons();
+                } else {
+                    self.reload();
+                }
+            });
+    },
+    /**
+     * Loads the record of a given column (used in mobile, as the columns are
+     * lazy loaded)
+     *
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onLoadColumnRecords: function (event) {
+        var self = this;
+        this.model.loadColumnRecords(event.data.columnID).then(function (dbID) {
+            var data = self.model.get(dbID);
+            self.renderer.updateColumn(dbID, data);
+            self._updateEnv();
+            if (event.data.onSuccess) {
+                event.data.onSuccess();
+            }
+        });
+    },
+    /**
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onLoadMore: function (event) {
+        var self = this;
+        var column = event.target;
+        this.model.loadMore(column.db_id).then(function (db_id) {
+            var data = self.model.get(db_id);
+            self.renderer.updateColumn(db_id, data);
+            self._updateEnv();
+        });
+    },
+    /**
+     * @private
      * @param {OdooEvent} event
      */
     _onQuickCreateRecord: function (event) {
@@ -319,7 +342,7 @@ var KanbanController = BasicController.extend({
                     context: _.extend({default_name: name}, context),
                     title: _t("Create"),
                     disable_multiple_selection: true,
-                    on_saved: function(record) {
+                    on_saved: function (record) {
                         add_record([record.res_id]);
                     },
                 }).open();
@@ -330,25 +353,37 @@ var KanbanController = BasicController.extend({
                 .addRecordToGroup(columnState.id, records[0])
                 .then(function (db_id) {
                     self._updateEnv();
-                    column.addRecord(self.model.get(db_id), {position: 'before'});
+
+                    var columnState = self.model.getColumn(db_id);
+                    return self.renderer.updateColumn(columnState.id, columnState).then(function () {
+                        if (event.data.openRecord) {
+                            self.trigger_up('open_record', {id: db_id, mode: 'edit'});
+                        }
+                    });
                 });
         }
     },
     /**
+     * @private
      * @param {OdooEvent} event
      */
     _onRecordDelete: function (event) {
         this._deleteRecords([event.data.id]);
     },
     /**
+     * @private
      * @param {OdooEvent} event
      */
     _onResequenceColumn: function (event) {
+        var self = this;
         var state = this.model.get(this.handle, {raw: true});
         var model = state.fields[state.groupedBy[0]].relation;
-        this.model.resequence(model, event.data.ids, this.handle);
+        this.model.resequence(model, event.data.ids, this.handle).then(function () {
+            self._updateEnv();
+        });
     },
     /**
+     * @private
      * @param {OdooEvent} event
      */
     _onToggleColumn: function (event) {
@@ -357,20 +392,19 @@ var KanbanController = BasicController.extend({
         this.model.toggleGroup(column.db_id).then(function (db_id) {
             var data = self.model.get(db_id);
             self.renderer.updateColumn(db_id, data);
+            self._updateEnv();
         });
     },
     /**
-     * @param {OdooEvent} event
+     * @todo should simply use field_changed event...
+     *
+     * @private
+     * @param {OdooEvent} ev
      */
-    _onUpdateRecord: function (event) {
-        var self = this;
-        var record = event.target;
-        this.model.notifyChanges(record.db_id, event.data).then(function () {
-            self.model.save(record.db_id).then(function () {
-                var state = self.model.get(record.db_id);
-                record.update(state);
-            });
-        });
+    _onUpdateRecord: function (ev) {
+        var changes = _.clone(ev.data);
+        ev.data.force_save = true;
+        this._applyChanges(ev.target.db_id, changes, ev);
     },
 });
 

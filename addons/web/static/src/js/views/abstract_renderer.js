@@ -9,17 +9,22 @@ odoo.define('web.AbstractRenderer', function (require) {
 
 var Widget = require('web.Widget');
 
+/**
+ * @class AbstractRenderer
+ */
 return Widget.extend({
     /**
      * @constructor
      * @param {Widget} parent
      * @param {any} state
      * @param {Object} params
+     * @param {string} [params.noContentHelp]
      */
     init: function (parent, state, params) {
         this._super(parent);
         this.state = state;
         this.arch = params.arch;
+        this.noContentHelp = params.noContentHelp;
     },
     /**
      * The rendering can be asynchronous (but it is not encouraged). The start

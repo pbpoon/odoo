@@ -7,6 +7,7 @@
     'depends': [
         'account',
         'base_iban',
+        'base_vat',
     ],
     'author': 'OpenERP Italian Community',
     'description': """
@@ -20,9 +21,10 @@ Italian accounting chart and localization.
     'data': [
         'data/l10n_it_chart_data.xml',
         'data/account.account.template.csv',
+        'data/account.tax.group.csv',
         'data/account.tax.template.csv',
         'data/account.fiscal.position.template.csv',
         'data/account.chart.template.csv',
-        'data/account_chart_template_data.yml',
+        'data/account_chart_template_data.xml',
         ],
 }

@@ -4,7 +4,7 @@ import base64
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from odoo.addons.base.res.res_bank import sanitize_account_number
+from odoo.addons.base.models.res_bank import sanitize_account_number
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -215,15 +215,11 @@ class AccountBankStatementImport(models.TransientModel):
                 if 'unique_import_id' not in line_vals \
                    or not line_vals['unique_import_id'] \
                    or not bool(BankStatementLine.sudo().search([('unique_import_id', '=', line_vals['unique_import_id'])], limit=1)):
-                    if line_vals['amount'] != 0:
-                        # Some banks, like ING, create a line for free charges.
-                        # We just skip those lines as there's a 'non-zero' constraint
-                        # on the amount of account.bank.statement.line
-                        filtered_st_lines.append(line_vals)
+                    filtered_st_lines.append(line_vals)
                 else:
                     ignored_statement_lines_import_ids.append(line_vals['unique_import_id'])
                     if 'balance_start' in st_vals:
-                        st_vals['balance_start'] += line_vals['amount']
+                        st_vals['balance_start'] += float(line_vals['amount'])
 
             if len(filtered_st_lines) > 0:
                 # Remove values that won't be used to create records

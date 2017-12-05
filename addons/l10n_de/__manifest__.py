@@ -15,10 +15,11 @@ German accounting chart and localization.
     'depends': [
         'account',
         'base_iban',
+        'base_vat',
     ],
     'data': [
-        'data/account_account_types_data.xml',
         'data/account_account_tags_data.xml',
         'data/menuitem_data.xml',
+        'views/account_view.xml',
     ],
 }

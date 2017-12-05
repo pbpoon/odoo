@@ -4,6 +4,7 @@ odoo.define('web.view_dialogs', function (require) {
 var core = require('web.core');
 var data = require('web.data');
 var Dialog = require('web.Dialog');
+var dom = require('web.dom');
 var ListController = require('web.ListController');
 var ListView = require('web.ListView');
 var pyeval = require('web.pyeval');
@@ -80,9 +81,9 @@ var FormViewDialog = ViewDialog.extend({
      * @param {Object} [options.fields_view] optional form fields_view
      * @param {boolean} [options.readonly=false] only applicable when not in
      *   creation mode
-     * @param {function} [options.on_save] callback to execute when clicking on
-     *   'Save' (form view's 'saveRecord' by default)
-     * @param {function} [options.on_saved] callback executed after on_save
+     * @param {function} [options.on_saved] callback executed after saving a
+     *   record.  It will be called with the record data, and a boolean which
+     *   indicates if something was changed
      * @param {BasicModel} [options.model] if given, it will be used instead of
      *  a new form view model
      * @param {string} [options.recordID] if given, the model has to be given as
@@ -191,11 +192,16 @@ var FormViewDialog = ViewDialog.extend({
                 .then(function () {
                     var $buttons = $('<div>');
                     self.form_view.renderButtons($buttons);
-                    if ($buttons.children().length) {
-                        self.$footer.empty().append($buttons.contents());
-                    }
-                    _super().$el.append(fragment);
-                    self.form_view.autofocus();
+                    self.opened().always(function () {
+                        if ($buttons.children().length) {
+                            self.$footer.empty().append($buttons.contents());
+                        }
+                        dom.append(self.$el, fragment, {
+                            callbacks: [{widget: self.form_view}],
+                            in_DOM: true,
+                        });
+                    });
+                    _super();
                 });
         });
 
@@ -208,23 +214,16 @@ var FormViewDialog = ViewDialog.extend({
 
     _save: function () {
         var self = this;
-        var def;
-        if (this.options.on_save) {
-            if (this.form_view.canBeSaved()) {
-                return $.Deferred().reject();
-            }
-            def = this.options.on_save(this.form_view.model.get(this.form_view.handle));
-        } else {
-            def = this.form_view.saveRecord(this.form_view.handle, {
+        return this.form_view.saveRecord(this.form_view.handle, {
                 stayInEdit: true,
                 reload: false,
                 savePoint: this.shouldSaveLocally,
-            });
-        }
-        return $.when(def).then(function () {
+                viewType: 'form',
+        }).then(function (changedFields) {
             // record might have been changed by the save (e.g. if this was a new record, it has an
             // id now), so don't re-use the copy obtained before the save
-            self.on_saved(self.form_view.model.get(self.form_view.handle));
+            var record = self.form_view.model.get(self.form_view.handle);
+            self.on_saved(record, !!changedFields.length);
         });
     },
 });
@@ -234,8 +233,11 @@ var SelectCreateListController = ListController.extend({
     // row of the list) such that it triggers up 'select_record' with its res_id.
     custom_events: _.extend({}, ListController.prototype.custom_events, {
         open_record: function (event) {
-            var selected_record = this.model.get(event.data.id);
-            this.trigger_up('select_record', {id: selected_record.res_id});
+            var selectedRecord = this.model.get(event.data.id);
+            this.trigger_up('select_record', {
+                id: selectedRecord.res_id,
+                display_name: selectedRecord.data.display_name,
+            });
         },
     }),
 });
@@ -247,7 +249,7 @@ var SelectCreateDialog = ViewDialog.extend({
     custom_events: _.extend({}, ViewDialog.prototype.custom_events, {
         select_record: function (event) {
             if (!this.options.readonly) {
-                this.on_selected([event.data.id]);
+                this.on_selected([event.data]);
                 this.close();
             }
         },
@@ -278,9 +280,10 @@ var SelectCreateDialog = ViewDialog.extend({
     },
 
     open: function () {
-        if(this.options.initial_view !== "search") {
+        if (this.options.initial_view !== "search") {
             return this.create_edit_record();
         }
+        var self = this;
         var user_context = this.getSession().user_context;
 
         var _super = this._super.bind(this);
@@ -295,10 +298,17 @@ var SelectCreateDialog = ViewDialog.extend({
                 search_defaults[match[1]] = value_;
             }
         });
-        this.loadViews(this.dataset.model, this.dataset.get_context(), [[false, 'list'], [false, 'search']], {})
+        this.loadViews(this.dataset.model, this.dataset.get_context().eval(), [[false, 'list'], [false, 'search']], {})
             .then(this.setup.bind(this, search_defaults))
             .then(function (fragment) {
-                _super().$el.append(fragment);
+                self.opened().then(function () {
+                    dom.append(self.$el, fragment, {
+                        callbacks: [{widget: self.list_controller}],
+                        in_DOM: true,
+                    });
+                    self.set_buttons(self.__buttons);
+                });
+                _super();
             });
         return this;
     },
@@ -319,7 +329,6 @@ var SelectCreateDialog = ViewDialog.extend({
         var searchview = new SearchView(this, this.dataset, fields_views.search, options);
         searchview.prependTo($header).done(function () {
             var d = searchview.build_search_data();
-            d.domains = d.domains.concat([self.domain]);
             if (self.initial_ids) {
                 d.domains.push([["id", "in", self.initial_ids]]);
                 self.initial_ids = undefined;
@@ -336,36 +345,43 @@ var SelectCreateDialog = ViewDialog.extend({
                 groupBy: searchResult.groupBy,
                 modelName: self.dataset.model,
                 hasSelectors: !self.options.disable_multiple_selection,
+                readonly: true,
             }, self.options.list_view_options));
             listView.setController(SelectCreateListController);
             return listView.getController(self);
         }).then(function (controller) {
             self.list_controller = controller;
             // Set the dialog's buttons
-            var buttons = [{
+            self.__buttons = [{
                 text: _t("Cancel"),
                 classes: "btn-default o_form_button_cancel",
                 close: true,
             }];
             if (!self.options.no_create) {
-                buttons.unshift({
+                self.__buttons.unshift({
                     text: _t("Create"),
                     classes: "btn-primary",
                     click: self.create_edit_record.bind(self)
                 });
             }
             if (!self.options.disable_multiple_selection) {
-                buttons.unshift({
+                self.__buttons.unshift({
                     text: _t("Select"),
                     classes: "btn-primary o_select_button",
                     disabled: true,
                     close: true,
                     click: function () {
-                        self.on_selected(self.list_controller.getSelectedIds());
+                        var records = self.list_controller.getSelectedRecords();
+                        var values = _.map(records, function (record) {
+                            return {
+                                id: record.res_id,
+                                display_name: record.data.display_name,
+                            };
+                        });
+                        self.on_selected(values);
                     },
                 });
             }
-            self.set_buttons(buttons);
             return self.list_controller.appendTo(fragment);
         }).then(function () {
             searchview.toggle_visibility(true);
@@ -378,10 +394,12 @@ var SelectCreateDialog = ViewDialog.extend({
         var results = pyeval.eval_domains_and_contexts({
             domains: [this.domain].concat(domains),
             contexts: [this.context].concat(contexts),
-            group_by_seq: groupbys || []
+            group_by_seq: groupbys || [],
+            eval_context: this.getSession().user_context,
         });
+        var context = _.omit(results.context, function (value, key) { return key.indexOf('search_default_') === 0; });
         return {
-            context: results.context,
+            context: context,
             domain: results.domain,
             groupBy: results.group_by,
         };
@@ -390,10 +408,15 @@ var SelectCreateDialog = ViewDialog.extend({
         var self = this;
         var dialog = new FormViewDialog(this, _.extend({}, this.options, {
             on_saved: function (record) {
-                self.on_selected([record.res_id]);
+                var values = [{
+                    id: record.res_id,
+                    display_name: record.data.display_name,
+                }];
+                self.on_selected(values);
             },
         })).open();
-        dialog.on('closed', this, this.close.bind(this));
+        dialog.on('closed', this, this.close);
+        return dialog;
     },
 });
 

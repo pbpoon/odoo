@@ -32,10 +32,11 @@ need to use these at all under normal circumstances.
     'data': [
         'data/l10n_jp_chart_data.xml',
         'data/account.account.template.csv',
+        'data/account.tax.group.csv',
         'data/account.tax.template.csv',
         'data/account_chart_template_data.xml',
         'data/account.fiscal.position.template.csv',
         'data/account.fiscal.position.tax.template.csv',
-        'data/account_chart_template_data.yml',
+        'data/account_chart_template_configure_data.xml',
     ],
 }

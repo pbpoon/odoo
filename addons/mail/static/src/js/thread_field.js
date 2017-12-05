@@ -21,7 +21,7 @@ var ThreadField = AbstractField.extend(chat_mixin, {
         this.msgIDs = this.value.res_ids;
     },
     willStart: function () {
-        return this._chatReady();
+        return this.alive(this._chatReady());
     },
     start: function () {
         var self = this;
@@ -43,7 +43,7 @@ var ThreadField = AbstractField.extend(chat_mixin, {
         var def1 = this.thread.appendTo(this.$el);
         var def2 = this._super.apply(this, arguments);
 
-        return $.when(def1, def2).then(function () {
+        return this.alive($.when(def1, def2)).then(function () {
             // unwrap the thread to remove an unnecessary level on div
             self.setElement(self.thread.$el);
 
@@ -107,6 +107,10 @@ var ThreadField = AbstractField.extend(chat_mixin, {
     _onNewMessage: function (message) {
         if (message.model === this.model && message.res_id === this.res_id) {
             this.msgIDs.unshift(message.id);
+            this.trigger_up('new_message', {
+                id: this.value.id,
+                msgIDs: this.msgIDs,
+            });
             this._fetchAndRenderThread(this.msgIDs);
         }
     },

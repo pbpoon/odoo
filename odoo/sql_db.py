@@ -21,8 +21,6 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ
 from psycopg2.pool import PoolError
 from werkzeug import urls
 
-from .tools import pycompat
-
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
 _logger = logging.getLogger(__name__)
@@ -43,13 +41,27 @@ def undecimalize(symb, cr):
         return None
     return float(symb)
 
-for name, typeoid in pycompat.items(types_mapping):
+for name, typeoid in types_mapping.items():
     psycopg2.extensions.register_type(psycopg2.extensions.new_type(typeoid, name, lambda x, cr: x))
 psycopg2.extensions.register_type(psycopg2.extensions.new_type((700, 701, 1700,), 'float', undecimalize))
 
 
 from . import tools
 from .tools.func import frame_codeinfo
+from .tools import pycompat
+
+from .tools import parse_version as pv
+if pv(psycopg2.__version__) < pv('2.7'):
+    from psycopg2._psycopg import QuotedString
+    def adapt_string(adapted):
+        """Python implementation of psycopg/psycopg2#459 from v2.7"""
+        if '\x00' in adapted:
+            raise ValueError("A string literal cannot contain NUL (0x00) characters.")
+        return QuotedString(adapted)
+
+    for type_ in pycompat.string_types:
+        psycopg2.extensions.register_adapter(type_, adapt_string)
+
 from datetime import timedelta
 import threading
 from inspect import currentframe
@@ -220,7 +232,7 @@ class Cursor(object):
             res = self._obj.execute(query, params)
         except Exception as e:
             if self._default_log_exceptions if log_exceptions is None else log_exceptions:
-                _logger.info("bad query: %s \nERROR: %s", self._obj.query or query, e)
+                _logger.error("bad query: %s\nERROR: %s", self._obj.query or query, e)
             raise
 
         # simple query count is always computed
@@ -256,7 +268,7 @@ class Cursor(object):
             sqllogs = {'from': self.sql_from_log, 'into': self.sql_into_log}
             sum = 0
             if sqllogs[type]:
-                sqllogitems = pycompat.items(sqllogs[type])
+                sqllogitems = sqllogs[type].items()
                 _logger.debug("SQL LOG %s:", type)
                 for r in sorted(sqllogitems, key=lambda k: k[1]):
                     delay = timedelta(microseconds=r[1][1])
@@ -593,7 +605,7 @@ class ConnectionPool(object):
                     cnx.close()
                 break
         else:
-            raise PoolError('This connection does not below to the pool')
+            raise PoolError('This connection does not belong to the pool')
 
     @locked
     def close_all(self, dsn=None):
@@ -629,15 +641,9 @@ class Connection(object):
     # serialized_cursor is deprecated - cursors are serialized by default
     serialized_cursor = cursor
 
-    def __nonzero__(self):
-        """Check if connection is possible"""
-        try:
-            _logger.info("__nonzero__() is deprecated. (It is too expensive to test a connection.)")
-            cr = self.cursor()
-            cr.close()
-            return True
-        except Exception:
-            return False
+    def __bool__(self):
+        raise NotImplementedError()
+    __nonzero__ = __bool__
 
 def connection_info_for(db_or_uri):
     """ parse the given `db_or_uri` and return a 2-tuple (dbname, connection_params)
@@ -662,7 +668,7 @@ def connection_info_for(db_or_uri):
         return db_name, {'dsn': db_or_uri}
 
     connection_info = {'database': db_or_uri}
-    for p in ('host', 'port', 'user', 'password'):
+    for p in ('host', 'port', 'user', 'password', 'sslmode'):
         cfg = tools.config['db_' + p]
         if cfg:
             connection_info[p] = cfg

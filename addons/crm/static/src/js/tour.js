@@ -9,14 +9,9 @@ var _t = core._t;
 tour.register('crm_tour', {
     url: "/web",
 }, [tour.STEPS.MENU_MORE, {
-    trigger: '.o_app[data-menu-xmlid="sales_team.menu_base_partner"], .oe_menu_toggler[data-menu-xmlid="sales_team.menu_base_partner"]',
-    content: _t("Ready to boost your sales? Your <b>sales pipeline</b> can be found here, under this app."),
+    trigger: '.o_app[data-menu-xmlid="crm.crm_menu_root"], .oe_menu_toggler[data-menu-xmlid="crm.crm_menu_root"]',
+    content: _t("Ready to boost your sales? Your <b>Pipeline</b> can be found here, under <b>CRM</b> app."),
     position: 'bottom',
-}, {
-    trigger: ".o_sales_dashboard .o_dashboard_action[name=\"crm.action_your_pipeline\"]:last",
-    extra_trigger: '.o_sales_dashboard',
-    content: _t("Let\'s have a look at your opportunities pipeline."),
-    position: "bottom"
 }, {
     trigger: ".o-kanban-button-new",
     extra_trigger: '.o_opportunity_kanban',
@@ -69,7 +64,7 @@ tour.register('crm_tour', {
     extra_trigger: '.o_opportunity_form',
     content: _t("Use the breadcrumbs to <b>go back to your sales pipeline</b>."),
     position: "bottom"
-}, tour.STEPS.TOGGLE_APPSWITCHER,
+}, tour.STEPS.TOGGLE_HOME_MENU,
 tour.STEPS.MENU_MORE, {
     trigger: '.o_app[data-menu-xmlid="base.menu_administration"], .oe_menu_toggler[data-menu-xmlid="base.menu_administration"]',
     content: _t("Configuration options are available in the Settings app."),
@@ -78,14 +73,10 @@ tour.STEPS.MENU_MORE, {
     trigger: ".o_web_settings_dashboard textarea#user_emails",
     content: _t("<b>Invite coworkers</b> via email.<br/><i>Enter one email per line.</i>"),
     position: "right"
-}, tour.STEPS.TOGGLE_APPSWITCHER,
+}, tour.STEPS.TOGGLE_HOME_MENU,
 tour.STEPS.MENU_MORE, {
-    trigger: '.o_app[data-menu-xmlid="sales_team.menu_base_partner"], .oe_menu_toggler[data-menu-xmlid="sales_team.menu_base_partner"]',
-    content: _t("Good job! Your completed the tour of the CRM. You can continue with the <b>implementation guide</b> to help you setup the CRM in your company."),
-    position: 'bottom',
-}, {
-    trigger: '.o_planner_systray div.progress',
-    content: _t("Use the <b>implementation guide</b> to setup the CRM in your company."),
+    trigger: '.o_app[data-menu-xmlid="crm.crm_menu_root"], .oe_menu_toggler[data-menu-xmlid="crm.crm_menu_root"]',
+    content: _t("Good job! Your completed the tour of the CRM."),
     position: 'bottom',
 }]);
 

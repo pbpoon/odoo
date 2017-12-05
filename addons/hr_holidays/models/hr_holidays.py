@@ -51,9 +51,9 @@ class HolidaysType(models.Model):
         help="If the active field is set to false, it will allow you to hide the leave type without removing it.")
 
     max_leaves = fields.Float(compute='_compute_leaves', string='Maximum Allowed',
-        help='This value is given by the sum of all holidays requests with a positive value.')
+        help='This value is given by the sum of all leaves requests with a positive value.')
     leaves_taken = fields.Float(compute='_compute_leaves', string='Leaves Already Taken',
-        help='This value is given by the sum of all holidays requests with a negative value.')
+        help='This value is given by the sum of all leaves requests with a negative value.')
     remaining_leaves = fields.Float(compute='_compute_leaves', string='Remaining Leaves',
         help='Maximum Leaves Allowed - Leaves Already Taken')
     virtual_remaining_leaves = fields.Float(compute='_compute_leaves', string='Virtual Remaining Leaves',
@@ -61,7 +61,7 @@ class HolidaysType(models.Model):
 
     double_validation = fields.Boolean(string='Apply Double Validation',
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
-    company_id = fields.Many2one('res.company', string='Company')
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
 
     @api.multi
     def get_days(self, employee_id):
@@ -164,10 +164,10 @@ class Holidays(models.Model):
         ('validate1', 'Second Approval'),
         ('validate', 'Approved')
         ], string='Status', readonly=True, track_visibility='onchange', copy=False, default='confirm',
-            help="The status is set to 'To Submit', when a holiday request is created." +
-            "\nThe status is 'To Approve', when holiday request is confirmed by user." +
-            "\nThe status is 'Refused', when holiday request is refused by manager." +
-            "\nThe status is 'Approved', when holiday request is approved by manager.")
+            help="The status is set to 'To Submit', when a leave request is created." +
+            "\nThe status is 'To Approve', when leave request is confirmed by user." +
+            "\nThe status is 'Refused', when leave request is refused by manager." +
+            "\nThe status is 'Approved', when leave request is approved by manager.")
     payslip_status = fields.Boolean('Reported in last payslips',
         help='Green this button when the leave has been taken into account in the payslip.')
     report_note = fields.Text('HR Comments')
@@ -329,9 +329,12 @@ class Holidays(models.Model):
         res = []
         for leave in self:
             if leave.type == 'remove':
-                res.append((leave.id, _("%s on %s : %.2f day(s)") % (leave.employee_id.name or leave.category_id.name, leave.holiday_status_id.name, leave.number_of_days_temp)))
+                if self.env.context.get('short_name'):
+                    res.append((leave.id, _("%s : %.2f day(s)") % (leave.name or leave.holiday_status_id.name, leave.number_of_days_temp)))
+                else:
+                    res.append((leave.id, _("%s on %s : %.2f day(s)") % (leave.employee_id.name or leave.category_id.name, leave.holiday_status_id.name, leave.number_of_days_temp)))
             else:
-                res.append((leave.id, _("Allocation of %s : %.2f day(s) To %s") % (leave.holiday_status_id.name, leave.number_of_days_temp,leave.employee_id.name)))
+                res.append((leave.id, _("Allocation of %s : %.2f day(s) To %s") % (leave.holiday_status_id.name, leave.number_of_days_temp, leave.employee_id.name)))
         return res
 
     def _check_state_access_right(self, vals):
@@ -431,14 +434,12 @@ class Holidays(models.Model):
         self._check_security_action_approve()
 
         current_employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
-        for holiday in self:
-            if holiday.state != 'confirm':
-                raise UserError(_('Leave request must be confirmed ("To Approve") in order to approve it.'))
+        if any(holiday.state != 'confirm' for holiday in self):
+            raise UserError(_('Leave request must be confirmed ("To Approve") in order to approve it.'))
 
-            if holiday.double_validation:
-                return holiday.write({'state': 'validate1', 'first_approver_id': current_employee.id})
-            else:
-                holiday.action_validate()
+        self.filtered(lambda hol: hol.double_validation).write({'state': 'validate1', 'first_approver_id': current_employee.id})
+        self.filtered(lambda hol: not hol.double_validation).action_validate()
+        return True
 
     @api.multi
     def _prepare_create_by_category(self, employee):

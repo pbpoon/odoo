@@ -2,7 +2,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import datetime
 from odoo import api, fields, models
-from odoo.tools import pycompat
 
 
 class StockProductionLot(models.Model):
@@ -15,7 +14,7 @@ class StockProductionLot(models.Model):
     removal_date = fields.Datetime(string='Removal Date',
         help='This is the date on which the goods with this Serial Number should be removed from the stock.')
     alert_date = fields.Datetime(string='Alert Date',
-        help="This is the date on which an alert should be notified about the goods with this Serial Number.")
+        help='Date to determine the expired lots and serial numbers using the filter "Expiration Alerts".')
     product_expiry_alert = fields.Boolean(compute='_compute_product_expiry_alert', help="The Alert Date has been reached.")
 
     @api.depends('alert_date')
@@ -54,5 +53,5 @@ class StockProductionLot(models.Model):
     @api.onchange('product_id')
     def _onchange_product(self):
         dates_dict = self._get_dates()
-        for field, value in pycompat.items(dates_dict):
+        for field, value in dates_dict.items():
             setattr(self, field, value)

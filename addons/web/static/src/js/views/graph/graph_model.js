@@ -55,17 +55,19 @@ return AbstractModel.extend({
      *   to keep track of various entities.
      */
     load: function (params) {
-        this.initialGroupBys = params.groupBys;
+        var groupBys = params.context.graph_groupbys || params.groupBys;
+        this.initialGroupBys = groupBys;
         this.fields = params.fields;
         this.modelName = params.modelName;
         this.chart = {
             data: [],
-            groupedBy: params.groupBys,
-            measure: params.measure,
-            mode: params.mode,
+            groupedBy: params.groupedBy.length ? params.groupedBy : groupBys,
+            measure: params.context.graph_measure || params.measure,
+            mode: params.context.graph_mode || params.mode,
             domain: params.domain,
             context: params.context,
         };
+        this.defaultGroupedBy = params.groupedBy;
         return this._loadGraph();
     },
     /**
@@ -84,15 +86,17 @@ return AbstractModel.extend({
      * @returns {Deferred}
      */
     reload: function (handle, params) {
+        if ('context' in params) {
+            this.chart.context = params.context;
+            this.chart.groupedBy = params.context.graph_groupbys || this.chart.groupedBy;
+            this.chart.measure = params.context.graph_measure || this.chart.measure;
+            this.chart.mode = params.context.graph_mode || this.chart.mode;
+        }
         if ('domain' in params) {
             this.chart.domain = params.domain;
         }
         if ('groupBy' in params) {
-            if (!params.groupBy.length) {
-                this.chart.groupedBy = this.initialGroupBys;
-            } else {
-                this.chart.groupedBy = params.groupBy;
-            }
+            this.chart.groupedBy = params.groupBy.length ? params.groupBy : this.defaultGroupedBy;
         }
         if ('measure' in params) {
             this.chart.measure = params.measure;
@@ -117,13 +121,13 @@ return AbstractModel.extend({
      * @returns {Deferred}
      */
     _loadGraph: function () {
-        var fields = _.map(this.chart.groupedBy, function (groupBy) {
+        var groupedBy = this.chart.groupedBy.length ? this.chart.groupedBy : this.initialGroupBys;
+        var fields = _.map(groupedBy, function (groupBy) {
             return groupBy.split(':')[0];
         });
         if (this.chart.measure !== '__count__') {
             fields = fields.concat(this.chart.measure);
         }
-        var groupedBy = this.chart.groupedBy.length ? this.chart.groupedBy : this.initialGroupBys;
         return this._rpc({
                 model: this.modelName,
                 method: 'read_group',

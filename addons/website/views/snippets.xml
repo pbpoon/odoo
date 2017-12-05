@@ -14,7 +14,7 @@
     </section>
 </template>
 
-<template id="s_banner" name="Banner">
+<template id="s_banner" name="Slider">
     <div id="myCarousel" class="carousel slide s_banner" data-interval="10000" style="height: 400px;">
         <!-- Indicators -->
         <ol class="carousel-indicators hidden">
@@ -25,12 +25,12 @@
                 <div class="container">
                     <div class="row content">
                         <div class="carousel-content col-md-4 col-md-offset-1 mt128 mb96">
-                            <h2>Your Banner Title</h2>
+                            <h2>Your Slide Title</h2>
                             <h4>Click to customize this text</h4>
-                            <p><a href="/page/website.contactus" class="btn btn-warning btn-large">Contact us</a></p>
+                            <p><a href="/contactus" class="btn btn-warning btn-large">Contact us</a></p>
                         </div>
                         <div class="carousel-img col-md-6 col-md-offset-1 hidden-sm hidden-xs mt48">
-                            <img class="img-responsive" src="/web/image/website.s_banner_default_image" alt="Banner Odoo Image"/>
+                            <img class="img-responsive" src="/web/image/website.s_banner_default_image" alt="Slider Odoo Image"/>
                         </div>
                     </div>
                 </div>
@@ -87,14 +87,14 @@
     </section>
 </template>
 
-<template id="s_big_message" name="Big message">
+<template id="s_big_message" name="Big Message">
     <section class="jumbotron s_big_message oe_img_bg oe_custom_bg" style="background-image: url('/web/image/website.s_background_image_01');">
         <div class="container">
             <div class="row">
                 <div class="mb32 col-md-offset-1 col-md-8">
                     <h1>Sell Online. Easily.</h1>
                     <p>Write one sentence to convince visitor about your message.</p>
-                    <a class="btn btn-warning btn-lg" href="/page/website.contactus">Contact us</a>
+                    <a class="btn btn-warning btn-lg" href="/contactus">Contact us</a>
                 </div>
             </div>
         </div>
@@ -149,18 +149,24 @@
             <div class="row mt16 mb16">
                 <div class="col-md-4 text-center">
                     <span class="fa fa-suitcase fa-5x"></span>
-                    <h3 class="mt8 mb0">First Feature</h3>
-                    <p class="text-muted">Tell what's the value for the<br/>customer for this feature.</p>
+                    <div>
+                        <h3 class="mt8 mb0">First Feature</h3>
+                        <p class="text-muted">Tell what's the value for the<br/>customer for this feature.</p>
+                    </div>
                 </div>
                 <div class="col-md-4 text-center">
                     <span class="fa fa-lock fa-5x"></span>
-                    <h3 class="mt8 mb0">Second Feature</h3>
-                    <p class="text-muted">Write what the customer would like to know,<br/>not what you want to show.</p>
+                    <div>
+                        <h3 class="mt8 mb0">Second Feature</h3>
+                        <p class="text-muted">Write what the customer would like to know,<br/>not what you want to show.</p>
+                    </div>
                 </div>
                 <div class="col-md-4 text-center">
                     <span class="fa fa-heart fa-5x"></span>
-                    <h3 class="mt8 mb0">Third Feature</h3>
-                    <p class="text-muted">A small explanation of this great<br/>feature, in clear words.</p>
+                    <div>
+                        <h3 class="mt8 mb0">Third Feature</h3>
+                        <p class="text-muted">A small explanation of this great<br/>feature, in clear words.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -185,7 +191,7 @@
                         reinforce your image.
                     </p>
                     <p class="text-center">
-                        <a href="/page/website.contactus">Contact us »</a>
+                        <a href="/contactus">Contact us »</a>
                     </p>
                 </div>
             </div>
@@ -277,10 +283,20 @@
     </div>
 </template>
 
+<template id="s_facebook_page" name="Facebook Page">
+    <div class="o_facebook_page">
+        <div class="o_facebook_alert alert alert-info">
+            <span class="o_add_facebook_page">
+                <i class="fa fa-plus-circle"/> Add Facebook Page
+            </span>
+        </div>
+    </div>
+</template>
+
 <template id="s_image_gallery" name="Image Gallery">
     <section class="o_gallery o_spc-medium o_slideshow s_image_gallery" data-columns="3" style="height: 500px; overflow: hidden;">
         <div class="container">
-            <div class="alert alert-info css_editable_mode_display">Add Images from the 'Customize' menu</div>
+            <div class="alert alert-info css_editable_mode_display text-center" ><span class="o_add_images" style="cursor: pointer;"><i class="fa fa-plus-circle"/> Add Images</span></div>
         </div>
     </section>
 </template>
@@ -312,7 +328,7 @@
                             <p class="text-muted">
                                 <i>Instant setup, satisfied or reimbursed.</i>
                             </p>
-                            <a href="/page/website.contactus" class="btn btn-primary btn-lg">Order now</a>
+                            <a href="/contactus" class="btn btn-primary btn-lg">Order now</a>
                         </div>
                     </div>
                 </div>
@@ -334,7 +350,7 @@
                         </ul>
                         <div class="panel-footer text-center">
                             <p class="text-muted"><i>Instant setup, satisfied or reimbursed.</i></p>
-                            <a href="/page/website.contactus" class="btn btn-primary btn-lg">Order now</a>
+                            <a href="/contactus" class="btn btn-primary btn-lg">Order now</a>
                         </div>
                     </div>
                 </div>
@@ -356,7 +372,7 @@
                         </ul>
                         <div class="panel-footer text-center">
                             <p class="text-muted"><i>Instant setup, satisfied or reimbursed.</i></p>
-                            <a href="/page/website.contactus" class="btn btn-primary btn-lg">Contact us</a>
+                            <a href="/contactus" class="btn btn-primary btn-lg">Contact us</a>
                         </div>
                     </div>
                 </div>
@@ -449,7 +465,7 @@
                     </p>
                 </div>
                 <div class="col-md-3">
-                    <a href="/page/website.contactus" class="btn btn-primary btn-lg pull-right mt8">
+                    <a href="/contactus" class="btn btn-primary btn-lg pull-right mt8">
                         <span>Contact Us Now</span>
                         <i class="fa fa-chevron-right"></i>
                     </a>
@@ -459,7 +475,7 @@
     </section>
 </template>
 
-<template id="s_faq_collapse" name="Accordion">
+<template id="s_faq_collapse" name="FAQ">
     <section class="s_faq_collapse">
         <div class="container">
             <h2 class="page-header"> General Terms and Conditions / Service Policies </h2>
@@ -684,7 +700,7 @@
                     <t t-snippet="website.s_features" t-thumbnail="/website/static/src/img/blocks/block_features.png"/>
                     <t t-snippet="website.s_big_picture" t-thumbnail="/website/static/src/img/blocks/block_big_picture.png"/>
                     <t t-snippet="website.s_three_columns" t-thumbnail="/website/static/src/img/blocks/block_three_columns.png"/>
-                    <t t-snippet="website.s_banner" t-thumbnail="/website/static/src/img/blocks/block_banner.png"/>
+                    <t t-snippet="website.s_banner" t-thumbnail="/website/static/src/img/blocks/block_slider.png"/>
                 </div>
             </div>
 
@@ -722,6 +738,7 @@
                     <t t-snippet="website.s_panel" t-thumbnail="/website/static/src/img/blocks/block_panel.png"/>
                     <t t-snippet="website.s_image_floating" t-thumbnail="/website/static/src/img/blocks/block_text_image.png"/>
                     <t t-snippet="website.s_share" t-thumbnail="/website/static/src/img/blocks/block_share.png"/>
+                    <t t-snippet="website.s_facebook_page" t-thumbnail="/website/static/src/img/blocks/facebook_page.png"/>
                 </div>
             </div>
         </div>
@@ -732,62 +749,24 @@
     </xpath>
 </template>
 
+<template id="external_snippets" inherit_id="website.snippets" priority="8">
+    <xpath expr="//div[@id='snippet_feature']//t[@t-snippet][last()]" position="after">
+        <t t-install="website_twitter" string="Twitter Scroller" t-thumbnail="/website/static/src/img/blocks/twitter_scroll.png"/>
+    </xpath>
+    <xpath expr="//div[@id='snippet_content']//t[@t-snippet][last()]" position="after">
+        <t t-install="website_event" string="Local Events" t-thumbnail="/website/static/src/img/blocks/block_local_event.png"/>
+        <t t-install="website_mail_channel" string="Discussion Group" t-thumbnail="/website/static/src/img/blocks/button_channel_subscribe.png"/>
+        <t t-install="mass_mailing" string="Newsletter" t-thumbnail="/website/static/src/img/blocks/newsletter_subscribe_form.png"/>
+    </xpath>
+</template>
+
 <template id="snippet_options">
     <t t-call="web_editor.snippet_options"/>
 
-    <div data-js='background'
-        data-selector="section, :not(.o_gallery > .container) > .carousel, .parallax, .s_banner .carousel-content">
-        <li class="dropdown-submenu">
-            <a tabindex="-1" href="#"><i class="fa fa-picture-o"/>Background Image</a>
-            <ul class="dropdown-menu">
-                <li data-background=""><a href="#">None</a></li>
-                <li class="divider"></li>
-                <li data-choose_image="choose_image"><a href="#"><b>Set Custom Image...</b></a></li>
-                <li class="divider"></li>
-                <li data-background="/web/image/website.s_background_image_01"><a href="#">Peak</a></li>
-                <li data-background="/web/image/website.s_background_image_02"><a href="#">Downtown</a></li>
-                <li data-background="/web/image/website.s_background_image_03"><a href="#">Panama Sky</a></li>
-                <li data-background="/web/image/website.s_background_image_04"><a href="#">Cubes</a></li>
-                <li data-background="/web/image/website.s_background_image_05"><a href="#">Building Profile</a></li>
-                <li data-background="/web/image/website.s_background_image_06"><a href="#">Type</a></li>
-                <li data-background="/web/image/website.s_background_image_07"><a href="#">People</a></li>
-                <li data-background="/web/image/website.s_background_image_08"><a href="#">City</a></li>
-                <li data-background="/web/image/website.s_background_image_09"><a href="#">Sails</a></li>
-            </ul>
-        </li>
-    </div>
-
-    <div data-js='background_position'
-        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_banner .carousel-content">
-        <li class="background_position_li" data-background_position="background_position">
-            <a tabindex="-1" href="#"><i class="fa fa-arrows"/>Background Image Sizing</a>
-        </li>
-    </div>
-
-    <div data-js="colorpicker"
-        data-selector="section:not(.parallax), :not(.o_gallery > .container) > .carousel, .s_comparisons .panel, .s_faq_collapse .panel-body, .s_faq_collapse .panel-heading">
-        <li class="dropdown-submenu">
-            <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Background Color</a>
-            <ul class="dropdown-menu">
-                <li></li>
-            </ul>
-        </li>
-    </div>
-    <div data-js="colorpicker"
-        data-selector=".s_text_block_image_fw .row > div, .s_banner .carousel-content"
-        data-palette-exclude="grayscale"
-        data-palette-default="transparent_grayscale"
-        data-palette-title="Overlay Color">
-        <li class="dropdown-submenu">
-            <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Overlay color</a>
-            <ul class="dropdown-menu">
-                <li></li>
-            </ul>
-        </li>
-    </div>
-
-
     <div data-js='gallery' data-selector=".o_gallery">
+        <li data-add-images="true" data-no-preview="true"><a href="#"><i class="fa fa-plus-circle"/>Add images</a></li>
+        <li data-remove-all-images="true" data-no-preview="true"><a href="#"><i class="fa fa-trash"/>Remove all images</a></li>
+        <li class="separator"/>
         <li class="dropdown-submenu">
             <a tabindex="-2" href="#"><i class="fa fa-magic"/>Mode</a>
             <ul class="dropdown-menu">
@@ -823,10 +802,10 @@
             <a tabindex="-2" href="#"><i class="fa fa-arrows-h"/>Images spacing</a>
 
             <ul class="dropdown-menu">
-                <li data-select_class="o_spc-none"><a href="#">None</a></li>
-                <li data-select_class="o_spc-small"><a href="#">Small</a></li>
-                <li data-select_class="o_spc-medium"><a href="#">Medium</a></li>
-                <li data-select_class="o_spc-big"><a href="#">Big</a></li>
+                <li data-select-class="o_spc-none"><a href="#">None</a></li>
+                <li data-select-class="o_spc-small"><a href="#">Small</a></li>
+                <li data-select-class="o_spc-medium"><a href="#">Medium</a></li>
+                <li data-select-class="o_spc-big"><a href="#">Big</a></li>
             </ul>
         </li>
         <li class="dropdown-submenu">
@@ -839,15 +818,65 @@
                <li data-styling="shadow"><a href="#">Shadows</a></li>
            </ul>
         </li>
-       <li class="separator"></li>
-       <li data-images_add="true"><a href="#"><i class="fa fa-plus-circle"/>Add images</a></li>
-       <li data-images_rm="true"><a href="#"><i class="fa fa-trash"/>Remove all images</a></li>
+        <li class="separator"/>
+    </div>
+
+    <div data-js='background'
+        data-selector="section, :not(.o_gallery > .container) > .carousel, .parallax, .s_banner .carousel-content">
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#"><i class="fa fa-picture-o"/>Background Image</a>
+            <ul class="dropdown-menu">
+                <li data-choose-image="true" data-no-preview="true"><a href="#"><b>Set Custom Image...</b></a></li>
+                <li class="divider"></li>
+                <li data-background="" class="none"><a href="#">None</a></li>
+                <li class="divider"></li>
+                <li data-background="/web/image/website.s_background_image_01"><a href="#">Peak</a></li>
+                <li data-background="/web/image/website.s_background_image_02"><a href="#">Downtown</a></li>
+                <li data-background="/web/image/website.s_background_image_03"><a href="#">Panama Sky</a></li>
+                <li data-background="/web/image/website.s_background_image_04"><a href="#">Cubes</a></li>
+                <li data-background="/web/image/website.s_background_image_05"><a href="#">Building Profile</a></li>
+                <li data-background="/web/image/website.s_background_image_06"><a href="#">Type</a></li>
+                <li data-background="/web/image/website.s_background_image_07"><a href="#">People</a></li>
+                <li data-background="/web/image/website.s_background_image_08"><a href="#">City</a></li>
+                <li data-background="/web/image/website.s_background_image_09"><a href="#">Sails</a></li>
+            </ul>
+        </li>
+    </div>
+
+    <div data-js='background_position'
+        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_banner .carousel-content">
+        <li class="background_position_li" data-background-position="true" data-no-preview="true">
+            <a tabindex="-1" href="#"><i class="fa fa-arrows"/>Background Image Sizing</a>
+        </li>
+    </div>
+
+    <div data-js="colorpicker"
+        data-selector="section, :not(.o_gallery > .container) > .carousel"
+        data-exclude=".parallax">
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Background Color</a>
+            <ul class="dropdown-menu">
+                <li></li>
+            </ul>
+        </li>
+    </div>
+    <div data-js="colorpicker"
+        data-selector=".s_text_block_image_fw .row > div, .s_banner .carousel-content"
+        data-palette-exclude="grayscale"
+        data-palette-default="transparent_grayscale"
+        data-palette-title="Overlay Color">
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Overlay color</a>
+            <ul class="dropdown-menu">
+                <li></li>
+            </ul>
+        </li>
     </div>
 
     <div data-js='gallery_img' data-selector=".o_gallery img">
         <li class="dropdown-submenu">
             <a tabindex="-2" href="#"><i class="fa fa-refresh"/>Re-order</a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" data-no-preview="true">
                 <li data-position="first"><a href="#">Move to first</a></li>
                 <li data-position="prev"><a href="#">Move to previous</a></li>
                 <li data-position="next"><a href="#">Move to next</a></li>
@@ -870,8 +899,8 @@
                  <li data-interval="0"><a href="#">Disable autoplay</a></li>
             </ul>
         </li>
-        <li data-add_slide="true"><a href="#"><i class="fa fa-plus-circle"/>Add Slide</a></li>
-        <li data-remove_slide="true"><a href="#" ><i class="fa fa-trash-o"/>Remove Slide</a></li>
+        <li data-add-slide="true" data-no-preview="true"><a href="#"><i class="fa fa-plus-circle"/>Add Slide</a></li>
+        <li data-remove-slide="true" data-no-preview="true"><a href="#" ><i class="fa fa-trash-o"/>Remove Slide</a></li>
     </div>
 
     <div data-js='margin-y'
@@ -880,7 +909,7 @@
 
     <div data-js='resize'
         data-selector="section, :not(.o_gallery > .container) > .carousel, .parallax"
-        data-drop-in=".oe_structure, [data-oe-type=html]">
+        data-drop-in=":not(p).oe_structure, :not(p)[data-oe-type=html]">
     </div>
 
     <div data-js='margin-x'
@@ -889,8 +918,8 @@
     </div>
 
     <div data-js='content'
-        data-selector="blockquote, .well, .s_panel, .oe_share, .o_image_floating"
-        data-drop-near="p, h1, h2, h3, blockquote, .well, .s_panel, .oe_share"
+        data-selector="blockquote, .well, .s_panel, .o_facebook_page, .oe_share, .o_image_floating"
+        data-drop-near="p, h1, h2, h3, blockquote, .well, .o_facebook_page, .s_panel, .oe_share"
         data-drop-in=".content">
     </div>
 
@@ -903,11 +932,11 @@
         <li class="dropdown-submenu">
             <a tabindex="-2" href="#"><i class="fa fa-expand"/>Margin</a>
             <ul class="dropdown-menu">
-                <li data-select_class="o_margin_xl"><a href="#">Extra-Large</a></li>
-                <li data-select_class="o_margin_l"><a href="#">Large</a></li>
-                <li data-select_class="o_margin_m"><a href="#">Medium</a></li>
-                <li data-select_class="o_margin_s"><a href="#">Small</a></li>
-                <li data-select_class=""><a href="#">None</a></li>
+                <li data-select-class="o_margin_xl"><a href="#">Extra-Large</a></li>
+                <li data-select-class="o_margin_l"><a href="#">Large</a></li>
+                <li data-select-class="o_margin_m"><a href="#">Medium</a></li>
+                <li data-select-class="o_margin_s"><a href="#">Small</a></li>
+                <li data-select-class=""><a href="#">None</a></li>
             </ul>
         </li>
     </div>
@@ -915,9 +944,9 @@
     <div data-selector=".o_image_floating">
         <li class="dropdown-submenu">
             <a tabindex="-2" href="#"><i class="fa fa-magnet"/>Float</a>
-            <ul class="dropdown-menu">
-                <li data-select_class="pull-left" data-only="click"><a href="#">Left</a></li>
-                <li data-select_class="pull-right" data-only="click"><a href="#">Right</a></li>
+            <ul class="dropdown-menu" data-no-preview="true">
+                <li data-select-class="pull-left"><a href="#">Left</a></li>
+                <li data-select-class="pull-right"><a href="#">Right</a></li>
             </ul>
         </li>
     </div>
@@ -940,7 +969,13 @@
 
     <div data-js='ul'
          data-selector=":not(li) > ul:has(ul,ol), :not(li) > ol:has(ul,ol)">
-        <li data-toggle_class="o_ul_folded"><a href="#">Folded list</a></li>
+        <li data-toggle-class="o_ul_folded"><a href="#">Folded list</a></li>
+    </div>
+
+    <div data-js="facebookPage" data-selector=".o_facebook_page">
+        <li data-fb-page-options="true" data-no-preview="true">
+            <a href="#"><i class="fa fa-facebook"/>Options</a>
+        </li>
     </div>
 
     <div data-js='collapse'
@@ -949,7 +984,8 @@
     </div>
 
     <div data-js="menu_data"
-         data-selector="#top_menu li > a:not(.dropdown-toggle)"
+         data-selector="#top_menu li > a"
+         data-exclude=".dropdown-toggle"
          data-no-check="true"/>
 
     <div data-js="company_data"

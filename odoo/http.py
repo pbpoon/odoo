@@ -44,12 +44,12 @@ except ImportError:
     psutil = None
 
 import odoo
-from odoo.service.server import memory_info
-from odoo.service import security, model as service_model
-from odoo.tools.func import lazy_property
-from odoo.tools import ustr, consteq, frozendict, pycompat, unique
+from .service.server import memory_info
+from .service import security, model as service_model
+from .tools.func import lazy_property
+from .tools import ustr, consteq, frozendict, pycompat, unique
 
-from odoo.modules.module import module_manifest
+from .modules.module import module_manifest
 
 _logger = logging.getLogger(__name__)
 rpc_request = logging.getLogger(__name__ + '.rpc.request')
@@ -112,8 +112,6 @@ def dispatch_rpc(service_name, method, params):
             dispatch = odoo.service.db.dispatch
         elif service_name == 'object':
             dispatch = odoo.service.model.dispatch
-        elif service_name == 'report':
-            dispatch = odoo.service.report.dispatch
         result = dispatch(method, params)
 
         if rpc_request_flag or rpc_response_flag:
@@ -162,6 +160,12 @@ def redirect_with_hash(url, code=303):
     # See extensive test page at http://greenbytes.de/tech/tc/httpredirects/
     if request.httprequest.user_agent.browser in ('firefox',):
         return werkzeug.utils.redirect(url, code)
+    # FIXME: decide whether urls should be bytes or text, apparently
+    # addons/website/controllers/main.py:91 calls this with a bytes url
+    # but addons/web/controllers/main.py:481 uses text... (blows up on login)
+    url = pycompat.to_text(url)
+    if urls.url_parse(url, scheme='http').scheme not in ('http', 'https'):
+        url = u'http://' + url
     url = url.replace("'", "%27").replace("<", "%3C")
     return "<html><head><script>window.location = '%s' + location.hash;</script></head></html>" % url
 
@@ -273,8 +277,9 @@ class WebRequest(object):
         if self._cr:
             if exc_type is None and not self._failed:
                 self._cr.commit()
-                self.registry.signal_changes()
-            else:
+                if self.registry:
+                    self.registry.signal_changes()
+            elif self.registry:
                 self.registry.reset_changes()
             self._cr.close()
         # just to be sure no one tries to re-use the request
@@ -283,7 +288,7 @@ class WebRequest(object):
 
     def set_handler(self, endpoint, arguments, auth):
         # is this needed ?
-        arguments ={k: v for k, v in pycompat.items(arguments)
+        arguments ={k: v for k, v in arguments.items()
                          if not k.startswith("_ignored_")}
         self.endpoint_arguments = arguments
         self.endpoint = endpoint
@@ -298,7 +303,8 @@ class WebRequest(object):
                 and not isinstance(exception, werkzeug.exceptions.HTTPException):
             odoo.tools.debugger.post_mortem(
                 odoo.tools.config, sys.exc_info())
-        raise
+        # otherwise "no active exception to reraise"
+        raise pycompat.reraise(type(exception), exception, sys.exc_info()[2])
 
     def _call_function(self, *args, **kwargs):
         request = self
@@ -364,7 +370,7 @@ class WebRequest(object):
 
             use :attr:`.env`
         """
-        return odoo.registry(self.db) if self.db else None
+        return odoo.registry(self.db)
 
     @property
     def db(self):
@@ -389,7 +395,7 @@ class WebRequest(object):
         msg = '%s%s' % (token, max_ts)
         secret = self.env['ir.config_parameter'].sudo().get_param('database.secret')
         assert secret, "CSRF protection requires a configured database secret"
-        hm = hmac.new(str(secret), msg, hashlib.sha1).hexdigest()
+        hm = hmac.new(secret.encode('ascii'), msg.encode('utf-8'), hashlib.sha1).hexdigest()
         return '%so%s' % (hm, max_ts)
 
     def validate_csrf(self, csrf):
@@ -413,7 +419,7 @@ class WebRequest(object):
         msg = '%s%s' % (token, max_ts)
         secret = self.env['ir.config_parameter'].sudo().get_param('database.secret')
         assert secret, "CSRF protection requires a configured database secret"
-        hm_expected = hmac.new(str(secret), msg, hashlib.sha1).hexdigest()
+        hm_expected = hmac.new(secret.encode('ascii'), msg.encode('utf-8'), hashlib.sha1).hexdigest()
         return consteq(hm, hm_expected)
 
 def route(route=None, **kw):
@@ -507,7 +513,7 @@ def route(route=None, **kw):
             if isinstance(response, Response) or f.routing_type == 'json':
                 return response
 
-            if isinstance(response, basestring):
+            if isinstance(response, (bytes, pycompat.text_type)):
                 return Response(response)
 
             if isinstance(response, werkzeug.exceptions.HTTPException):
@@ -594,7 +600,7 @@ class JsonRequest(WebRequest):
             request = self.session.pop('jsonp_request_%s' % (request_id,), '{}')
         else:
             # regular jsonrpc2
-            request = self.httprequest.stream.read()
+            request = self.httprequest.stream.read().decode(self.httprequest.charset)
 
         # Read POST content or POST Form Data named "request"
         try:
@@ -758,7 +764,7 @@ class HttpRequest(WebRequest):
             req = request.httprequest
             if req.method == 'POST':
                 request.session.save_request_data()
-                redirect = '/web/proxy/post{r.path}?{r.query_string}'.format(r=req)
+                redirect = '/web/proxy/post{r.full_path}'.format(r=req)
             elif not request.params.get('noredirect'):
                 redirect = req.url
             if redirect:
@@ -832,7 +838,7 @@ more details.
         """
         response = Response(data, headers=headers)
         if cookies:
-            for k, v in pycompat.items(cookies):
+            for k, v in cookies.items():
                 response.set_cookie(k, v)
         return response
 
@@ -864,7 +870,6 @@ more details.
 #----------------------------------------------------------
 # Controller and route registration
 #----------------------------------------------------------
-addons_module = {}
 addons_manifest = {}
 controllers_per_module = collections.defaultdict(list)
 
@@ -873,7 +878,7 @@ class ControllerType(type):
         super(ControllerType, cls).__init__(name, bases, attrs)
 
         # flag old-style methods with req as first argument
-        for k, v in pycompat.items(attrs):
+        for k, v in attrs.items():
             if inspect.isfunction(v) and hasattr(v, 'original_func'):
                 # Set routing type on original functions
                 routing_type = v.routing.get('type')
@@ -1129,7 +1134,7 @@ class OpenERPSession(werkzeug.contrib.sessions.Session):
         # NOTE we do not store files in the session itself to avoid loading them in memory.
         #      By storing them in the session store, we ensure every worker (even ones on other
         #      servers) can access them. It also allow stale files to be deleted by `session_gc`.
-        for f in pycompat.values(req.files):
+        for f in req.files.values():
             storename = 'werkzeug_%s_%s.file' % (self.sid, uuid.uuid4().hex)
             path = os.path.join(root.session_store.path, storename)
             with open(path, 'w') as fp:
@@ -1147,7 +1152,7 @@ class OpenERPSession(werkzeug.contrib.sessions.Session):
         try:
             if data:
                 # regenerate files filenames with the current session store
-                for name, (storename, filename, content_type) in pycompat.items(data['files']):
+                for name, (storename, filename, content_type) in data['files'].items():
                     path = os.path.join(root.session_store.path, storename)
                     files.add(name, (path, filename, content_type))
                 yield werkzeug.datastructures.CombinedMultiDict([data['form'], files])
@@ -1155,7 +1160,7 @@ class OpenERPSession(werkzeug.contrib.sessions.Session):
                 yield None
         finally:
             # cleanup files
-            for f, _, _ in pycompat.values(files):
+            for f, _, _ in files.values():
                 try:
                     os.unlink(f)
                 except IOError:
@@ -1213,6 +1218,7 @@ class Response(werkzeug.wrappers.Response):
     def set_default(self, template=None, qcontext=None, uid=None):
         self.template = template
         self.qcontext = qcontext or dict()
+        self.qcontext['response_template'] = self.template
         self.uid = uid
         # Support for Cross-Origin Resource Sharing
         if request.endpoint and 'cors' in request.endpoint.routing:
@@ -1298,21 +1304,17 @@ class Root(object):
         statics = {}
         for addons_path in odoo.modules.module.ad_paths:
             for module in sorted(os.listdir(str(addons_path))):
-                if module not in addons_module:
+                if module not in addons_manifest:
                     mod_path = opj(addons_path, module)
                     manifest_path = module_manifest(mod_path)
                     path_static = opj(addons_path, module, 'static')
                     if manifest_path and os.path.isdir(path_static):
-                        manifest = ast.literal_eval(open(manifest_path).read())
+                        manifest_data = open(manifest_path, 'rb').read()
+                        manifest = ast.literal_eval(pycompat.to_native(manifest_data))
                         if not manifest.get('installable', True):
                             continue
                         manifest['addons_path'] = addons_path
                         _logger.debug("Loading %s", module)
-                        if 'odoo.addons' in sys.modules:
-                            m = __import__('odoo.addons.' + module)
-                        else:
-                            m = None
-                        addons_module[module] = m
                         addons_manifest[module] = manifest
                         statics['/%s/static' % module] = path_static
 
@@ -1377,13 +1379,13 @@ class Root(object):
         if isinstance(result, Response) and result.is_qweb:
             try:
                 result.flatten()
-            except(Exception) as e:
+            except Exception as e:
                 if request.db:
                     result = request.registry['ir.http']._handle_exception(e)
                 else:
                     raise
 
-        if isinstance(result, basestring):
+        if isinstance(result, (bytes, pycompat.text_type)):
             response = Response(result, mimetype='text/html')
         else:
             response = result
@@ -1412,7 +1414,8 @@ class Root(object):
         #   (the one using the cookie). That is a special feature of the Session Javascript class.
         # - It could allow session fixation attacks.
         if not explicit_session and hasattr(response, 'set_cookie'):
-            response.set_cookie('session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60)
+            response.set_cookie(
+                'session_id', httprequest.session.sid, max_age=90 * 24 * 60 * 60, httponly=True)
 
         return response
 
@@ -1424,6 +1427,7 @@ class Root(object):
             httprequest = werkzeug.wrappers.Request(environ)
             httprequest.app = self
             httprequest.parameter_storage_class = werkzeug.datastructures.ImmutableOrderedMultiDict
+            threading.current_thread().url = httprequest.url
 
             explicit_session = self.setup_session(httprequest)
             self.setup_db(httprequest)
@@ -1486,8 +1490,14 @@ def db_filter(dbs, httprequest=None):
     d, _, r = h.partition('.')
     if d == "www" and r:
         d = r.partition('.')[0]
-    r = odoo.tools.config['dbfilter'].replace('%h', h).replace('%d', d)
-    dbs = [i for i in dbs if re.match(r, i)]
+    if odoo.tools.config['dbfilter']:
+        r = odoo.tools.config['dbfilter'].replace('%h', h).replace('%d', d)
+        dbs = [i for i in dbs if re.match(r, i)]
+    elif odoo.tools.config['db_name']:
+        # In case --db-filter is not provided and --database is passed, Odoo will
+        # use the value of --database as a comma seperated list of exposed databases.
+        exposed_dbs = set(db.strip() for db in odoo.tools.config['db_name'].split(','))
+        dbs = sorted(exposed_dbs.intersection(dbs))
     return dbs
 
 def db_monodb(httprequest=None):
@@ -1550,7 +1560,7 @@ def send_file(filepath_or_fp, mimetype=None, as_attachment=False, filename=None,
 
     :param cache_timeout: the timeout in seconds for the headers.
     """
-    if isinstance(filepath_or_fp, (str, unicode)):
+    if isinstance(filepath_or_fp, pycompat.string_types):
         if not filename:
             filename = os.path.basename(filepath_or_fp)
         file = open(filepath_or_fp, 'rb')
@@ -1600,7 +1610,7 @@ def send_file(filepath_or_fp, mimetype=None, as_attachment=False, filename=None,
             mtime,
             size,
             adler32(
-                filename.encode('utf-8') if isinstance(filename, unicode)
+                filename.encode('utf-8') if isinstance(filename, pycompat.text_type)
                 else filename
             ) & 0xffffffff
         ))
@@ -1614,15 +1624,9 @@ def send_file(filepath_or_fp, mimetype=None, as_attachment=False, filename=None,
 
 def content_disposition(filename):
     filename = odoo.tools.ustr(filename)
-    escaped = urls.url_quote(filename.encode('utf8'))
-    browser = request.httprequest.user_agent.browser
-    version = int((request.httprequest.user_agent.version or '0').split('.')[0])
-    if browser == 'msie' and version < 9:
-        return "attachment; filename=%s" % escaped
-    elif browser == 'safari' and version < 537:
-        return u"attachment; filename=%s" % filename.encode('ascii', 'replace')
-    else:
-        return "attachment; filename*=UTF-8''%s" % escaped
+    escaped = urls.url_quote(filename)
+
+    return "attachment; filename*=UTF-8''%s" % escaped
 
 #----------------------------------------------------------
 # RPC controller

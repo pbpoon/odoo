@@ -8,7 +8,7 @@ import pytz
 
 from odoo import fields, http
 from odoo.http import request
-from odoo.tools import html_escape as escape, html2plaintext, pycompat
+from odoo.tools import html_escape as escape, html2plaintext
 
 
 class WebsiteEventTrackController(http.Controller):
@@ -65,17 +65,17 @@ class WebsiteEventTrackController(http.Controller):
             'dates': dates
         }
 
-    @http.route(['''/event/<model("event.event", "[('website_track','=',1)]"):event>/agenda'''], type='http', auth="public", website=True)
+    @http.route(['''/event/<model("event.event"):event>/agenda'''], type='http', auth="public", website=True, sitemap=False)
     def event_agenda(self, event, tag=None, **post):
         days_tracks = collections.defaultdict(lambda: [])
-        for track in event.track_ids.sorted(lambda track: (track.date, bool(track.location_id))):
+        for track in event.track_ids.sorted(lambda track: (track.date or '', bool(track.location_id))):
             if not track.date:
                 continue
             days_tracks[track.date[:10]].append(track)
 
         days = {}
         tracks_by_days = {}
-        for day, tracks in pycompat.items(days_tracks):
+        for day, tracks in days_tracks.items():
             tracks_by_days[day] = tracks
             days[day] = self._prepare_calendar(event, tracks)
 
@@ -87,9 +87,9 @@ class WebsiteEventTrackController(http.Controller):
         })
 
     @http.route([
-        '''/event/<model("event.event", "[('website_track','=',1)]"):event>/track''',
-        '''/event/<model("event.event", "[('website_track','=',1)]"):event>/track/tag/<model("event.track.tag"):tag>'''
-        ], type='http', auth="public", website=True)
+        '''/event/<model("event.event"):event>/track''',
+        '''/event/<model("event.event"):event>/track/tag/<model("event.track.tag"):tag>'''
+    ], type='http', auth="public", website=True, sitemap=False)
     def event_tracks(self, event, tag=None, **post):
         searches = {}
         if tag:
@@ -108,7 +108,7 @@ class WebsiteEventTrackController(http.Controller):
         }
         return request.render("website_event_track.tracks", values)
 
-    @http.route(['''/event/<model("event.event", "[('website_track_proposal','=',1)]"):event>/track_proposal'''], type='http', auth="public", website=True)
+    @http.route(['''/event/<model("event.event"):event>/track_proposal'''], type='http', auth="public", website=True, sitemap=False)
     def event_track_proposal(self, event, **post):
         return request.render("website_event_track.event_track_proposal", {'event': event})
 

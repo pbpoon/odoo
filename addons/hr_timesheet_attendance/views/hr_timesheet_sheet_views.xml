@@ -29,6 +29,7 @@
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('hr_timesheet.hr_timesheet_line_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('hr_timesheet.hr_timesheet_line_form')})]"/>
+            <field name="domain">[('project_id','!=',False)]</field>
         </record>
 
         <record id="hr_timesheet_sheet_form" model="ir.ui.view">
@@ -54,7 +55,7 @@
                         </button>
                     </div>
                 </div>
-                <xpath expr="//page[@class='o_hr_timesheet_sheet_details']" position="after">
+                <xpath expr="//page[hasclass('o_hr_timesheet_sheet_details')]" position="after">
                     <page string="Attendances" groups="hr_attendance.group_hr_attendance">
                         <group>
                             <group groups="hr_attendance.group_hr_attendance">

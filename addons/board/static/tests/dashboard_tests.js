@@ -99,7 +99,7 @@ QUnit.test('display the no content helper', function (assert) {
 });
 
 QUnit.test('basic functionality, with one sub action', function (assert) {
-    assert.expect(24);
+    assert.expect(25);
 
     var form = createView({
         View: FormView,
@@ -108,11 +108,11 @@ QUnit.test('basic functionality, with one sub action', function (assert) {
         arch: '<form string="My Dashboard">' +
                 '<board style="2-1">' +
                     '<column>' +
-                        '<action context="{}" view_mode="list" string="ABC" name="51" domain="[]"></action>' +
+                        '<action context="{}" view_mode="list" string="ABC" name="51" domain="[[\'foo\', \'!=\', \'False\']]"></action>' +
                     '</column>' +
                 '</board>' +
             '</form>',
-        mockRPC: function (route) {
+        mockRPC: function (route, args) {
             if (route === '/web/action/load') {
                 assert.step('load action');
                 return $.when({
@@ -120,8 +120,8 @@ QUnit.test('basic functionality, with one sub action', function (assert) {
                     views: [[4, 'list']],
                 });
             }
-            if (route === '/board/static/src/img/layout_1-1-1.png') {
-                return $.when();
+            if (route === '/web/dataset/search_read') {
+                assert.deepEqual(args.domain, [['foo', '!=', 'False']], "the domain should be passed");
             }
             if (route === '/web/view/add_custom') {
                 assert.step('add custom');
@@ -204,9 +204,6 @@ QUnit.test('can sort a sub list', function (assert) {
                 '</board>' +
             '</form>',
         mockRPC: function (route) {
-            if (route === '/board/static/src/img/layout_1-1-1.png') {
-                return $.when();
-            }
             if (route === '/web/action/load') {
                 return $.when({
                     res_model: 'partner',
@@ -246,9 +243,6 @@ QUnit.test('can open a record', function (assert) {
                 '</board>' +
             '</form>',
         mockRPC: function (route) {
-            if (route === '/board/static/src/img/layout_1-1-1.png') {
-                return $.when();
-            }
             if (route === '/web/action/load') {
                 return $.when({
                     res_model: 'partner',
@@ -292,9 +286,6 @@ QUnit.test('can drag and drop a view', function (assert) {
                 '</board>' +
             '</form>',
         mockRPC: function (route) {
-            if (route === '/board/static/src/img/layout_1-1-1.png') {
-                return $.when();
-            }
             if (route === '/web/action/load') {
                 return $.when({
                     res_model: 'partner',
@@ -342,9 +333,6 @@ QUnit.test('twice the same action in a dashboard', function (assert) {
                 '</board>' +
             '</form>',
         mockRPC: function (route) {
-            if (route === '/board/static/src/img/layout_1-1-1.png') {
-                return $.when();
-            }
             if (route === '/web/action/load') {
                 return $.when({
                     res_model: 'partner',
@@ -376,5 +364,43 @@ QUnit.test('twice the same action in a dashboard', function (assert) {
 
     form.destroy();
 });
+
+QUnit.test('non-existing action in a dashboard', function (assert) {
+    assert.expect(1);
+
+    var form = createView({
+        View: FormView,
+        model: 'board',
+        data: this.data,
+        arch: '<form string="My Dashboard">' +
+                '<board style="2-1">' +
+                    '<column>' +
+                        '<action context="{}" view_mode="kanban" string="ABC" name="51" domain="[]"></action>' +
+                    '</column>' +
+                '</board>' +
+            '</form>',
+        intercepts: {
+            load_views: function () {
+                throw new Error('load_views should not be called');
+            }
+        },
+        mockRPC: function (route) {
+            if (route === '/board/static/src/img/layout_1-1-1.png') {
+                return $.when();
+            }
+            if (route === '/web/action/load') {
+                // server answer if the action doesn't exist anymore
+                return $.when(false);
+            }
+            return this._super.apply(this, arguments);
+        },
+    });
+
+    assert.strictEqual(form.$('.oe_action:contains(ABC)').length, 1,
+        "there should be a box for the non-existing action");
+
+    form.destroy();
+});
+
 
 });

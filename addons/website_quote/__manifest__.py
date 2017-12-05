@@ -6,12 +6,8 @@
     'summary': 'Sales',
     'website': 'https://www.odoo.com/page/quote-builder',
     'version': '1.0',
-    'description': """
-Odoo Sale Quote Roller
-=========================
-
-        """,
-    'depends': ['website', 'sale_management', 'mail', 'payment', 'website_portal_sale', 'website_mail'],
+    'description': "",
+    'depends': ['website', 'sale_management', 'mail', 'payment', 'website_mail'],
     'data': [
         'data/website_quote_data.xml',
         'report/sale_order_reports.xml',
@@ -20,7 +16,7 @@ Odoo Sale Quote Roller
         'views/sale_order_views.xml',
         'views/sale_quote_views.xml',
         'views/website_quote_templates.xml',
-        'views/sale_config_settings_views.xml',
+        'views/res_config_settings_views.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [

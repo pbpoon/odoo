@@ -7,13 +7,13 @@ import psycopg2
 from odoo.addons import decimal_precision as dp
 
 from odoo import api, fields, models, tools, _
-from odoo.exceptions import ValidationError, except_orm
+from odoo.exceptions import ValidationError, RedirectWarning, except_orm
 from odoo.tools import pycompat
 
 
 class ProductTemplate(models.Model):
     _name = "product.template"
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = "Product Template"
     _order = "name"
 
@@ -21,7 +21,14 @@ class ProductTemplate(models.Model):
         if self._context.get('categ_id') or self._context.get('default_categ_id'):
             return self._context.get('categ_id') or self._context.get('default_categ_id')
         category = self.env.ref('product.product_category_all', raise_if_not_found=False)
-        return category and category.id or False
+        if not category:
+            category = self.env['product.category'].search([], limit=1)
+        if category:
+            return category.id
+        else:
+            err_msg = _('You must define at least one product category in order to be able to create products.')
+            redir_msg = _('Go to Internal Categories')
+            raise RedirectWarning(err_msg, self.env.ref('product.product_category_action_form').id, redir_msg)
 
     def _get_default_uom_id(self):
         return self.env["product.uom"].search([], limit=1, order='id').id
@@ -49,8 +56,8 @@ class ProductTemplate(models.Model):
              'the e-commerce such as e-books, music, pictures,... The "Digital Product" module has to be installed.')
     rental = fields.Boolean('Can be Rent')
     categ_id = fields.Many2one(
-        'product.category', 'Internal Category',
-        change_default=True, default=_get_default_category_id, domain="[('type','=','normal')]",
+        'product.category', 'Product Category',
+        change_default=True, default=_get_default_category_id,
         required=True, help="Select category for the current product")
 
     currency_id = fields.Many2one(
@@ -71,7 +78,9 @@ class ProductTemplate(models.Model):
         'Cost', compute='_compute_standard_price',
         inverse='_set_standard_price', search='_search_standard_price',
         digits=dp.get_precision('Product Price'), groups="base.group_user",
-        help="Cost of the product, in the default unit of measure of the product.")
+        help = "Cost used for stock valuation in standard price and as a first price to set in average/fifo. "
+               "Also used as a base price for pricelists. "
+               "Expressed in the default unit of measure of the product. ")
 
     volume = fields.Float(
         'Volume', compute='_compute_volume', inverse='_set_volume',
@@ -103,6 +112,7 @@ class ProductTemplate(models.Model):
         'product.packaging', string="Product Packages", compute="_compute_packaging_ids", inverse="_set_packaging_ids",
         help="Gives the different ways to package the same product.")
     seller_ids = fields.One2many('product.supplierinfo', 'product_tmpl_id', 'Vendors')
+    variant_seller_ids = fields.One2many('product.supplierinfo', 'product_tmpl_id')
 
     active = fields.Boolean('Active', default=True, help="If unchecked, it will allow you to hide the product without removing it.")
     color = fields.Integer('Color Index')
@@ -162,8 +172,10 @@ class ProductTemplate(models.Model):
             quantity = self._context.get('quantity', 1.0)
 
             # Support context pricelists specified as display_name or ID for compatibility
-            if isinstance(pricelist_id_or_name, basestring):
-                pricelist = self.env['product.pricelist'].name_search(pricelist_id_or_name, operator='=', limit=1)
+            if isinstance(pricelist_id_or_name, pycompat.string_types):
+                pricelist_data = self.env['product.pricelist'].name_search(pricelist_id_or_name, operator='=', limit=1)
+                if pricelist_data:
+                    pricelist = self.env['product.pricelist'].browse(pricelist_data[0][0])
             elif isinstance(pricelist_id_or_name, pycompat.integer_types):
                 pricelist = self.env['product.pricelist'].browse(pricelist_id_or_name)
 
@@ -256,11 +268,6 @@ class ProductTemplate(models.Model):
             if len(p.product_variant_ids) == 1:
                 p.product_variant_ids.packaging_ids = p.packaging_ids
 
-    @api.constrains('categ_id')
-    def _check_category(self):
-        if self.categ_id.type == 'view':
-            raise ValidationError(_("You cannot create a product with an Internal Category set as View. Please change the category or the category type."))
-
     @api.constrains('uom_id', 'uom_po_id')
     def _check_uom(self):
         if any(template.uom_id and template.uom_po_id and template.uom_id.category_id != template.uom_po_id.category_id for template in self):
@@ -279,7 +286,7 @@ class ProductTemplate(models.Model):
         tools.image_resize_images(vals)
         template = super(ProductTemplate, self).create(vals)
         if "create_product_product" not in self._context:
-            template.create_variant_ids()
+            template.with_context(create_from_tmpl=True).create_variant_ids()
 
         # This is needed to set given values to first variant after creation
         related_vals = {}
@@ -412,9 +419,9 @@ class ProductTemplate(models.Model):
             variants_to_activate = self.env['product.product']
             variants_to_unlink = self.env['product.product']
             for product_id in tmpl_id.product_variant_ids:
-                if not product_id.active and product_id.attribute_value_ids in variant_matrix:
+                if not product_id.active and product_id.attribute_value_ids.filtered(lambda r: r.attribute_id.create_variant) in variant_matrix:
                     variants_to_activate |= product_id
-                elif product_id.attribute_value_ids not in variant_matrix:
+                elif product_id.attribute_value_ids.filtered(lambda r: r.attribute_id.create_variant) not in variant_matrix:
                     variants_to_unlink |= product_id
             if variants_to_activate:
                 variants_to_activate.write({'active': True})

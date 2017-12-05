@@ -6,6 +6,25 @@ import math
 
 from odoo.tools import pycompat
 
+if not pycompat.PY2:
+    import builtins
+    def round(f):
+        # P3's builtin round differs from P2 in the following manner:
+        # * it rounds half to even rather than up (away from 0)
+        # * round(-0.) loses the sign (it returns -0 rather than 0)
+        # * round(x) returns an int rather than a float
+        #
+        # this compatibility shim implements Python 2's round in terms of
+        # Python 3's so that important rounding error under P3 can be
+        # trivially fixed, assuming the P2 behaviour to be debugged and
+        # correct.
+        roundf = builtins.round(f)
+        if builtins.round(f + 1) - roundf != 1:
+            return f + math.copysign(0.5, f)
+        # copysign ensures round(-0.) -> -0 *and* result is a float
+        return math.copysign(roundf, f)
+else:
+    round = round
 
 def _float_check_precision(precision_digits=None, precision_rounding=None):
     assert (precision_digits is not None or precision_rounding is not None) and \
@@ -28,9 +47,10 @@ def float_round(value, precision_digits=None, precision_rounding=None, rounding_
        :param float precision_rounding: decimal number representing the minimum
            non-zero value at the desired precision (for example, 0.01 for a 
            2-digit precision).
-       :param rounding_method: the rounding method used: 'HALF-UP' or 'UP', the first
-           one rounding up to the closest number with the rule that number>=0.5 is 
-           rounded up to 1, and the latest one always rounding up.
+       :param rounding_method: the rounding method used: 'HALF-UP', 'UP' or 'DOWN',
+           the first one rounding up to the closest number with the rule that
+           number>=0.5 is rounded up to 1, the second always rounding up and the
+           latest one always rounding down.
        :return: rounded float
     """
     rounding_factor = _float_check_precision(precision_digits=precision_digits,
@@ -58,20 +78,21 @@ def float_round(value, precision_digits=None, precision_rounding=None, rounding_
     epsilon = 2**(epsilon_magnitude-53)
     if rounding_method == 'HALF-UP':
         normalized_value += math.copysign(epsilon, normalized_value)
-        rounded_value = round(normalized_value) # round to integer
+        rounded_value = round(normalized_value)     # round to integer
 
-    # TIE-BREAKING: UP (for ceiling operations)
-    # When rounding the value up, we instead subtract the epsilon value
+    # TIE-BREAKING: UP (for ceiling[resp. flooring] operations)
+    # When rounding the value up[resp. down], we instead subtract the epsilon value
     # as the the approximation of the real value may be slightly *above* the
-    # tie limit, this would result in incorrectly rounding up to the next number
-    # The math.ceil operation is applied on the absolute value in order to
+    # tie limit, this would result in incorrectly rounding up[resp. down] to the next number
+    # The math.ceil[resp. math.floor] operation is applied on the absolute value in order to
     # round "away from zero" and not "towards infinity", then the sign is
     # restored.
 
-    elif rounding_method == 'UP':
+    else:
+        func = math.floor if rounding_method == 'DOWN' else math.ceil
         sign = math.copysign(1.0, normalized_value)
         normalized_value -= sign*epsilon
-        rounded_value = math.ceil(abs(normalized_value))*sign # ceil to integer
+        rounded_value = func(abs(normalized_value)) * sign
 
     result = rounded_value * rounding_factor # de-normalize
     return result
@@ -147,7 +168,7 @@ def float_repr(value, precision_digits):
         :param int precision_digits: number of fractional digits to
                                      include in the output
     """
-    # Can't use str() here because it seems to have an intrisic
+    # Can't use str() here because it seems to have an intrinsic
     # rounding to 12 significant digits, which causes a loss of
     # precision. e.g. str(123456789.1234) == str(123456789.123)!!
     return ("%%.%sf" % precision_digits) % value

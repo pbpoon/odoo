@@ -7,7 +7,7 @@ class ProjectTaskMergeWizard(models.TransientModel):
     _name = 'project.task.merge.wizard'
 
     task_ids = fields.Many2many('project.task', string="Tasks to Merge", required=True)
-    user_id = fields.Many2one('res.users', string="Assigned to", required=True)
+    user_id = fields.Many2one('res.users', string="Assigned to")
     create_new_task = fields.Boolean('Create a new task')
     target_task_name = fields.Char('New task name')
     target_project_id = fields.Many2one('project.project', string="Target Project")
@@ -63,7 +63,7 @@ class ProjectTaskMergeWizard(models.TransientModel):
         selected_tasks = self.env['project.task'].browse(self.env.context.get('active_ids', False))
         assigned_tasks = selected_tasks.filtered(lambda task: task.user_id)
         result.update({
-            'task_ids': [(4, task.id) for task in selected_tasks],
+            'task_ids': selected_tasks.ids,
             'user_id': assigned_tasks and assigned_tasks[0].user_id.id or False,
             'target_project_id': selected_tasks[0].project_id.id,
             'target_task_id': selected_tasks[0].id

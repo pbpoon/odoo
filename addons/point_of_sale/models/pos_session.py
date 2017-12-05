@@ -250,16 +250,22 @@ class PosSession(models.Model):
 
     @api.multi
     def action_pos_session_closing_control(self):
+        self._check_pos_session_balance()
         for session in self:
-            for statement in session.statement_ids:
-                if (statement != session.cash_register_id) and (statement.balance_end != statement.balance_end_real):
-                    statement.write({'balance_end_real': statement.balance_end})
             session.write({'state': 'closing_control', 'stop_at': fields.Datetime.now()})
             if not session.config_id.cash_control:
                 session.action_pos_session_close()
 
     @api.multi
+    def _check_pos_session_balance(self):
+        for session in self:
+            for statement in session.statement_ids:
+                if (statement != session.cash_register_id) and (statement.balance_end != statement.balance_end_real):
+                    statement.write({'balance_end_real': statement.balance_end})
+
+    @api.multi
     def action_pos_session_validate(self):
+        self._check_pos_session_balance()
         self.action_pos_session_close()
 
     @api.multi
@@ -290,7 +296,7 @@ class PosSession(models.Model):
         if not self.ids:
             return {}
         for session in self.filtered(lambda s: s.user_id.id != self.env.uid):
-            raise UserError(_("You cannot use the session of another users. This session is owned by %s. "
+            raise UserError(_("You cannot use the session of another user. This session is owned by %s. "
                               "Please first close this one to use this point of sale.") % session.user_id.name)
         return {
             'type': 'ir.actions.act_url',

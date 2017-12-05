@@ -9,11 +9,13 @@ odoo.define('web.FieldManagerMixin', function (require) {
  */
 
 var BasicModel = require('web.BasicModel');
+var concurrency = require('web.concurrency');
 
 var FieldManagerMixin = {
     custom_events: {
         field_changed: '_onFieldChanged',
         load: '_onLoad',
+        mutexify: '_onMutexify',
     },
     /**
      * A FieldManagerMixin can be initialized with an instance of a basicModel.
@@ -23,6 +25,7 @@ var FieldManagerMixin = {
      */
     init: function (model) {
         this.model = model || new BasicModel(this);
+        this.mutex = new concurrency.Mutex();
     },
 
     //--------------------------------------------------------------------------
@@ -43,7 +46,8 @@ var FieldManagerMixin = {
      */
     _applyChanges: function (dataPointID, changes, event) {
         var self = this;
-        return this.model.notifyChanges(dataPointID, changes, event.data.viewType)
+        var options = _.pick(event.data, 'viewType', 'doNotSetDirty', 'notifyChange');
+        return this.model.notifyChanges(dataPointID, changes, options)
             .then(function (result) {
                 if (event.data.force_save) {
                     return self.model.save(dataPointID).then(function () {
@@ -99,7 +103,9 @@ var FieldManagerMixin = {
         // subrecord's form view), otherwise it bubbles up to the main form view
         // but its model doesn't have any data related to the given dataPointID
         event.stopPropagation();
-        this._applyChanges(event.data.dataPointID, event.data.changes, event);
+        this._applyChanges(event.data.dataPointID, event.data.changes, event)
+            .done(event.data.onSuccess || function () {})
+            .fail(event.data.onFailure || function () {});
     },
     /**
      * Some widgets need to trigger a reload of their data.  For example, a
@@ -114,6 +120,7 @@ var FieldManagerMixin = {
      */
     _onLoad: function (event) {
         var self = this;
+        event.stopPropagation(); // prevent other field managers from handling this request
         var data = event.data;
         if (!data.on_success) { return; }
         var params = {};
@@ -126,6 +133,15 @@ var FieldManagerMixin = {
         this.model.reload(data.id, params).then(function (db_id) {
             data.on_success(self.model.get(db_id));
         });
+    },
+    /**
+     * @private
+     * @param {OdooEvent} ev
+     * @param {function} ev.data.action the function to execute in the mutex
+     */
+    _onMutexify: function (ev) {
+        ev.stopPropagation(); // prevent other field managers from handling this request
+        this.mutex.exec(ev.data.action);
     },
 };
 

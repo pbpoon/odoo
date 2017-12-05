@@ -6,7 +6,22 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import fields
 
+from odoo.tests import common
 from odoo.addons.hr_timesheet.tests.test_timesheet import TestTimesheet
+
+
+class TestTimesheetHolidaysCreate(common.TransactionCase):
+
+    def test_status_create(self):
+        """Ensure that when a status is created, it fullfills the project and task constrains"""
+        status = self.env['hr.holidays.status'].create({
+            'name': 'A nice Leave Type',
+            'limit': True
+        })
+
+        company = self.env.user.company_id
+        self.assertEqual(status.timesheet_project_id, company.leave_timesheet_project_id, 'The default project linked to the status should be the same as the company')
+        self.assertEqual(status.timesheet_task_id, company.leave_timesheet_task_id, 'The default task linked to the status should be the same as the company')
 
 
 class TestTimesheetHolidays(TestTimesheet):
@@ -71,6 +86,10 @@ class TestTimesheetHolidays(TestTimesheet):
         })
         holiday.sudo().action_validate()
         self.assertEquals(len(holiday.timesheet_ids), number_of_days, 'Number of generated timesheets should be the same as the leave duration (1 per day)')
+
+        # manager refuse the leave
+        holiday.sudo().action_refuse()
+        self.assertEquals(len(holiday.timesheet_ids), 0, 'Number of linked timesheets should be zero, since the leave is refused.')
 
     def test_validate_without_timesheet(self):
         # employee creates a leave request

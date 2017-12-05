@@ -16,6 +16,7 @@ odoo.define('web.field_utils', function (require) {
  */
 
 var core = require('web.core');
+var dom = require('web.dom');
 var session = require('web.session');
 var time = require('web.time');
 var utils = require('web.utils');
@@ -27,24 +28,28 @@ var _t = core._t;
 //------------------------------------------------------------------------------
 
 /**
- * @todo Really? it returns a jqueryElement...  We should try to move this to a
- * module with dom helpers functions, such as web.dom, maybe. And replace this
- * with a function that returns a string
+ * @todo Really? it returns a jQuery element...  We should try to avoid this and
+ * let DOM utility functions handle this directly. And replace this with a
+ * function that returns a string so we can get rid of the forceString.
  *
  * @param {boolean} value
- * @returns {jQueryElement}
+ * @param {Object} [field]
+ *        a description of the field (note: this parameter is ignored)
+ * @param {Object} [options] additional options
+ * @param {boolean} [options.forceString=false] if true, returns a string
+*    representation of the boolean rather than a jQueryElement
+ * @returns {jQuery|string}
  */
-function formatBoolean(value) {
-    var $input = $('<input/>', {
-        type: 'checkbox',
-    }).prop({
-        checked: value,
-        disabled: true,
+function formatBoolean(value, field, options) {
+    if (options && options.forceString) {
+        return value ? _t('True') : _t('False');
+    }
+    return dom.renderCheckbox({
+        prop: {
+            checked: value,
+            disabled: true,
+        },
     });
-    var $div = $('<div/>', {
-        class: 'o_checkbox',
-    });
-    return $div.append($input, '<span/>');
 }
 
 /**
@@ -75,7 +80,7 @@ function formatChar(value, field, options) {
  * Returns a string representing a date.  If the value is false, then we return
  * an empty string. Note that this is dependant on the localization settings
  *
- * @param {Moment|false}
+ * @param {Moment|false} value
  * @param {Object} [field]
  *        a description of the field (note: this parameter is ignored)
  * @param {Object} [options] additional options
@@ -87,8 +92,10 @@ function formatDate(value, field, options) {
     if (value === false) {
         return "";
     }
-    if (!options || !('timezone' in options) || options.timezone) {
-        value = value.clone().add(session.tzOffset < 0 ? -1 : 0, 'days');
+    if (field && field.type === 'datetime') {
+        if (!options || !('timezone' in options) || options.timezone) {
+            value = value.clone().add(session.getTZOffset(value), 'minutes');
+        }
     }
     var l10n = core._t.database.parameters;
     var date_format = time.strftime_to_moment_format(l10n.date_format);
@@ -113,7 +120,7 @@ function formatDateTime(value, field, options) {
         return "";
     }
     if (!options || !('timezone' in options) || options.timezone) {
-        value = value.clone().add(session.tzOffset, 'minutes');
+        value = value.clone().add(session.getTZOffset(value), 'minutes');
     }
     var l10n = core._t.database.parameters;
     var date_format = time.strftime_to_moment_format(l10n.date_format);
@@ -251,7 +258,7 @@ function formatX2Many(value) {
  * @param {Object} [options]
  *        additional options to override the values in the python description of
  *        the field.
- * @param {Object} [options.currency] - the description of the currency to use
+ * @param {Object} [options.currency] the description of the currency to use
  * @param {integer} [options.currency_id]
  *        the id of the 'res.currency' to use (ignored if options.currency)
  * @param {string} [options.currency_field]
@@ -329,7 +336,7 @@ function formatSelection(value, field, options) {
  * Create an Date object
  * The method toJSON return the formated value to send value server side
  *
- * @param {string}
+ * @param {string} value
  * @param {Object} [field]
  *        a description of the field (note: this parameter is ignored)
  * @param {Object} [options] additional options
@@ -349,11 +356,8 @@ function parseDate(value, field, options) {
         date = moment.utc(value);
     } else {
         date = moment.utc(value, [datePattern, datePatternWoZero, moment.ISO_8601], true);
-        if (options && options.timezone) {
-            date.add(session.tzOffset > 0 ? -1 : 0, 'days');
-        }
     }
-    if (date.isValid() && date.year() >= 1900) {
+    if (date.isValid()) {
         if (date.year() === 0) {
             date.year(moment.utc().year());
         }
@@ -371,7 +375,7 @@ function parseDate(value, field, options) {
  * Create an Date object
  * The method toJSON return the formated value to send value server side
  *
- * @param {string}
+ * @param {string} value
  * @param {Object} [field]
  *        a description of the field (note: this parameter is ignored)
  * @param {Object} [options] additional options
@@ -397,7 +401,7 @@ function parseDateTime(value, field, options) {
     } else {
         datetime = moment.utc(value, [pattern1, pattern2, moment.ISO_8601], true);
         if (options && options.timezone) {
-            datetime.add(-session.tzOffset, 'minutes');
+            datetime.add(-session.getTZOffset(datetime), 'minutes');
         }
     }
     if (datetime.isValid()) {
@@ -414,17 +418,86 @@ function parseDateTime(value, field, options) {
     throw new Error(_.str.sprintf(core._t("'%s' is not a correct datetime"), value));
 }
 
-function parseFloat(value) {
+/**
+ * Parse a String containing number in language formating
+ *
+ * @param {string} value
+ *                The string to be parsed with the setting of thousands and
+ *                decimal separator
+ * @returns {float|NaN} the number value contained in the string representation
+ */
+function parseNumber(value) {
     if (core._t.database.parameters.thousands_sep) {
         var escapedSep = _.str.escapeRegExp(core._t.database.parameters.thousands_sep);
         value = value.replace(new RegExp(escapedSep, 'g'), '');
     }
-    value = value.replace(core._t.database.parameters.decimal_point, '.');
-    var parsed = Number(value);
+    if (core._t.database.parameters.decimal_point) {
+        value = value.replace(core._t.database.parameters.decimal_point, '.');
+    }
+    return Number(value);
+}
+
+/**
+ * Parse a String containing float in language formating
+ *
+ * @param {string} value
+ *                The string to be parsed with the setting of thousands and
+ *                decimal separator
+ * @returns {float}
+ * @throws {Error} if no float is found respecting the language configuration
+ */
+function parseFloat(value) {
+    var parsed = parseNumber(value);
     if (isNaN(parsed)) {
         throw new Error(_.str.sprintf(core._t("'%s' is not a correct float"), value));
     }
     return parsed;
+}
+
+/**
+ * Parse a String containing currency symbol and returns amount
+ *
+ * @param {string} value
+ *                The string to be parsed
+ *                We assume that a monetary is always a pair (symbol, amount) separated
+ *                by a non breaking space. A simple float can also be accepted as value
+ * @param {Object} [field]
+ *        a description of the field (returned by fields_get for example).
+ * @param {Object} [options] additional options.
+ * @param {Object} [options.currency] - the description of the currency to use
+ * @param {integer} [options.currency_id]
+ *        the id of the 'res.currency' to use (ignored if options.currency)
+ * @param {string} [options.currency_field]
+ *        the name of the field whose value is the currency id
+ *        (ignore if options.currency or options.currency_id)
+ *        Note: if not given it will default to the field currency_field value
+ *        or to 'currency_id'.
+ * @param {Object} [options.data]
+ *        a mapping of field name to field value, required with
+ *        options.currency_field
+ *
+ * @returns {float} the float value contained in the string representation
+ * @throws {Error} if no float is found or if parameter does not respect monetary condition
+ */
+function parseMonetary(value, field, options) {
+    var values = value.split('&nbsp;');
+    if (values.length === 1) {
+        return parseFloat(value);
+    }
+    else if (values.length !== 2) {
+        throw new Error(_.str.sprintf(core._t("'%s' is not a correct monetary field"), value));
+    }
+    options = options || {};
+    var currency = options.currency;
+    if (!currency) {
+        var currency_id = options.currency_id;
+        if (!currency_id && options.data) {
+            var currency_field = options.currency_field || field.currency_field || 'currency_id';
+            currency_id = options.data[currency_field] && options.data[currency_field].res_id;
+        }
+        currency = session.get_currency(currency_id);
+    }
+    return parseFloat(values[0] === currency.symbol ? values[1] : values[0]);
 }
 
 function parseFloatTime(value) {
@@ -441,9 +514,17 @@ function parseFloatTime(value) {
     return factor * (hours + (minutes / 60));
 }
 
+/**
+ * Parse a String containing integer with language formating
+ *
+ * @param {string} value
+ *                The string to be parsed with the setting of thousands and
+ *                decimal separator
+ * @returns {integer}
+ * @throws {Error} if no integer is found respecting the language configuration
+ */
 function parseInteger(value) {
-    value = value.replace(new RegExp(core._t.database.parameters.thousands_sep, "g"), '');
-    var parsed = Number(value);
+    var parsed = parseNumber(value);
     // do not accept not numbers or float values
     if (isNaN(parsed) || parsed % 1 || parsed < -2147483648 || parsed > 2147483647) {
         throw new Error(_.str.sprintf(core._t("'%s' is not a correct integer"), value));
@@ -494,7 +575,7 @@ return {
         many2one: formatMany2one,
         monetary: formatMonetary,
         one2many: formatX2Many,
-        reference: _.identity, // todo
+        reference: formatMany2one,
         selection: formatSelection,
         text: formatChar,
     },
@@ -510,9 +591,9 @@ return {
         integer: parseInteger,
         many2many: _.identity, // todo
         many2one: parseMany2one,
-        monetary: parseFloat,
+        monetary: parseMonetary,
         one2many: _.identity,
-        reference: _.identity, // todo
+        reference: parseMany2one,
         selection: _.identity, // todo
         text: _.identity, // todo
     },

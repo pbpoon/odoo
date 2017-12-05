@@ -28,6 +28,7 @@ registry
     .add('text', basic_fields.FieldText)
     .add('float', basic_fields.FieldFloat)
     .add('char', basic_fields.FieldChar)
+    .add('link_button', basic_fields.LinkButton)
     .add('handle', basic_fields.HandleWidget)
     .add('email', basic_fields.FieldEmail)
     .add('phone', basic_fields.FieldPhone)
@@ -37,10 +38,13 @@ registry
     .add('monetary', basic_fields.FieldMonetary)
     .add('priority', basic_fields.PriorityWidget)
     .add('attachment_image', basic_fields.AttachmentImage)
+    .add('image_selection', basic_fields.ImageSelection)
     .add('label_selection', basic_fields.LabelSelection)
     .add('state_selection', basic_fields.StateSelectionWidget)
     .add('kanban_state_selection', basic_fields.StateSelectionWidget)
+    .add('boolean_favorite', basic_fields.FavoriteWidget)
     .add('boolean_button', basic_fields.FieldBooleanButton)
+    .add('boolean_toggle', basic_fields.BooleanToggle)
     .add('statinfo', basic_fields.StatInfo)
     .add('percentpie', basic_fields.FieldPercentPie)
     .add('float_time', basic_fields.FieldFloatTime)
@@ -64,10 +68,10 @@ registry
     .add('many2many_checkboxes', relational_fields.FieldMany2ManyCheckBoxes)
     .add('one2many', relational_fields.FieldOne2Many)
     .add('statusbar', relational_fields.FieldStatus)
+    .add('reference', relational_fields.FieldReference)
     .add('one2many_list', relational_fields.FieldOne2Many);
 
 // Special fields
 registry
     .add('timezone_mismatch', special_fields.FieldTimezoneMismatch);
-
 });

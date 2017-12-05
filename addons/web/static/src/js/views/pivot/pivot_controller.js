@@ -45,13 +45,15 @@ var PivotController = AbstractController.extend({
         this.groupableFields = params.groupableFields;
         this.title = params.title;
         this.enableLinking = params.enableLinking;
+        // views to use in the action triggered when a data cell is clicked
+        this.views = params.views;
         this.lastHeaderSelected = null;
     },
     /**
      * @override
      */
     start: function () {
-        this.$el.toggleClass('o_enableLinking', this.enableLinking);
+        this.$el.toggleClass('o_enable_linking', this.enableLinking);
         this.$fieldSelection = this.$('.o_field_selection');
         core.bus.on('click', this, function () {
             this.$fieldSelection.empty();
@@ -168,21 +170,8 @@ var PivotController = AbstractController.extend({
     /**
      * @private
      */
-    _update: function (state) {
+    _update: function () {
         this._updateButtons();
-        var hasNoContent = !state.has_data || !state.measures.length;
-
-        if (hasNoContent) {
-            if (!this.$('.oe_view_nocontent').length) {
-                this.renderer.$el.detach();
-                this.$el.append(QWeb.render('PivotView.nodata'));
-            }
-        } else {
-            if (!document.contains(this.renderer.el)) {
-                this.$('div.oe_view_nocontent').remove();
-                this.$el.append(this.renderer.$el);
-            }
-        }
         return this._super.apply(this, arguments);
     },
     /**
@@ -253,33 +242,23 @@ var PivotController = AbstractController.extend({
             !this.enableLinking) {
             return;
         }
-        var row_id = $target.data('id');
-        var col_id = $target.data('col_id');
         var state = this.model.get(this.handle);
-        var row_domain = state.data.headers[row_id].domain;
-        var col_domain = state.data.headers[col_id].domain;
-        var context = _.omit(_.clone(state.context), 'group_by');
-
-        function _find_view_info (views, view_type) {
-            return _.find(views, function (view) {
-                return view[1] === view_type;
-            }) || [false, view_type];
-        }
-        var views = [
-            _find_view_info(this.options.action.views, "list"),
-            _find_view_info(this.options.action.views, "form"),
-        ];
+        var colDomain = this.model.getHeader($target.data('col_id')).domain;
+        var rowDomain = this.model.getHeader($target.data('id')).domain;
+        var context = _.omit(state.context, function (val, key) {
+            return key === 'group_by' || _.str.startsWith(key, 'search_default_');
+        });
 
         this.do_action({
             type: 'ir.actions.act_window',
             name: this.title,
-            res_model: this.model,
-            views: views,
-            view_type : "list",
-            view_mode : "list",
+            res_model: this.modelName,
+            views: this.views,
+            view_type: 'list',
+            view_mode: 'list',
             target: 'current',
             context: context,
-            domain: state.domain.concat(row_domain, col_domain),
+            domain: state.domain.concat(rowDomain, colDomain),
         });
     },
     /**

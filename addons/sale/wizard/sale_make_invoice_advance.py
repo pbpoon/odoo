@@ -23,12 +23,14 @@ class SaleAdvancePaymentInv(models.TransientModel):
             order = sale_obj.browse(self._context.get('active_ids'))[0]
             if all([line.product_id.invoice_policy == 'order' for line in order.order_line]) or order.invoice_count:
                 return 'all'
+        else:
+            return 'all'
         return 'delivered'
 
     @api.model
     def _default_product_id(self):
-        product_id = self.env['ir.values'].get_default('sale.config.settings', 'deposit_product_id_setting')
-        return self.env['product.product'].browse(product_id)
+        product_id = self.env['ir.config_parameter'].sudo().get_param('sale.default_deposit_product_id')
+        return self.env['product.product'].browse(int(product_id))
 
     @api.model
     def _default_deposit_account_id(self):
@@ -107,12 +109,13 @@ class SaleAdvancePaymentInv(models.TransientModel):
                 'product_id': self.product_id.id,
                 'sale_line_ids': [(6, 0, [so_line.id])],
                 'invoice_line_tax_ids': [(6, 0, tax_ids)],
-                'account_analytic_id': order.project_id.id or False,
+                'account_analytic_id': order.analytic_account_id.id or False,
             })],
             'currency_id': order.pricelist_id.currency_id.id,
             'payment_term_id': order.payment_term_id.id,
             'fiscal_position_id': order.fiscal_position_id.id or order.partner_id.property_account_position_id.id,
             'team_id': order.team_id.id,
+            'user_id': order.user_id.id,
             'comment': order.note,
         })
         invoice.compute_taxes()
@@ -134,7 +137,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
             if not self.product_id:
                 vals = self._prepare_deposit_product()
                 self.product_id = self.env['product.product'].create(vals)
-                self.env['ir.values'].sudo().set_default('sale.config.settings', 'deposit_product_id_setting', self.product_id.id)
+                self.env['ir.config_parameter'].sudo().set_param('sale.default_deposit_product_id', self.product_id.id)
 
             sale_line_obj = self.env['sale.order.line']
             for order in sale_orders:

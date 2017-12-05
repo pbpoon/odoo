@@ -3,9 +3,8 @@
 
 from datetime import date
 
-from odoo import api, models
-from odoo.tools import pycompat
-
+from odoo import api, models, _
+from odoo.exceptions import UserError
 
 class EmployeesYearlySalaryReport(models.AbstractModel):
     _name = 'report.l10n_in_hr_payroll.report_hryearlysalary'
@@ -98,7 +97,7 @@ class EmployeesYearlySalaryReport(models.AbstractModel):
 
     def salary_list(self, salaries):
         cat_salary_all = []
-        for category_name, amount in pycompat.items(salaries):
+        for category_name, amount in salaries.items():
             cat_salary = []
             total = 0.0
             cat_salary.append(category_name)
@@ -128,6 +127,9 @@ class EmployeesYearlySalaryReport(models.AbstractModel):
 
     @api.model
     def get_report_values(self, docids, data=None):
+        if not self.env.context.get('active_model') or not self.env.context.get('active_id'):
+            raise UserError(_("Form content is missing, this report cannot be printed."))
+
         model = self.env.context.get('active_model')
         docs = self.env[model].browse(self.env.context.get('active_id'))
         return {

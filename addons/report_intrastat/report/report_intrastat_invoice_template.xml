@@ -64,8 +64,12 @@
                         <td groups="product.group_uom"><span t-field="l.uom_id"/></td>
                         <td class="text-right"><span t-field="l.price_unit"/></td>
                         <td t-if="display_discount" groups="sale.group_discount_per_so_line"><span t-field="l.discount"/></td>
-                        <td class="text-right">
+                        <td class="text-right" groups="sale.group_show_price_subtotal">
                             <span t-field="l.price_subtotal"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                        <td class="text-right" groups="sale.group_show_price_total">
+                            <span t-field="l.price_total"
                                 t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                         </td>
                     </tr>
@@ -129,6 +133,10 @@
             </p>
             <p t-if="o.fiscal_position_id">
                 <strong>Fiscal Position:</strong>
+                <span t-field="o.fiscal_position_id"/>
+            </p>
+            <p t-if="o.fiscal_position_id.note">
+                <strong>Fiscal Position Remark:</strong>
                 <span t-field="o.fiscal_position_id.note"/>
             </p>
         </div>

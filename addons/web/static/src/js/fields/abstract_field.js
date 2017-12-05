@@ -30,16 +30,28 @@ odoo.define('web.AbstractField', function (require) {
  * @module web.AbstractField
  */
 
+var ajax = require('web.ajax');
 var field_utils = require('web.field_utils');
 var Widget = require('web.Widget');
 
 var AbstractField = Widget.extend({
+    cssLibs: [],
+    jsLibs: [],
     events: {
         'keydown': '_onKeydown',
     },
     custom_events: {
         navigation_move: '_onNavigationMove',
     },
+
+    /**
+    * An object representing fields to be fetched by the model eventhough not present in the view
+    * This object contains "field name" as key and an object as value.
+    * That value object must contain the key "type"
+    * see FieldBinaryImage for an example.
+    */
+    fieldDependencies: {},
+
     /**
      * If this flag is set to true, the field widget will be reset on every
      * change which is made in the view (if the view supports it). This is
@@ -56,6 +68,8 @@ var AbstractField = Widget.extend({
     specialData: false,
     /**
      * to override to indicate which field types are supported by the widget
+     *
+     * @type Array<String>
      */
     supportedFieldTypes: [],
 
@@ -65,7 +79,8 @@ var AbstractField = Widget.extend({
      * @constructor
      * @param {Widget} parent
      * @param {string} name The field name defined in the model
-     * @param {Object} record A record object (result of the get method of a basic model)
+     * @param {Object} record A record object (result of the get method of
+     *   a basic model)
      * @param {Object} [options]
      * @param {string} [options.mode=readonly] should be 'readonly' or 'edit'
      */
@@ -142,6 +157,21 @@ var AbstractField = Widget.extend({
         // this is the last value that was set by the user, unparsed.  This is
         // used to avoid setting the value twice in a row with the exact value.
         this.lastSetValue = undefined;
+
+        // formatType is used to determine which format (and parse) functions
+        // to call to format the field's value to insert into the DOM (typically
+        // put into a span or an input), and to parse the value from the input
+        // to send it to the server. These functions are chosen according to
+        // the 'widget' attrs if is is given, and if it is a valid key, with a
+        // fallback on the field type, ensuring that the value is formatted and
+        // displayed according to the choosen widget, if any.
+        this.formatType = this.attrs.widget in field_utils.format ?
+                            this.attrs.widget :
+                            this.field.type;
+        // formatOptions (resp. parseOptions) is a dict of options passed to
+        // calls to the format (resp. parse) function.
+        this.formatOptions = {};
+        this.parseOptions = {};
     },
     /**
      * When a field widget is appended to the DOM, its start method is called,
@@ -157,6 +187,14 @@ var AbstractField = Widget.extend({
             return self._render();
         });
     },
+    /**
+     * Loads the libraries listed in this.jsLibs and this.cssLibs
+     *
+     * @override
+     */
+    willStart: function () {
+        return $.when(ajax.loadLibs(this), this._super.apply(this, arguments));
+    },
 
     //--------------------------------------------------------------------------
     // Public
@@ -169,15 +207,15 @@ var AbstractField = Widget.extend({
      * will have the cursor at the very end.
      *
      * @param {Object} [options]
-     * @param {boolean} [noselect=false] if false and the input
+     * @param {boolean} [options.noselect=false] if false and the input
      *   is of type text or textarea, the content will also be selected
      * @param {Event} [options.event] the event which fired this activation
      * @returns {boolean} true if the widget was activated, false if the
      *                    focusable element was not found or invisible
      */
     activate: function (options) {
-        var $focusable = this.getFocusableElement();
-        if ($focusable.length && $focusable.is(':visible')) {
+        if (this.isFocusable()) {
+            var $focusable = this.getFocusableElement();
             $focusable.focus();
             if ($focusable.is('input[type="text"], textarea')) {
                 $focusable[0].selectionStart = $focusable[0].selectionEnd = $focusable[0].value.length;
@@ -210,6 +248,15 @@ var AbstractField = Widget.extend({
      */
     getFocusableElement: function () {
         return $();
+    },
+    /**
+     * Returns true iff the widget has a visible element that can take the focus
+     *
+     * @returns {boolean}
+     */
+    isFocusable: function () {
+        var $focusable = this.getFocusableElement();
+        return $focusable.length && $focusable.is(':visible');
     },
     /**
      * this method is used to determine if the field value is set to a meaningful
@@ -249,7 +296,7 @@ var AbstractField = Widget.extend({
      */
     reset: function (record, event) {
         this._reset(record, event);
-        return this._render();
+        return this._render() || $.when();
     },
 
     //--------------------------------------------------------------------------
@@ -257,15 +304,15 @@ var AbstractField = Widget.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * convert the value from the field to a string representation
+     * Converts the value from the field to a string representation.
      *
      * @private
      * @param {any} value (from the field type)
      * @returns {string}
      */
     _formatValue: function (value) {
-        var options = _.extend({}, this.nodeOptions, { data: this.recordData });
-        return field_utils.format[this.field.type](value, this.field, options);
+        var options = _.extend({}, this.nodeOptions, { data: this.recordData }, this.formatOptions);
+        return field_utils.format[this.formatType](value, this.field, options);
     },
     /**
      * This method check if a value is the same as the current value of the
@@ -282,15 +329,14 @@ var AbstractField = Widget.extend({
         return this.value === value;
     },
     /**
-     * convert a string representation to a valid value, depending on the field
-     * type.
+     * Converts a string representation to a valid value.
      *
      * @private
      * @param {string} value
      * @returns {any}
      */
     _parseValue: function (value) {
-        return field_utils.parse[this.field.type](value, this.field);
+        return field_utils.parse[this.formatType](value, this.field, this.parseOptions);
     },
     /**
      * main rendering function.  Override this if your widget has the same render
@@ -349,14 +395,22 @@ var AbstractField = Widget.extend({
      * @private
      * @param {any} value
      * @param {Object} [options]
+     * @param {boolean} [options.doNotSetDirty=false] if true, the basic model
+     *   will not consider that this field is dirty, even though it was changed.
+     *   Please do not use this flag unless you really need it.  Our only use
+     *   case is currently the pad widget, which does a _setValue in the
+     *   renderEdit method.
+     * @param {boolean} [options.notifyChange=true] if false, the basic model
+     *   will not notify and not trigger the onchange, even though it was changed.
      * @param {boolean} [options.forceChange=false] if true, the change event will be
      *   triggered even if the new value is the same as the old one
+     * @returns {Deferred}
      */
     _setValue: function (value, options) {
         // we try to avoid doing useless work, if the value given has not
         // changed.  Note that we compare the unparsed values.
         if (this.lastSetValue === value || (this.value === false && value === '')) {
-            return;
+            return $.when();
         }
         this.lastSetValue = value;
         try {
@@ -364,18 +418,25 @@ var AbstractField = Widget.extend({
             this._isValid = true;
         } catch (e) {
             this._isValid = false;
-            return;
+            this.trigger_up('set_dirty', {dataPointID: this.dataPointID});
+            return $.Deferred().reject();
         }
         if (!(options && options.forceChange) && this._isSameValue(value)) {
-            return;
+            return $.when();
         }
+        var def = $.Deferred();
         var changes = {};
         changes[this.name] = value;
         this.trigger_up('field_changed', {
             dataPointID: this.dataPointID,
             changes: changes,
             viewType: this.viewType,
+            doNotSetDirty: options && options.doNotSetDirty,
+            notifyChange: !options || options.notifyChange !== false,
+            onSuccess: def.resolve.bind(def),
+            onFailure: def.reject.bind(def),
         });
+        return def;
     },
 
     //--------------------------------------------------------------------------
@@ -409,25 +470,21 @@ var AbstractField = Widget.extend({
                 this.trigger_up('navigation_move', {direction: 'next_line'});
                 break;
             case $.ui.keyCode.ESCAPE:
-                this.trigger_up('navigation_move', {direction: 'cancel'});
+                this.trigger_up('navigation_move', {direction: 'cancel', originalEvent: ev});
                 break;
             case $.ui.keyCode.UP:
-                ev.preventDefault();
                 ev.stopPropagation();
                 this.trigger_up('navigation_move', {direction: 'up'});
                 break;
             case $.ui.keyCode.RIGHT:
-                ev.preventDefault();
                 ev.stopPropagation();
                 this.trigger_up('navigation_move', {direction: 'right'});
                 break;
             case $.ui.keyCode.DOWN:
-                ev.preventDefault();
                 ev.stopPropagation();
                 this.trigger_up('navigation_move', {direction: 'down'});
                 break;
             case $.ui.keyCode.LEFT:
-                ev.preventDefault();
                 ev.stopPropagation();
                 this.trigger_up('navigation_move', {direction: 'left'});
                 break;
