@@ -5,8 +5,15 @@
         </xpath>
         <xpath expr="//t[@t-foreach='invoices']/tr/td[last()]" position="before">
             <td>
-                <a t-if="invoice.state == 'open'" t-att-href="'/my/invoices/%s#portal_pay' % invoice.id" alt="Pay Now" class="btn btn-xs btn-primary">
+                <t t-set="tx_ids" t-value="invoice.payment_tx_ids.filtered(lambda tx: tx.state in ('pending', 'authorized', 'done'))"/>
+                <a t-if="not tx_ids and invoice.state == 'open'" t-att-href="'/my/invoices/%s#portal_pay' % invoice.id" alt="Pay Now" class="btn btn-xs btn-primary">
                     <i class="fa fa-arrow-circle-right"/><span class='hidden-xs'> Pay Now</span>
+                </a>
+                <a t-if="tx_ids and invoice.state != 'paid'"  t-att-href="'/my/invoices/%s#portal_pay' % invoice.id" alt="Pending" class="btn btn-xs btn-warning">
+                    <i class="fa fa-check-circle"/><span class='hidden-xs'> Pending</span>
+                </a>
+                <a t-if="tx_ids and invoice.state == 'paid'" t-att-href="'/my/invoices/%s#portal_pay' % invoice.id" class="btn btn-xs btn-success">
+                    <i class="fa fa-check-circle"/><span class='hidden-xs'> Paid</span>
                 </a>
             </td>
         </xpath>

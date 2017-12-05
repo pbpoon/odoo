@@ -76,13 +76,13 @@
             <div class="container o_account_portal_invoices">
                 <div class="row mt16">
                 <!-- Sidebar -->
-                <div class="col-md-3 hidden-print text-center">
+                <div class="col-md-3 hidden-print">
                     <div class="bs-sidebar" style="background-color:#f8f8f8;">
-                        <div>
+                        <div  class="text-center">
                             <t t-set="due_days" t-value="invoice._compute_due_days()"/>
-                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h4>Due in <span t-esc="due_days"/> days</h4>
+                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due in <span t-esc="due_days"/> days</h5>
                         </div>
-                        <div id="o_portal_account_actions">
+                        <div class="text-center" id="o_portal_account_actions">
                         </div>
                         <div style="padding: 5px; text-align:left;">
                             <strong>Invoice: </strong>
