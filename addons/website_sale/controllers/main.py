@@ -665,6 +665,19 @@ class WebsiteSale(http.Controller):
             return 'ok'
         return request.render("website_sale.checkout", values)
 
+    @http.route(['/shop/poc'], type='http', auth="public", website=True)
+    def poc(self, **post):
+        order = request.website.sale_get_order()
+        values = self.checkout_values(**post)
+        values.update({'website_sale_order': order})
+        values.update({'new_address': "UNDEFINED"})
+
+        if request.website.is_public_user():
+            x = self.address()
+            z = request.render("website_sale.address", x.qcontext, lazy=False)
+            values.update({'new_address': z})
+        return request.render("website_sale.poc", values)
+
     @http.route(['/shop/confirm_order'], type='http', auth="public", website=True)
     def confirm_order(self, **post):
         order = request.website.sale_get_order()

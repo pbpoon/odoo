@@ -1,3 +1,163 @@
+odoo.define('website_sale.process_checkout', function (require) {
+'use strict';
+
+var rootWidget = require('web_editor.root_widget');
+var concurrency = require('web.concurrency');
+var Widget = require('web.Widget');
+var ajax = require('web.ajax');
+var websiteRootData = require('website.WebsiteRoot');
+
+var websiteNavbarRegistry = new rootWidget.RootWidgetRegistry();
+console.log('loaded');
+var WebsiteCheckout = rootWidget.RootWidget.extend({
+    events: _.extend({}, rootWidget.RootWidget.prototype.events || {}, {
+        'submit form.checkout_process_address': '_submit_form',
+        // 'click [data-action]': '_onActionMenuClick',
+        // 'mouseover > ul > li.dropdown:not(.open)': '_onMenuHovered',
+        // 'click .o_mobile_menu_toggle': '_onMobileMenuToggleClick',
+    }),
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * As the WebsiteNavbar instance is designed to be unique, the associated
+     * registry has been instantiated outside of the class and is simply
+     * returned here.
+     *
+     * @override
+     */
+    _getRegistry: function () {
+        return websiteNavbarRegistry;
+    },
+
+
+    _form_to_dict: function () {
+        return this.$('input,select').not('.ignore').serializeArray().reduce(
+            function(a, x) { a[x.name] = x.value; return a; }, {}
+        );
+    },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * Searches for the automatic widget {@see RootWidget} which can handle that
+     * action.
+     *
+     * @private
+     * @param {string} actionName
+     * @param {Array} params
+     * @returns {Deferred}
+     */
+
+    _disable_submit: function () {
+        var $submit_button = this.$('.a-submit');
+        if ($submit_button.hasClass('a-submit-disable')){
+            $submit_button.addClass("disabled");
+        }
+        if ($submit_button.hasClass('a-submit-loading')){
+            var loading = '<span class="fa fa-cog fa-spin"/>';
+            var fa_span = $submit_button.find('span[class*="fa"]');
+            if (fa_span.length){
+                fa_span.replaceWith(loading);
+            }
+            else{
+                $submit_button.append(loading);
+            }
+        }
+    },
+
+    _parseResponse: function(response) {
+        console.log(this.$el.id);
+        debugger;
+        if (true) { // this._parseResponse_form_id) {
+
+        }
+        else {
+            if (response.redirect) {
+                window.location = response.redirect;
+            }
+        }
+    },
+
+    _submit_form: function (ev) {
+        var $form = $(ev.currentTarget);
+        var values = this._form_to_dict($form);
+        var self = this;
+
+        this._disable_submit($form);
+
+        var def = ajax.jsonRpc($form.attr('action'), 'call', values).then(function (resp) {
+            self._parseResponse(resp, $form.id);
+        });
+
+        // this._handleAction($form.data('action')).always(function () {
+        //     $form.prop('disabled', false);
+        // });
+    },
+    /**
+     * Called when an action is asked to be executed from a child widget ->
+     * searches for the automatic widget {@see RootWidget} which can handle
+     * that action.
+     */
+    _onActionDemand: function (ev) {
+        var def = this._handleAction(ev.data.actionName, ev.data.params);
+        if (ev.data.onSuccess) {
+            def.done(ev.data.onSuccess);
+        }
+        if (ev.data.onFailure) {
+            def.fail(ev.data.onFailure);
+        }
+    },
+    /**
+     * Called in response to edit mode activation -> hides the navbar.
+     *
+     * @private
+     */
+    _onEditMode: function () {
+        var self = this;
+        this.$el.addClass('editing_mode');
+        _.delay(function () {
+            self.do_hide();
+        }, 800);
+    },
+    /**
+     * Called when a submenu is hovered -> automatically opens it if another
+     * menu was already opened.
+     *
+     * @private
+     * @param {Event} ev
+     */
+    _onMenuHovered: function (ev) {
+        var $opened = this.$('> ul > li.dropdown.open');
+        if ($opened.length) {
+            $opened.removeClass('open');
+            $(ev.currentTarget).find('.dropdown-toggle').mousedown().focus().mouseup().click();
+        }
+    },
+    /**
+     * Called when the mobile menu toggle button is click -> modifies the DOM
+     * to open the mobile menu.
+     *
+     * @private
+     */
+    _onMobileMenuToggleClick: function () {
+        this.$el.parent().toggleClass('o_mobile_menu_opened');
+    },
+});
+
+
+websiteRootData.websiteRootRegistry.add(WebsiteCheckout, '#checkout_process');
+
+return {
+    WebsiteCheckout: WebsiteCheckout,
+};
+
+});
+
 odoo.define('website_sale.cart', function (require) {
     "use strict";
 

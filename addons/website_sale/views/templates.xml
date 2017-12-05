@@ -1080,6 +1080,131 @@
         </t>
     </template>
 
+<template id="poc">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Shop - Checkout</t>
+            <t t-set="no_footer">1</t>
+            <div id="wrap">
+                <div class="container oe_website_sale">
+
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="page-header mt16 mb4">You are to 2 clicks to have your order. </h2>
+    </div>
+</div>
+                    <t t-set="same_shipping" t-value="bool(order.partner_shipping_id==order.partner_id or only_services)" />
+                    <div class="row">
+
+<div class="panel-group col-md-8 process_checkout" id="checkout_process" role="tablist" aria-multiselectable="true">
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a role="button" data-toggle="collapse" data-parent="#checkout_process" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Billing and shipping
+        </a>
+      </h4>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+        <div class="panel-body">
+            <div t-if='request.website.is_public_user()'>
+                <t t-raw='new_address'/>
+            </div>
+            <div t-else=''>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h2 class="page-header mt8">Billing Address</h2>
+                        </div>
+                        <div class="col-md-6 one_kanban">
+                            <t t-call="website_sale.address_kanban">
+                                <t t-set='contact' t-value="order.partner_id"/>
+                                <t t-set='selected' t-value="1"/>
+                                <t t-set='readonly' t-value="1"/>
+                            </t>
+                        </div>
+                    </div>
+                    <t t-if="not only_services" groups="sale.group_delivery_invoice_address">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h2 class="page-header mt16 mb4">Shipping Address
+                                </h2>
+                            </div>
+                        </div>
+                        <div class="row all_shipping">
+                            <div class="col-md-12">
+                                <div class="row mt8">
+                                    <div class="col-sm-12 col-md-12 one_kanban">
+                                        <form action="/shop/address" method="post" class=''>
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                            <a class='a-submit btn btn-default mb16 btn-block'>
+                                                <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
+                                            </a>
+                                        </form>
+                                    </div>
+                                    <t t-foreach="shippings" t-as="ship">
+                                        <div class="col-sm-12 col-md-6 one_kanban">
+                                            <t t-call="website_sale.address_kanban">
+                                                <t t-set='contact' t-value="ship"/>
+                                                <t t-set='selected' t-value="order.partner_shipping_id==ship"/>
+                                                <t t-set='readonly' t-value="bool(len(shippings)==1)"/>
+                                                <t t-set='edit_billing' t-value="bool(ship==order.partner_id)"/>
+                                            </t>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <div class="clearfix" />
+                    <div>
+                        <a href="/shop/cart" class="btn btn-default mb32">
+                            <span class="fa fa-long-arrow-left" /> Return to Cart</a>
+                        <a class="btn btn-primary pull-right mb32 " href="/shop/confirm_order">Confirm <span class="fa fa-long-arrow-right" /></a>
+                    </div>
+            </div>
+        </div>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="headingTwo">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="xcollapse" data-parent="#checkout_process" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          Payment
+        </a>
+      </h4>
+    </div>
+    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+      <div class="panel-body">
+        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="headingThree">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="xcollapse" data-parent="#checkout_process" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+          Confirmation
+        </a>
+      </h4>
+    </div>
+    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+      <div class="panel-body">
+        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+      </div>
+    </div>
+  </div>
+</div>
+
+                        <div class="col-md-4 oe_cart">
+                            <div class='row'>
+                                <u>Sumarry cart</u>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+</template>
+
     <template id="address_kanban" name="Kanban address">
             <form action="/shop/checkout" method="POST" class='hide'>
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
@@ -1110,17 +1235,11 @@
     </template>
 
     <template id="address" name="Address Management">
-        <t t-set="no_footer">1</t>
-        <t t-call="website.layout">
+
             <div id="wrap">
                 <div class="container oe_website_sale">
                     <div class="row">
-                        <div class="col-md-8 col-md-offset-2 oe_cart">
-                    <div class='row'>
-                        <t t-call="website_sale.wizard_checkout">
-                            <t t-set="step" t-value="20" />
-                        </t>
-                    </div>
+                        <div class="col-md-12 oe_cart">
                             <div class="row">
                                 <t t-if="mode == ('new', 'billing')">
                                     <h2 class="page-header mt8 ml16">Your Address
@@ -1137,7 +1256,7 @@
                                 <t t-if="error" t-foreach="error.get('error_message', [])" t-as="err">
                                     <h4 class="text-danger" t-esc="err" />
                                 </t>
-                                <form name="/shop/checkout" method="post" class="checkout_autoformat">
+                                <form name="/shop/checkout" method="post" class="checkout_process_address checkout_autoformat">
                                     <div t-attf-class="form-group #{error.get('name') and 'has-error' or ''} col-md-12 div_name">
                                         <label class="control-label" for="name">Name</label>
                                         <input type="text" name="name" class="form-control" t-att-value="'name' in checkout and checkout['name']" />
@@ -1237,7 +1356,6 @@
                     </div>
                 </div>
             </div>
-        </t>
     </template>
     <template id="payment" name="Payment">
         <t t-call="website.layout">
