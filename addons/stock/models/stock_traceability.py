@@ -121,6 +121,9 @@ class MrpStockReport(models.TransientModel):
     def make_dict_head(self, level, parent_id, model=False, move_line=False, head=False, unfoldable=True):
         res_model, res_id, ref = self.get_links(move_line)
         dummy, is_used = self.get_linked_move_lines(move_line)
+        if not move_line.lot_id:
+            unfoldable = False
+            head = False
         data = []
         if model == 'stock.move.line':
             data = [{
