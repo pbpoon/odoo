@@ -71,8 +71,12 @@ class MrpStockReport(models.TransientModel):
                 ('state', '=', 'done'),
                 ('move_id.returned_move_ids', '=', False),
             ])
-            move_line_ids = move_ids.mapped('produce_line_ids') | move_ids.mapped('consume_line_ids')
-            res = self._lines(line_id, model_id=context.get('active_id'), model=context.get('model'), level=level, obj_ids=move_line_ids)
+            res = self.env['stock.move.line']
+            for line in move_ids:
+                dummy, is_used = self.get_linked_move_lines(line)
+                if is_used:
+                    res |= is_used
+            res = self._lines(line_id, model_id=context.get('active_id'), model=context.get('model'), level=level, obj_ids=res)
         else:
             res = self._lines(line_id,  model_id=model_id, model=model, level=level)
         final_vals = sorted(res, key=lambda v: v['date'], reverse=True)
