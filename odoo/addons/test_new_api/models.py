@@ -326,6 +326,18 @@ class Related(models.Model):
     related_name = fields.Char(related='name')
     related_related_name = fields.Char(related='related_name')
 
+class ComputeTesting(models.Model):
+    _name = 'test_new_api.compute_testing'
+    computed_field = fields.Char(compute='_test_compute')
+    source = fields.Char(default='')
+
+    @api.depends('source')
+    def _test_compute(self):
+        for record in self:
+            if record.source == 'protected':
+                assert("Must not execute this protected field")
+            else:
+                record.computed_field = 'Not protected'
 
 class ComputeInverse(models.Model):
     _name = 'test_new_api.compute.inverse'
@@ -345,6 +357,35 @@ class ComputeInverse(models.Model):
         self.counts['inverse'] += 1
         for record in self:
             record.foo = record.bar
+
+class MultiComputeInverse(models.Model):
+    """
+    Test for inverse and compute interactions.
+    """
+    _name = 'test_new_api.multi_compute_inverse'
+    counts = {'compute': 0, 'inverse1': 0, 'inverse23': 0}
+
+    base_field = fields.Char(default='', required=True)
+    substr1 = fields.Char(compute='_compute_substrs', inverse='_inv_substr1', store=True)
+    substr2 = fields.Char(compute='_compute_substrs', inverse='_inv_substr23', store=True)
+    substr3 = fields.Char(compute='_compute_substrs', inverse='_inv_substr23', store=True)
+
+    @api.depends('base_field')
+    def _compute_substrs(self):
+        self.counts['compute'] += 1
+        for record in self:
+            substrs = record.base_field.split('/') + ['', '', '']
+            record.substr1, record.substr2, record.substr3 = substrs[0:3]
+
+    def _inv_substr1(self):
+        self.counts['inverse1'] += 1
+        for record in self:
+            record.write({'base_field': '/'.join([record.substr1, record.substr2, record.substr3])})
+
+    def _inv_substr23(self):
+        self.counts['inverse23'] += 1
+        for record in self:
+            record.write({'base_field': '/'.join([record.substr1, record.substr2, record.substr3])})
 
 class ComputeReadWrite(models.Model):
     """
@@ -393,7 +434,7 @@ class ComputeReadWrite(models.Model):
             if not record.parent:
                 record.formatted_ids = "%s" % record.id
             else:
-                record.formatted_ids = "%s / " % record.id + record.parent.formatted_ids
+                record.formatted_ids = "%s / " % record.id + record.parent.formatted_ids or ''
 
     @api.multi
     @api.depends('write_date', 'author.name')

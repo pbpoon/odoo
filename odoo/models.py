@@ -2313,6 +2313,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         # 4. initialize more field metadata
         cls._field_computed = {}            # fields computed with the same method
+        cls._field_inversed = {}            # fields inversed with the same method
         cls._field_inverses = Collector()   # inverse fields for related fields
         cls._field_triggers = Collector()   # list of (field, path) to invalidate
 
@@ -2342,13 +2343,18 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             del cls._fields[name]
             delattr(cls, name)
 
-        # map each field to the fields computed with the same method
-        groups = defaultdict(list)
+        # map each field to the fields computed and inversed with the same method
+        compute_groups = defaultdict(list)
+        inverse_groups = defaultdict(list)
         for field in cls._fields.values():
             if field.compute:
-                cls._field_computed[field] = group = groups[field.compute]
-                group.append(field)
-        for fields in groups.values():
+                cls._field_computed[field] = compute_group = compute_groups[field.compute]
+                compute_group.append(field)
+            if field.inverse:
+                cls._field_inversed[field] = inverse_group = inverse_groups[field.inverse]
+                inverse_group.append(field.inverse)
+
+        for fields in compute_groups.values():
             compute_sudo = fields[0].compute_sudo
             if not all(field.compute_sudo == compute_sudo for field in fields):
                 _logger.warning("%s: inconsistent 'compute_sudo' for computed fields: %s",
@@ -2986,6 +2992,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             elif field.inverse:
                 inverse_vals[key] = val
                 protected_fields.append(field)
+                protected_fields.extend(self._field_computed.get(field, []))
             if field.store and field.compute and not field.readonly:
                 protected_fields.append(field)
 
@@ -3019,8 +3026,17 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 self.modified(set(inverse_vals) - set(store_vals))
                 for record in self:
                     record._cache.update(record._convert_to_cache(inverse_vals, update=True))
+
+                #Call all needed inverse once.
+                inverses = set()
                 for key in inverse_vals:
-                    self._fields[key].determine_inverse(self)
+                    inverses |= set(self._field_inversed[self._fields[key]])
+                for inverse in inverses:
+                    if isinstance(inverse, pycompat.string_types):
+                        getattr(self, inverse)()
+                    else:
+                        inverse(self)
+
                 self.modified(set(inverse_vals) - set(store_vals))
 
                 # check Python constraints for inversed fields
@@ -3187,6 +3203,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             elif field.inverse:
                 inverse_vals[key] = val
                 protected_fields.append(field)
+                protected_fields.extend(self._field_computed.get(field, []))
             if field.store and field.compute and not field.readonly:
                 protected_fields.append(field)
 
@@ -3209,8 +3226,17 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         with self.env.protecting(protected_fields, record):
             # put the values of inverse fields in cache, and inverse them
             record._cache.update(record._convert_to_cache(inverse_vals))
+
+            #Call all needed inverse once.
+            inverses = set()
             for key in inverse_vals:
-                self._fields[key].determine_inverse(record)
+                inverses |= set(self._field_inversed[self._fields[key]])
+            for inverse in inverses:
+                if isinstance(inverse, pycompat.string_types):
+                    getattr(record, inverse)()
+                else:
+                    inverse(record)
+
             record.modified(set(inverse_vals) - set(store_vals))
 
             # check Python constraints for inversed fields

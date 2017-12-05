@@ -60,6 +60,18 @@ class TestFields(common.TransactionCase):
         self.assertTrue(field.store)
         self.assertTrue(field.readonly)
 
+        record = self.env['test_new_api.compute_testing'].create({'source': 'unprotected'})
+        record.write({'source': 'unprotected too'})
+        with record.env.protecting(['computed_field'], record):
+            record.write({'source': 'protected'})
+
+        record.write({'source': 'not protected anymore'})
+
+        record = self.env['test_new_api.compute_testing']
+        with record.env.protecting(['computed_field'], record):
+            record = record.create({'source': 'unprotected'})
+        record.write({'source': 'not protected anymore'})
+
     def test_10_non_stored(self):
         """ test non-stored fields """
         # a field declared with store=False should not have a column
@@ -259,6 +271,39 @@ class TestFields(common.TransactionCase):
         self.assertEqual(record.foo, 'Ho')
         self.assertEqual(record.bar, 'Ho')
         self.assertEqual(record.counts, {'compute': 0, 'inverse': 1})
+
+        # Test compatibility multiple compute/inverse fields
+        record = self.env['test_new_api.multi_compute_inverse'].create({
+            'substr1': '1',
+            'substr2': '2',
+            'substr3': '3',
+        })
+        self.assertEqual(record.base_field, '1/2/3')
+        self.assertEqual(record.substr1, '1')
+        self.assertEqual(record.substr2, '2')
+        self.assertEqual(record.substr3, '3')
+        self.assertEqual(record.counts, {'compute': 0, 'inverse1': 1, 'inverse23': 1})
+
+        record.write({'substr2': '4', 'substr3': '5'})
+        self.assertEqual(record.base_field, '1/4/5')
+        self.assertEqual(record.substr1, '1')
+        self.assertEqual(record.substr2, '4')
+        self.assertEqual(record.substr3, '5')
+        self.assertEqual(record.counts, {'compute': 0, 'inverse1': 1, 'inverse23': 2})
+
+        record.write({'substr1': '6', 'substr2': '7'})
+        self.assertEqual(record.base_field, '6/7/5')
+        self.assertEqual(record.substr1, '6')
+        self.assertEqual(record.substr2, '7')
+        self.assertEqual(record.substr3, '5')
+        self.assertEqual(record.counts, {'compute': 0, 'inverse1': 2, 'inverse23': 3})
+
+        record.write({'base_field': 'A/B/C'})
+        self.assertEqual(record.base_field, 'A/B/C')
+        self.assertEqual(record.substr1, 'A')
+        self.assertEqual(record.substr2, 'B')
+        self.assertEqual(record.substr3, 'C')
+        self.assertEqual(record.counts, {'compute': 1, 'inverse1': 2, 'inverse23': 3})
 
     def test_14_search(self):
         """ test search on computed fields """
