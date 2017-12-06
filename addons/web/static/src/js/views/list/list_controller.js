@@ -103,6 +103,9 @@ var ListController = BasicController.extend({
             return self.model.get(db_id, {raw: true});
         });
     },
+    on_attach_callback: function () {
+        this.renderer.on_attach_callback();
+    },
     /**
      * Display and bind all buttons in the control panel
      *
