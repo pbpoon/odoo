@@ -51,10 +51,11 @@
             <div class="input-group">
               <input type="text" class="form-control o_input" placeholder="Column title"/>
               <span class="input-group-btn">
-                <button class="btn btn-primary o_kanban_add" type="button">Add</button>
+                <button class="btn btn-sm btn-primary o_kanban_add" type="button">Add Column</button>
               </span>
             </div>
-            <span class="btn-link exampleDialog">See Example</span>
+            <span class="btn-link exampleDialog">See Examples</span>
+            <span class="pull-right text-muted">or Esc to cancel</span>
         </div>
     </div>
 </t>
@@ -119,17 +120,22 @@
 
 <t t-name="KanbanColumn.KananGuideDialog">
     <div class='container'>
-        <div class="col-md-6">
-            <ul>
+        <div class="col-md-2 stage_navigation">
+            <ul class="nav nav-pills nav-stacked">
                 <t t-foreach="data" t-as="stage">
-                    <li><t t-esc="stage.title"/>
-                        <ul>
-                            <li><t t-esc="stage.stages"/></li>
-                            <li><t t-esc="stage.foot_note"/></li>
-                        </ul>
-                    </li>
+                    <li><a data-toggle="tab" t-att-href="'#' + stage.id"><t t-esc="stage.title"/></a></li>
                 </t>
             </ul>
+        </div>
+        <div class="col-md-8 stage_container">
+            <div class="tab-content">
+                <t t-foreach="data" t-as="stage">
+                    <div t-att-id="stage.id" class="tab-pane fade">
+                        <h3><t t-esc="stage.stages"/></h3>
+                        <p><t t-esc="stage.foot_note"/></p>
+                    </div>
+                </t>
+            </div>
         </div>
     </div>
 </t>

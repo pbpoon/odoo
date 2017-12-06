@@ -11,6 +11,10 @@ var BasicController = require('web.BasicController');
 var Context = require('web.Context');
 var core = require('web.core');
 var view_dialogs = require('web.view_dialogs');
+var Dialog = require('web.Dialog');
+var QWeb = core.qweb;
+var KanbanStageRegistry = require('web.KanbanStageRegistry');
+
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -30,6 +34,7 @@ var KanbanController = BasicController.extend({
         kanban_load_more: '_onLoadMore',
         kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
+        open_example_Dialog: '_openExampleDialog',
     }),
     /**
      * @override
@@ -42,6 +47,7 @@ var KanbanController = BasicController.extend({
         this.hasButtons = params.hasButtons;
 
         this.createColumnEnabled = this._isCreateColumnEnabled();
+        this.stageTag = params.stageHelpTag;
     },
 
     //--------------------------------------------------------------------------
@@ -283,6 +289,14 @@ var KanbanController = BasicController.extend({
                     self.reload();
                 }
             });
+    },
+    _openExampleDialog: function (event) {
+        this.data = KanbanStageRegistry.get(this.stageTag);
+        new Dialog(this, {
+            size: "large",
+            buttons: false,
+            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.data}),
+        }).open();
     },
     /**
      * Loads the record of a given column (used in mobile, as the columns are

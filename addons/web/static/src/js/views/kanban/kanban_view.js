@@ -73,6 +73,7 @@ var KanbanView = BasicView.extend({
         };
 
         this.controllerParams.on_create = arch.attrs.on_create;
+        this.controllerParams.stageHelpTag = arch.attrs.stage_help_tag;
 
         this.controllerParams.readOnlyMode = false;
         this.controllerParams.hasButtons = true;

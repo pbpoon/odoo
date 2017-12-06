@@ -10,16 +10,19 @@ var QWeb = core.qweb;
 var _t = core._t;
 
 KanbanStageRegistry.add('project',{
+    id:'stage_1',
     title: 'Stage 1',
     stages: ['Column 1','Column 2','Column 3','Column 4'],
     foot_note: 'Something should inside footer',
 });
 KanbanStageRegistry.add('project',{
+    id:'stage_2',
     title: 'Stage 2',
     stages: ['Column 1','Column 2','Column 3','Column 4'],
     foot_note: 'Something should inside footer',
 });
 KanbanStageRegistry.add('project',{
+    id:'stage_3',
     title: 'Stage 3',
     stages: ['Column 1','Column 2','Column 3','Column 4'],
     foot_note: 'Something should inside footer',

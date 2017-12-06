@@ -225,9 +225,10 @@ var RecordQuickCreate = AbstractQuickCreate.extend({
 var ColumnQuickCreate = AbstractQuickCreate.extend({
     template: 'KanbanView.ColumnQuickCreate',
     events: _.extend({}, AbstractQuickCreate.prototype.events, {
-        'click': 'toggleFold',
+        'click .o_column_header': 'toggleFold',
         'click input': '_onInputClicked',
-        'focusout': '_onFocusout',
+        'click .exampleDialog': '_openDialogTrigger'
+        // 'focusout': '_onFocusout',
     }),
     /**
      * @override
@@ -254,6 +255,7 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      * Toggle fold/unfold the Column quick create widget
      */
     toggleFold: function () {
+        console.log('toggleFold.....................');
         this.folded = !this.folded;
         this._update();
         if (!this.folded) {
@@ -294,6 +296,7 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      * @private
      */
     _onFocusout: function () {
+        console.log('_onFocusout........................');
         var hasFocus = this.$(':focus').length > 0;
         if (hasFocus) {
             return;
@@ -311,6 +314,9 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      */
     _onInputClicked: function (event) {
         event.stopPropagation();
+    },
+    _openDialogTrigger: function (event) {
+        this.trigger_up('open_example_Dialog');
     },
 });
 
