@@ -452,7 +452,7 @@ class HrExpenseSheet(models.Model):
     employee_id = fields.Many2one('hr.employee', string="Employee", required=True, readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1))
     address_id = fields.Many2one('res.partner', string="Employee Home Address")
     payment_mode = fields.Selection([("own_account", "Employee (to reimburse)"), ("company_account", "Company")], related='expense_line_ids.payment_mode', default='own_account', readonly=True, string="Paid By")
-    responsible_id = fields.Many2one('res.users', 'Manager', readonly=True, copy=False, states={'submit': [('readonly', False)]}, track_visibility='onchange')
+    user_id = fields.Many2one('res.users', 'Manager', readonly=True, copy=False, states={'submit': [('readonly', False)]}, track_visibility='onchange')
     total_amount = fields.Monetary('Total Amount', currency_field='currency_id', compute='_compute_amount', store=True, digits=dp.get_precision('Account'))
     company_id = fields.Many2one('res.company', string='Company', readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env.user.company_id)
     currency_id = fields.Many2one('res.currency', string='Currency', readonly=True, states={'submit': [('readonly', False)]}, default=lambda self: self.env.user.company_id.currency_id)
@@ -489,8 +489,6 @@ class HrExpenseSheet(models.Model):
         self.check_consistency()
         if vals.get('employee_id'):
             self._add_followers()
-        if vals.get('responsible_id'):
-            self.message_subscribe([self.responsible_id.partner_id.id])
         return res
 
     @api.multi
@@ -515,7 +513,7 @@ class HrExpenseSheet(models.Model):
             return 'hr_expense.mt_expense_refused'
         elif 'state' in init_values and self.state == 'done':
             return 'hr_expense.mt_expense_paid'
-        elif 'responsible_id' in init_values:
+        elif 'user_id' in init_values:
             return 'hr_expense.mt_expense_responsible'
         return super(HrExpenseSheet, self)._track_subtype(init_values)
 
@@ -548,15 +546,11 @@ class HrExpenseSheet(models.Model):
         for partner in users.mapped('partner_id'):
             values['message_follower_ids'] += MailFollowers._add_follower_command(self._name, [], {partner.id: None}, {})[0]
         
-        if values.get('responsible_id') and values.get('responsible_id') != values.get('employee_id'):
-            resp_partner = self.env['res.users'].browse(values['responsible_id'])
-            values['message_follower_ids'] += MailFollowers._add_follower_command(self._name, [], {resp_partner.partner_id.id: None}, {})[0]
-
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         self.address_id = self.employee_id.address_home_id
         self.department_id = self.employee_id.department_id
-        self.responsible_id = self.employee_id.expense_manager_id
+        self.user_id = self.employee_id.expense_manager_id
 
     @api.depends('expense_line_ids.total_amount_company')
     def _compute_amount(self):
@@ -574,7 +568,7 @@ class HrExpenseSheet(models.Model):
 
     @api.one
     def _compute_is_expense_responsible(self):
-        self.is_user_the_expense_responsible = self.env.user.id == self.responsible_id.id
+        self.is_user_the_expense_responsible = self.env.user.id == self.user_id.id
 
     @api.multi
     def refuse_sheet(self, reason):
@@ -589,8 +583,8 @@ class HrExpenseSheet(models.Model):
     def approve_expense_sheets(self):
         if not self.user_has_groups('hr_expense.group_hr_expense_user'):
             raise UserError(_("Only HR Officers can approve expenses"))
-        responsible = self.responsible_id.id or self.env.user.id
-        self.write({'state': 'approve', 'responsible_id': responsible})
+        responsible = self.user_id.id or self.env.user.id
+        self.write({'state': 'approve', 'user_id': responsible})
 
     @api.multi
     def paid_expense_sheets(self):
