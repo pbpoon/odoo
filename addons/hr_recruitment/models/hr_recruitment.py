@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from datetime import datetime
-
+from datetime import datetime, date, timedelta
 from odoo import api, fields, models, tools, SUPERUSER_ID
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT
 
 AVAILABLE_PRIORITIES = [
     ('0', 'Normal'),
@@ -434,6 +434,40 @@ class Applicant(models.Model):
         if employee:
             dict_act_window['res_id'] = employee.id
         dict_act_window['view_mode'] = 'form,tree'
+        if len(self) == 1: #only if we create one employee: print rainbow
+            #case of fast recruitment (priority 3)
+            if  (datetime.strptime(self.create_date, '%Y-%m-%d %H:%M:%S') + timedelta(days=7)).date() > date.today():
+                dict_act_window['effect'] = {
+                        'fadeout': 'slow',
+                        'img_url': '/web/static/src/img/smile.svg',
+                        'message': "Only %d days from the application to the recruitment!" %((date.today() - datetime.strptime(self.create_date, '%Y-%m-%d %H:%M:%S').date()).days),
+                        'type': "rainbow_man"
+                }
+            #case of reached recruitment goal for job position (priority 2)
+            if self.job_id and self.job_id.no_of_recruitment:
+                date_start_month = fields.Date.to_string(date(date.today().year, date.today().month, 1))
+                if len(self.search(['&', ('employee_name', '!=', False), ('job_id', '=', self.job_id.id), ('create_date', '>=', date_start_month)])) == self.job_id.no_of_recruitment:
+                    dict_act_window['effect'] = {
+                            'fadeout': 'slow',
+                            'img_url': '/web/static/src/img/smile.svg',
+                            'message': "Great! %d out of %d! You've reached your goal for this job position" %(self.job_id.no_of_recruitment, self.job_id.no_of_recruitment),
+                            'type': "rainbow_man"
+                    }
+            #case of personal record per month (priority 2)
+            applicants = self.env['hr.applicant'].read_group(['&', ('create_uid.id', '=', self.env.uid), ('employee_name', '!=', False)], ['create_date'], ['create_date:month'], lazy=False)
+            max_found_in_a_month = 0
+            best_month = ""
+            for month in applicants:
+                if month['__count'] > max_found_in_a_month:
+                    max_found_in_a_month = month['__count']
+                    best_month = month['create_date:month']
+            if best_month == date.today().strftime('%B %Y'):
+                dict_act_window['effect'] = {
+                        'fadeout': 'slow',
+                        'img_url': '/web/static/src/img/smile.svg',
+                        'message': "Congrats! It's your %d new employees this month!" %(max_found_in_a_month),
+                        'type': "rainbow_man"
+                }
         return dict_act_window
 
     @api.multi
