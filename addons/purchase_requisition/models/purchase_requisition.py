@@ -67,7 +67,7 @@ class PurchaseRequisition(models.Model):
     description = fields.Text()
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env['res.company']._company_default_get('purchase.requisition'))
     purchase_ids = fields.One2many('purchase.order', 'requisition_id', string='Purchase Orders', states={'done': [('readonly', True)]})
-    line_ids = fields.One2many('purchase.requisition.line', 'requisition_id', string='Products to Purchase', states={'done': [('readonly', True)]}, copy=True)
+    line_ids = fields.One2many('purchase.requisition.line', 'requisition_id', string='Products to Purchase', states={'done': [('readonly', True)]}, copy=True, on_delete='cascade')
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
     state = fields.Selection(PURCHASE_REQUISITION_STATES,
                               'Status', track_visibility='onchange', required=True,
@@ -187,8 +187,6 @@ class PurchaseRequisition(models.Model):
     def unlink(self):
         if any(requisition.state not in ('draft', 'cancel') for requisition in self):
             raise UserError(_('You can only delete draft requisitions.'))
-        # Draft requisitions could have some requisition lines.
-        self.mapped('requisition_line_ids').unlink()
         return super(PurchaseRequisition, self).unlink()
 
 class SupplierInfo(models.Model):
