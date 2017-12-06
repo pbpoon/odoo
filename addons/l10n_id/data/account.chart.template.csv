@@ -1,0 +1,2 @@
+"id","name","property_account_receivable_id:id","property_account_payable_id:id","property_account_expense_categ_id:id","property_account_income_categ_id:id","income_currency_exchange_account_id:id","expense_currency_exchange_account_id:id","use_anglo_saxon","currency_id:id"
+"l10n_id","ID Tax and Account Chart Template (by vitraining.com)","id_1-121001","id_2-110001","id_5-100001","id_4-100001","id_8-110001","id_9-110001","True","base.IDR"
