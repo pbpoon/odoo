@@ -42,7 +42,7 @@ var ReportWidget = Widget.extend({
                 active_id : $el.data('model_id'),
                 active_model : $el.data('model'),
                 autofold: true,
-                lot_id: $el.data('lot_id').toString(),
+                lot_name: $el.data('lot_name').toString(),
                 url: '/stock/output_format/stock/active_id'
             },
         });
@@ -73,7 +73,7 @@ var ReportWidget = Widget.extend({
         $(e.target).parents('tr').find('span.o_stock_reports_foldable').replaceWith(QWeb.render("unfoldable", {lineId: active_id}));
         $(e.target).parents('tr').toggleClass('o_stock_reports_unfolded');
     },
-    autounfold: function(target, lot_id) {
+    autounfold: function(target, lot_name) {
         var self =this;
         var $CurretElement;
         $CurretElement = $(target).parents('tr').find('td.o_stock_reports_unfoldable');
@@ -96,8 +96,8 @@ var ReportWidget = Widget.extend({
                 _.each(lines, function (line) {
                     $cursor.after(QWeb.render("report_mrp_line", {l: line}));
                     $cursor = $cursor.next();
-                    if ($cursor && line.unfoldable && line.lot_id == lot_id) {
-                        self.autounfold($cursor.find(".fa-caret-right"), lot_id);
+                    if ($cursor && line.unfoldable && line.lot_name == lot_name) {
+                        self.autounfold($cursor.find(".fa-caret-right"), lot_name);
                     }
                 });
             });
