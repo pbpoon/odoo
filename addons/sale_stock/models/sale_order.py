@@ -99,7 +99,10 @@ class SaleOrderLine(models.Model):
 
         for line in self:
             if line.product_id.type in ['consu', 'product']:
-                line.qty_delivered_method = 'stock_move'
+                if line.product_id.expense_policy == 'no':
+                    line.qty_delivered_method = 'stock_move'
+                else:
+                    line.qty_delivered_method = 'analytic'
 
     @api.multi
     @api.depends('move_ids.state', 'move_ids.scrapped', 'move_ids.product_uom_qty', 'move_ids.product_uom')
