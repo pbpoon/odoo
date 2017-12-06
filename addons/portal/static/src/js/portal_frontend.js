@@ -1,14 +1,14 @@
-odoo.define('account_portal_invoices.account_portal_invoices', function (require) {
+odoo.define('o_has_portal_frontend.o_has_portal_frontend', function (require) {
 'use strict';
 
 require('web.dom_ready');
 var config = require('web.config');
 
-if(!$('.o_account_portal_invoices').length) {
-    return $.Deferred().reject("DOM doesn't contain '.o_account_portal_invoices'");
+if(!$('.o_has_portal_frontend').length) {
+    return $.Deferred().reject("DOM doesn't contain '.o_has_portal_frontend'");
 }
 
-var $bs_sidebar = $(".o_account_portal_invoices .bs-sidebar");
+var $bs_sidebar = $(".o_has_portal_frontend .bs-sidebar");
     $(window).on('resize', _.throttle(adapt_sidebar_position, 200, {leading: false}));
     adapt_sidebar_position();
 

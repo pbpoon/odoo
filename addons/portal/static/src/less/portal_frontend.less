@@ -76,3 +76,72 @@
 .label-optional {
     font-weight: normal;
 }
+
+.o_has_portal_frontend {
+    .bs-sidebar {
+        position: relative;
+        width: 100%;
+        z-index : 1;
+        background-color: #f7f5fa;
+        border-radius: 5px;
+
+        .nav {
+            >li {
+                >a {
+                    display: block;
+                    color: #716b7a;
+                    padding: 5px 20px;
+                }
+            }
+            >.active, &.active:hover, &.active:focus {
+                >a {
+                    font-weight: bold;
+                    color: #563d7c;
+                    background-color: transparent;
+                    border-right: 1px solid #563d7c;
+                }
+            }
+            .nav {
+                display: none;
+                margin-bottom: 8px;
+
+                >li >a {
+                        padding-top: 3px;
+                        padding-bottom: 3px;
+                        padding-left: 30px;
+                        font-size: 90%;
+                    }
+            }
+        }
+
+    }
+}
+
+    .bs-sidenav {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+.ap-table {
+    table-layout: auto;
+
+    th, td {
+        border-top: none;
+    }
+}
+
+.ap-table:not(:first-of-type) thead {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .o_has_portal_frontend .bs-sidebar .nav > .active > ul {
+    display: block;
+  }
+}
+
+@media print {
+    body {
+        padding : 0;
+    }
+}

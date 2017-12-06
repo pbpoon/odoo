@@ -1,8 +1,8 @@
 <odoo>
     <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
-            <script type="text/javascript" src="/account/static/src/js/account_portal_invoices.js"></script>
-            <link rel='stylesheet' href='/account/static/src/css/account_portal_invoices.css'/>
+            <script type="text/javascript" src="/portal/static/src/js/portal_frontend.js"></script>
+            <link rel="stylesheet" type="text/less" href="/portal/static/src/less/portal_frontend.less"/>
             <li t-if="page_name == 'invoice'" class="active">
                 <a t-if="invoice" t-attf-href="/my/invoices?{{ keep_query() }}">Invoices</a>
                 <t t-else="">Invoices</t>
@@ -73,7 +73,7 @@
     <template id="portal_invoice_page" name="Invoice Portal Template">
         <t t-call="portal.portal_layout">
             <body data-spy="scroll" data-target=".navspy" data-offset="50">
-            <div class="container o_account_portal_invoices">
+            <div class="container o_has_portal_frontend">
                 <div class="row mt16">
                 <!-- Sidebar -->
                 <div class="col-md-3 hidden-print">
