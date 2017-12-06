@@ -728,6 +728,52 @@ class ResourceCalendarLeaves(models.Model):
         "resource.resource", 'Resource',
         help="If empty, this is a generic holiday for the company. If a resource is set, the holiday/leave is only for this resource")
 
+    @api.model
+    def create(self, values):
+        try:
+            infos = values.pop('leave_infos')
+        except KeyError:
+            return super(ResourceCalendarLeaves, self).create(values)
+
+        date_from = False
+        date_to = False
+
+        unit = infos['unit']
+
+        if unit == 'day':
+            # Entire day is taken
+            day = infos['date_from']
+            # TODO: Check the limits of a day
+            date_from = datetime.datetime.combine(fields.Date.from_string(day), datetime.time(9))
+            date_to = datetime.datetime.combine(fields.Date.from_string(day), datetime.time(17))
+        elif unit == 'half':
+            # Half a day is taken
+            day = infos['date_from']
+            date_from_am_pm = infos['date_from_am_pm']
+            # TODO: Check the limits of a day
+            date_from = datetime.datetime.combine(fields.Date.from_string(day), datetime.time(9) if date_from_am_pm == 'am' else datetime.time(12))
+            date_to = datetime.datetime.combine(fields.Date.from_string(day), datetime.time(12) if date_from_am_pm == 'am' else datetime.time(17))
+        elif unit == 'period':
+            method = infos['method']
+            fr, to = infos['date_from'], infos['date_to']
+
+            if method == 'day':
+                date_from = datetime.datetime.combine(fields.Date.from_string(fr), datetime.time(9))
+                date_to = datetime.datetime.combine(fields.Date.from_string(to), datetime.time(17))
+            elif method == 'half':
+                date_from_am_pm, date_to_am_pm = infos['date_from_am_pm'], infos['date_to_am_pm']
+
+                date_from = datetime.datetime.combine(fields.Date.from_string(fr), datetime.time(9) if date_from_am_pm == 'am' else datetime.time(12))
+                date_to = datetime.datetime.combine(fields.Date.from_string(to), datetime.time(12) if date_to_am_pm == 'am' else datetime.time(17))
+            elif method == 'hour':
+                date_from = fields.Datetime.from_string(fr)
+                date_to = fields.Datetime.from_string(to)
+
+        values['date_from'] = fields.Datetime.to_string(date_from)
+        values['date_to'] = fields.Datetime.to_string(date_to)
+
+        return super(ResourceCalendarLeaves, self).create(values)
+
     @api.constrains('date_from', 'date_to')
     def check_dates(self):
         if self.filtered(lambda leave: leave.date_from > leave.date_to):

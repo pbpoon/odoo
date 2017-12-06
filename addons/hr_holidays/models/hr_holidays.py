@@ -5,7 +5,7 @@
 
 import logging
 import math
-from datetime import timedelta
+from datetime import timedelta, datetime, time
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, AccessError, ValidationError
@@ -84,6 +84,12 @@ class HolidaysType(models.Model):
     validity_stop = fields.Date(string='End Date')
 
     valid = fields.Boolean(compute='_compute_valid', search='_search_valid')
+
+    method = fields.Selection([('day', 'Day'),
+                               ('half', 'Half day'),
+                               ('hour', 'Hour')],
+                              default='day', string='Take Leaves in',
+                              required=True)
 
     @api.multi
     @api.depends('validation_type')
@@ -263,6 +269,80 @@ class Holidays(models.Model):
     double_validation = fields.Boolean('Apply Double Validation', related='holiday_status_id.double_validation')
     can_reset = fields.Boolean('Can reset', compute='_compute_can_reset')
 
+    # Those fields are mostly for the interface only
+
+    date_from_date = fields.Date()
+    date_to_date = fields.Date()
+
+    method = fields.Selection(related='holiday_status_id.method', store=True)
+
+    date_from_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')])
+    date_to_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')])
+
+    unit = fields.Selection([('half', 'Half Day'),
+                             ('day', '1 Day'),
+                             ('period', 'Period')],
+                            default='day')
+    unit_day = fields.Selection([('day', '1 Day'),
+                                 ('period', 'Period')],
+                                default='day')
+
+    def calc_days_temp(self):
+        if self.unit == 'day' and self.date_from_date:
+            self.number_of_days_temp = 1
+        if self.unit == 'half' and self.date_from_date and self.date_from_am_pm:
+            self.number_of_days_temp = .5
+        if self.unit == 'period':
+            is_set = (self.date_from and self.date_to)
+            is_set_date = (self.date_from_date and self.date_to_date)
+
+            date_from = False
+            date_to = False
+
+            if self.method == 'day' and is_set_date:
+                date_from = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_from_date), time(9)))
+                date_to = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_to_date), time(17)))
+            if self.method == 'half' and is_set_date:
+                date_from = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_from_date), time(9 if self.date_from_am_pm == 'am' else 12)))
+                date_to = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_to_date), time(12 if self.date_to_am_pm == 'am' else 17)))
+            if self.method == 'hour' and is_set:
+                date_from = self.date_from
+                date_to = self.date_to
+
+            if date_from and date_to:
+                self.number_of_days_temp = self._get_number_of_days(date_from, date_to, self.employee_id.id)
+            else:
+                self.number_of_days_temp = 0
+
+    @api.onchange('unit')
+    def _onchange_unit(self):
+        self.calc_days_temp()
+
+    @api.onchange('unit_day')
+    def _onchange_unit_day(self):
+        self.unit = self.unit_day
+        self.calc_days_temp()
+
+    @api.onchange('date_from_date')
+    def _onchange_date_from_date(self):
+        if self.date_from_date:
+            self.date_from = self.date_from_date
+        self.calc_days_temp()
+
+    @api.onchange('date_to_date')
+    def _onchange_date_to_date(self):
+        if self.date_to_date:
+            self.date_to = self.date_to_date
+        self.calc_days_temp()
+
+    @api.onchange('date_from_am_pm')
+    def _onchange_date_from_am_pm(self):
+        self.calc_days_temp()
+
+    @api.onchange('date_to_am_pm')
+    def _onchange_date_to_am_pm(self):
+        self.calc_days_temp()
+
     @api.multi
     @api.depends('number_of_days_temp', 'type')
     def _compute_number_of_days(self):
@@ -348,34 +428,13 @@ class Holidays(models.Model):
 
     @api.onchange('date_from')
     def _onchange_date_from(self):
-        """ If there are no date set for date_to, automatically set one 8 hours later than
-            the date_from. Also update the number_of_days.
-        """
-        date_from = self.date_from
-        date_to = self.date_to
-
-        # No date_to set so far: automatically compute one 8 hours later
-        if date_from and not date_to:
-            date_to_with_delta = fields.Datetime.from_string(date_from) + timedelta(hours=HOURS_PER_DAY)
-            self.date_to = str(date_to_with_delta)
-
-        # Compute and update the number of days
-        if (date_to and date_from) and (date_from <= date_to):
-            self.number_of_days_temp = self._get_number_of_days(date_from, date_to, self.employee_id.id)
-        else:
-            self.number_of_days_temp = 0
+        self.date_from_date = self.date_from
+        self.calc_days_temp()
 
     @api.onchange('date_to')
     def _onchange_date_to(self):
-        """ Update the number_of_days. """
-        date_from = self.date_from
-        date_to = self.date_to
-
-        # Compute and update the number of days
-        if (date_to and date_from) and (date_from <= date_to):
-            self.number_of_days_temp = self._get_number_of_days(date_from, date_to, self.employee_id.id)
-        else:
-            self.number_of_days_temp = 0
+        self.date_to_date = self.date_to
+        self.calc_days_temp()
 
     ####################################################
     # ORM Overrides methods
@@ -408,6 +467,9 @@ class Holidays(models.Model):
     @api.model
     def create(self, values):
         """ Override to avoid automatic logging of creation """
+        if values.get('type') == 'remove' and values.get('unit', 'period') != 'period':
+            td = fields.Date.from_string(values['date_to']) - fields.Date.from_string(values['date_from'])
+            values['date_to'] = fields.Datetime.to_string(fields.Datetime.from_string(values['date_to']) - td)
         employee_id = values.get('employee_id', False)
         if not self._check_state_access_right(values):
             raise AccessError(_('You cannot set a leave request as \'%s\'. Contact a human resource manager.') % values.get('state'))
@@ -444,13 +506,27 @@ class Holidays(models.Model):
     def _create_resource_leave(self):
         """ This method will create entry in resource calendar leave object at the time of holidays validated """
         for leave in self:
+            is_datetime = leave.method == 'hour' and leave.unit == 'period'
+            if not leave.date_from_date:
+                leave.date_from_date = leave.date_from
+                leave.date_to_date = leave.date_to
+            if leave.unit != 'period':
+                leave.date_to_date = leave.date_from_date
             self.env['resource.calendar.leaves'].create({
                 'name': leave.name,
-                'date_from': leave.date_from,
+                #'date_from': leave.date_from,
                 'holiday_id': leave.id,
-                'date_to': leave.date_to,
+                #'date_to': leave.date_to,
                 'resource_id': leave.employee_id.resource_id.id,
-                'calendar_id': leave.employee_id.resource_calendar_id.id
+                'calendar_id': leave.employee_id.resource_calendar_id.id,
+                'leave_infos': {
+                    'unit': leave.unit,
+                    'method': leave.method,
+                    'date_from': leave.date_from if is_datetime else leave.date_from_date,
+                    'date_to': leave.date_to if is_datetime else leave.date_to_date,
+                    'date_from_am_pm': leave.date_from_am_pm,
+                    'date_to_am_pm': leave.date_to_am_pm
+                }
             })
         return True
 

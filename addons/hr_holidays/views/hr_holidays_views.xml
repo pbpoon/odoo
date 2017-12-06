@@ -98,10 +98,53 @@
                             <field name="holiday_status_id" context="{'employee_id':employee_id}"/>
                             <label for="number_of_days_temp" string="Duration"/>
                             <div>
+                                <field name="method" invisible="1"/>
                                 <div attrs="{'invisible': [('type', '=', 'add')]}">
-                                    <field name="date_from" attrs="{'required':[('type', '=', 'remove')]}" class="oe_inline"/>
-                                    <label string="-" class="oe_inline"/>
-                                    <field name="date_to"  attrs="{'required':[('type', '=', 'remove')]}" class="oe_inline"/>
+                                  <field name="unit" widget="radio" attrs="{'invisible': [('method', '=', 'day')]}"/>
+                                  <field name="unit_day" widget="radio" attrs="{'invisible': [('method', '!=', 'day')]}"/>
+
+                                  <!-- By Days -->
+                                  <div attrs="{'invisible': [('method', '!=', 'day')]}">
+                                    <field name="date_from_date" class="oe_inline"/>
+                                    <span class="oe_inline" attrs="{'invisible': [('unit', '=', 'day')]}">
+                                      <label string="-" class="oe_inline"/>
+                                      <field name="date_to_date" class="oe_inline"/>
+                                    </span>
+                                  </div>
+
+                                  <!-- By Half Days -->
+                                  <div attrs="{'invisible': [('method', '!=', 'half')]}">
+                                    <div attrs="{'invisible': [('unit', '=', 'period')]}">
+                                      <field name="date_from_date" class="oe_inline"/>
+                                      <field name="date_from_am_pm" attrs="{'invisible': [('unit', '=', 'day')]}" widget="radio"/>
+                                    </div>
+                                    <div attrs="{'invisible': [('unit', '!=', 'period')]}">
+                                      <div>
+                                        From <field name="date_from_date" class="oe_inline"/>
+                                        <field name="date_from_am_pm" class="oe_inline" widget="radio"/>
+                                      </div>
+                                      <div>
+                                        To <field name="date_to_date" class="oe_inline"/>
+                                        <field name="date_to_am_pm" class="oe_inline" widget="radio"/>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- By Hours -->
+                                  <div attrs="{'invisible': [('method', '!=', 'hour')]}">
+                                    <div attrs="{'invisible': [('unit', '=', 'period')]}">
+                                      <field name="date_from_date" class="oe_inline"/>
+                                      <field name="date_from_am_pm" attrs="{'invisible': [('unit', '=', 'day')]}" widget="radio"/>
+                                    </div>
+                                    <div attrs="{'invisible': [('unit', '!=', 'period')]}">
+                                      <div>
+                                        From <field name="date_from" class="oe_inline"/>
+                                      </div>
+                                      <div>
+                                        To <field name="date_to" class="oe_inline"/>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div>
                                     <field name="number_of_days_temp" class="oe_inline"/> days
@@ -588,6 +631,7 @@
                             <group name="leave_request" string="Leave Request">
                                 <field name="limit"/>
                                 <field name="sequence" attrs="{'invisible': [('limit', '=', 'False')]}"/>
+                                <field name="method"/>
                             </group>
                             <group name="validity" string="Validity">
                                 <field name="validity_start"/>
