@@ -53,6 +53,7 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
         },
         warning: '_onDisplayWarning',
         scrollTo: 'scrollTo',
+        find_scroll_position: 'find_scroll_position',
         load_views: function (event) {
             var params = {
                 model: event.data.modelName,
@@ -404,6 +405,14 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
             this.action_manager.el.scrollTop = offset.top;
         }
         this.action_manager.el.scrollLeft = offset.left;
+    },
+
+    find_scroll_position: function(ev) {
+        if (config.device.isMobile) {
+            return this.el.scrollTop;
+        } else {
+            return this.action_manager.el.scrollTop;
+        }
     },
 });
 

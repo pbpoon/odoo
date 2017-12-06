@@ -334,7 +334,9 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         if (old_view && old_view !== this.active_view) {
             // Store the scroll position
             if (this.action_manager && this.action_manager.webclient) {
-                old_view.controller.setScrollPosition(this.action_manager.webclient.getScrollPosition());
+                var position = {top: 0, left: 0};
+                old_view.controller.trigger_up('find_scroll_position', {position: position});
+                old_view.controller.setScrollPosition(position);
             }
             // Do not detach ui-autocomplete elements to let jquery-ui garbage-collect them
             var $to_detach = this.$el.contents().not('.ui-autocomplete');
