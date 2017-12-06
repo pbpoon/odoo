@@ -417,7 +417,7 @@ ListRenderer.include({
      * @returns {boolean}
      */
     _isEditable: function () {
-        return this.mode === 'edit' && !this.state.groupedBy.length && this.arch.attrs.editable;
+        return this.mode === 'edit' && !this.state.groupedBy.length && this.arch.attrs.editable && !this.arch.attrs.edit;
     },
     /**
      * Move the cursor on the end of the previous line, if possible.
