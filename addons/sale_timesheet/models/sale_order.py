@@ -147,7 +147,10 @@ class SaleOrderLine(models.Model):
         super(SaleOrderLine, self)._compute_qty_delivered_method()
         for line in self:
             if line.product_id.type == 'service' and line.product_id.service_type == 'timesheet':
-                line.qty_delivered_method = 'timesheet'
+                if line.product_id.expense_policy == 'no':
+                    line.qty_delivered_method = 'timesheet'
+                else:
+                    line.qty_delivered_method = 'analytic'
 
     @api.multi
     @api.depends('analytic_line_ids.project_id')

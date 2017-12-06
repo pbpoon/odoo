@@ -910,7 +910,10 @@ class SaleOrderLine(models.Model):
                 else:
                     line.qty_delivered_method = 'analytic'
             else:  # NOTE: line.product_id.type == 'service' and line.product_id.service_type == 'manual':
-                line.qty_delivered_method = 'manual'  # ultimate fallback
+                if line.product_id.expense_policy == 'no':
+                    line.qty_delivered_method = 'manual'  # ultimate fallback
+                else:
+                    line.qty_delivered_method = 'analytic'
 
     @api.multi
     @api.depends('qty_delivered_method', 'qty_delivered_manual', 'analytic_line_ids.so_line', 'analytic_line_ids.unit_amount', 'analytic_line_ids.product_uom_id')
