@@ -7,7 +7,6 @@ from functools import partial
 
 from lxml import etree
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
 from werkzeug.urls import url_encode
 
 from odoo import api, exceptions, fields, models, _
@@ -284,7 +283,6 @@ class AccountInvoice(models.Model):
              "now and 50% in one month, but if you want to force a due date, make sure that the payment "
              "term is not set on the invoice. If you keep the Payment terms and the due date empty, it "
              "means direct payment.")
-    due_days = fields.Integer(compute='_compute_due_days',default=0)
     partner_id = fields.Many2one('res.partner', string='Partner', change_default=True,
         required=True, readonly=True, states={'draft': [('readonly', False)]},
         track_visibility='always')
@@ -1435,11 +1433,6 @@ class AccountInvoice(models.Model):
             fmt(r[1]['amount']), fmt(r[1]['base']),
         ) for r in res]
         return res
-        
-    def _compute_due_days(self):
-        fmt = '%Y-%m-%d'
-        due_days = str((datetime.strptime(self.date_due, fmt)-datetime.strptime(self.date_invoice, fmt)).days)
-        return due_days
 
 class AccountInvoiceLine(models.Model):
     _name = "account.invoice.line"

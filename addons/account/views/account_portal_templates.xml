@@ -1,5 +1,5 @@
 <odoo>
-    <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
+        <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <script type="text/javascript" src="/portal/static/src/js/portal_frontend.js"></script>
             <link rel="stylesheet" type="text/less" href="/portal/static/src/less/portal_frontend.less"/>
@@ -77,30 +77,29 @@
                 <div class="row mt16">
                 <!-- Sidebar -->
                 <div class="col-md-3 hidden-print">
-                    <div class="bs-sidebar" style="background-color:#f8f8f8;">
+                    <div class="bs-sidebar">
                         <div  class="text-center">
-                            <t t-set="due_days" t-value="invoice._compute_due_days()"/>
-                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due in <span t-esc="due_days"/> days</h5>
+                            <h3><span t-field="invoice.amount_total"/><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
                         </div>
-                        <div class="text-center" id="o_portal_account_actions">
+                        <div class="text-center o_portal_div" id="o_portal_account_actions">
                         </div>
-                        <div style="padding: 5px; text-align:left;">
+                        <div class="text-left o_portal_div">
                             <strong>Invoice: </strong>
                             <span t-field="invoice.number"/>
                         </div>
-                        <div name="reference" t-if="invoice.reference" style="padding: 5px; text-align:left;">
+                        <div name="reference" t-if="invoice.reference" class="text--left o_portal_div">
                             <strong>Reference: </strong>
                             <span t-field="invoice.reference"/>
                         </div>
-                        <div style="padding: 5px; text-align:left;">
-                            <strong>Issued: </strong>
+                        <div class="text--left o_portal_div">
+                            <strong>Invoice Date: </strong>
                             <span t-field="invoice.date_invoice"/>
                         </div>
-                        <div style="padding: 5px; text-align:left">
-                            <strong>Due: </strong>
+                        <div class="text--left o_portal_div">
+                            <strong>Due Date: </strong>
                             <span t-field="invoice.date_due"/>
                         </div>
-                        <div id="History" class="text-center" style="padding: 10px">
+                        <div id="History" class="text-center o_portal_div">
                             <a href="#chatter">A question about the Invoice?</a>
                         </div>
                     </div>
@@ -130,7 +129,7 @@
 
     <template id="portal_invoice_report" name="Invoice Portal Report">
         <div name="customer_address">
-            <div class="o_portal_invoice hidden-xs hidden-sm" style="height:1130px; width:100%">
+            <div class="o_portal_invoice_pdf hidden-xs hidden-sm">
                 <iframe height="100%" width="100%" t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}" />
             </div>
         </div>
