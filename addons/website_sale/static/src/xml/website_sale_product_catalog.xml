@@ -47,10 +47,14 @@
                     </div>
                     <hr/>
                     <div class="product-details">
-                        <strong><a t-attf-href="/shop/product/#{product.id}"><t t-esc="product.name"/></a></strong>
-                        <span class="pull-right o_product_price">
-                            <t t-esc="product.website_price"/>
-                        </span>
+                        <strong>
+                            <a t-attf-href="/shop/product/#{product.id}">
+                                <t t-esc="product.name"/>
+                            </a>
+                        </strong><br/>
+                        <strong t-if="product.product_variant_count gte 1">
+                            <t t-esc="widget._formatCurrencyValue(product.website_price, currency_symbol, currency_position, currency_decimal_places)" />
+                        </strong>
                     </div>
                     <div class="product-description text-info">
                         <t t-if="product.description_sale" t-raw="widget._formatDescriptionValue(product.description_sale)"/>

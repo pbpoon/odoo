@@ -6,6 +6,7 @@ var core = require('web.core');
 var rpc = require('web.rpc');
 var Widget = require('web.Widget');
 var config = require('web.config');
+var utils = require('web.utils');
 var QWeb = core.qweb;
 var ProductCatalog = Widget.extend({
     template: 'website_sale.product_catalog',
@@ -64,6 +65,29 @@ var ProductCatalog = Widget.extend({
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
+     /**
+     * formating currency for the website sale display
+     *
+     * @private
+     * @param {float|false} value that should be formatted.
+     * @param {string} currency_symbol.
+     * @param {string} position should be either before or after.
+     * @param {integer} currency_decimal_places the number of digits that should be used,
+     *   instead of the default digits precision in the field.
+     * @returns {string} Returns a string representing a float and currency symbol.
+     */
+    _formatCurrencyValue: function (value, currency_symbol, position, currency_decimal_places) {
+        var l10n = core._t.database.parameters;
+        value = _.str.sprintf('%.' + currency_decimal_places + 'f', value || 0).split('.');
+        value[0] = utils.insert_thousand_seps(value[0]);
+        value = value.join(l10n.decimal_point);
+        if (position === "after") {
+            value += currency_symbol;
+        } else {
+            value = currency_symbol + value;
+        }
+        return value;
+    },
     /**
      * formating description for the website sale display
      *
