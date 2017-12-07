@@ -128,7 +128,32 @@ class PaymentTransaction(models.Model):
                 return 'pay_sale_tx_confirm'
         return 'pay_sale_tx_token'
 
-    def _check_or_create_sale_tx(self, order, acquirer, payment_token=None, tx_type='form', add_tx_values=None, reset_draft=True):
+    def _create_sale_tx(self, order, acquirer, payment_token=None, tx_type='form', add_tx_values=None):
+        tx_values = {
+            'acquirer_id': acquirer.id,
+            'type': tx_type,
+            'amount': order.amount_total,
+            'currency_id': order.pricelist_id.currency_id.id,
+            'partner_id': order.partner_id.id,
+            'partner_country_id': order.partner_id.country_id.id,
+            'reference': self.get_next_reference(order.name),
+            'sale_order_id': order.id,
+        }
+        if add_tx_values:
+            tx_values.update(add_tx_values)
+        if payment_token and payment_token.sudo().partner_id == order.partner_id:
+            tx_values['payment_token_id'] = payment_token.id
+
+        tx = self.create(tx_values)
+
+        # update quotation
+        order.write({
+            'payment_tx_id': tx.id,
+        })
+
+        return tx
+
+    def _get_sale_tx(self, order, acquirer, payment_token=None, tx_type='form', reset_draft=False):
         tx = self
         if not tx:
             tx = self.search([('reference', '=', order.name)], limit=1)
@@ -150,29 +175,6 @@ class PaymentTransaction(models.Model):
                 )
             else:
                 tx = False
-
-        if not tx:
-            tx_values = {
-                'acquirer_id': acquirer.id,
-                'type': tx_type,
-                'amount': order.amount_total,
-                'currency_id': order.pricelist_id.currency_id.id,
-                'partner_id': order.partner_id.id,
-                'partner_country_id': order.partner_id.country_id.id,
-                'reference': self.get_next_reference(order.name),
-                'sale_order_id': order.id,
-            }
-            if add_tx_values:
-                tx_values.update(add_tx_values)
-            if payment_token and payment_token.sudo().partner_id == order.partner_id:
-                tx_values['payment_token_id'] = payment_token.id
-
-            tx = self.create(tx_values)
-
-        # update quotation
-        order.write({
-            'payment_tx_id': tx.id,
-        })
 
         return tx
 

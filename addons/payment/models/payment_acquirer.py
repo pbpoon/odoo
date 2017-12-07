@@ -501,7 +501,7 @@ class PaymentTransaction(models.Model):
         ('refunded', 'Refunded'),
         ('error', 'Error'),
         ('cancel', 'Canceled')], 'Status',
-        copy=False, default='draft', required=True, track_visibility='onchange')
+        copy=False, default='draft', required=True, track_visibility='onchange', readonly=True)
     state_message = fields.Text('Message', help='Field used to store error and/or validation messages for information')
     # payment
     amount = fields.Float(

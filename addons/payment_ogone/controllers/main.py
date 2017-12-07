@@ -20,13 +20,19 @@ class OgoneController(http.Controller):
         '/payment/ogone/accept', '/payment/ogone/test/accept',
         '/payment/ogone/decline', '/payment/ogone/test/decline',
         '/payment/ogone/exception', '/payment/ogone/test/exception',
-        '/payment/ogone/cancel', '/payment/ogone/test/cancel',
     ], type='http', auth='none')
     def ogone_form_feedback(self, **post):
         """ Ogone contacts using GET, at least for accept """
         _logger.info('Ogone: entering form_feedback with post data %s', pprint.pformat(post))  # debug
         request.env['payment.transaction'].sudo().form_feedback(post, 'ogone')
         return werkzeug.utils.redirect(post.pop('return_url', '/'))
+
+    @http.route([
+        '/payment/ogone/cancel', '/payment/ogone/test/cancel',
+    ], type='http', auth='none')
+    def ogone_cancel_feedback(self, **post):
+        request.env['payment.transaction'].sudo().form_feedback(post, 'ogone')
+        return werkzeug.utils.redirect("/shop/payment")
 
     @http.route(['/payment/ogone/s2s/create_json'], type='json', auth='public', csrf=False)
     def ogone_s2s_create_json(self, **kwargs):
@@ -64,7 +70,6 @@ class OgoneController(http.Controller):
 
             if tx and tx.html_3ds:
                 res['3d_secure'] = tx.html_3ds
-
         return res
 
     @http.route(['/payment/ogone/s2s/create'], type='http', auth='public', methods=["POST"], csrf=False)
