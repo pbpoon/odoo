@@ -36,7 +36,7 @@
     </t>
     <t t-name="website_sale.product_cell">
         <t t-foreach="products" t-as="product">
-            <div t-attf-class="col-md-#{size} col-xs-#{size} product-item" t-att-data-product-id="product.id">
+            <div t-attf-class="col-md-#{size} product-item" t-att-data-product-id="product.id">
                 <div class="col-item
                     ">
                     <div class="product-image">

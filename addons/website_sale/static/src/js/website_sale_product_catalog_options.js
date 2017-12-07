@@ -52,12 +52,13 @@ options.registry.product_catalog = options.Class.extend({
      * @see this.selectClass for parameters
      */
     productSelection: function (previewMode, value, $li) {
-        this.$target.attr('data-product-selection', value);
         this.$el.find('[data-product-selection]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-product-selection') === value);
         switch (value) {
             case 'all':
+                this.$target.attr('data-product-selection', value);
                 this.$target.attr('data-product-domain', []);
+                this._renderProducts();
                 break;
             case 'category':
                 this._categorySelection();
@@ -123,6 +124,7 @@ options.registry.product_catalog = options.Class.extend({
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
                         var categoryID = dialog.$content.find('[name="selection"]').val();
                         self.$target.attr('data-catagory-id', categoryID);
+                        self.$target.attr('data-product-selection', 'category');
                         self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
@@ -168,6 +170,7 @@ options.registry.product_catalog = options.Class.extend({
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
                         var productIDS = dialog.$content.find('[name="selection"]').val().split(',');
                         self.$target.attr('data-productIds', dialog.$content.find('[name="selection"]').val());
+                        self.$target.attr('data-product-selection', 'manual');
                         self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
