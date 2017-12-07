@@ -107,8 +107,8 @@ KanbanRenderer.include({
                 var updateFunc = animate ? 'animate' : 'css';
                 self.$('.o_kanban_mobile_tab').removeClass('o_current');
                 _.each(self.widgets, function (column, index) {
-                    var $column = self.$('.o_kanban_group[data-id=' + column.id + ']');
-                    var $tab = self.$('.o_kanban_mobile_tab[data-id=' + column.id + ']');
+                    var $column = self.$('.o_kanban_group[data-id="' + column.id + '"]');
+                    var $tab = self.$('.o_kanban_mobile_tab[data-id="' + column.id + '"]');
                     if (index === moveToIndex - 1) {
                         $column[updateFunc]({left: '-100%'});
                         $tab[updateFunc]({left: '0%'});
