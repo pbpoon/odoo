@@ -33,7 +33,7 @@
             border-top: 1px solid #E1E1E1;
             min-height: 40px;
             position: relative;
-            display: flex;
+            display: none;
             flex-flow: row wrap;
             .item {
                 padding-top: 9px;
@@ -84,6 +84,9 @@
     }
     &.products_add_to_cart {
         .container .product_grid {
+            .button-container {
+                display: flex;
+            }
             .o_add_to_cart {
                 display: block;
                 flex-grow: 4;
