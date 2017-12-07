@@ -118,22 +118,52 @@
 
 <!-- Mobile templates -->
 
-<t t-name="KanbanColumn.KananGuideDialog">
-    <div class='container'>
+<t t-name="KanbanColumn.KananGuideDialog" class="stage_help_modal">
+    <div class='container stage_help_modal'>
         <div class="col-md-2 stage_navigation">
             <ul class="nav nav-pills nav-stacked">
+                <li class="example_title"><b>Kanban Examples</b></li>
+                <t t-set="counter" t-value="0"/>
                 <t t-foreach="data" t-as="stage">
-                    <li><a data-toggle="tab" t-att-href="'#' + stage.id"><t t-esc="stage.title"/></a></li>
+                    <t t-if="counter &lt; 1">
+                        <li class="active"><a data-toggle="tab" t-att-href="'#' + stage.id"><t t-esc="stage.title"/></a></li>
+                    </t>
+                    <t t-else="">
+                        <li><a data-toggle="tab" t-att-href="'#' + stage.id"><t t-esc="stage.title"/></a></li>
+                    </t>
+                    <t t-set="counter" t-value="counter+1"/>
                 </t>
             </ul>
         </div>
         <div class="col-md-8 stage_container">
             <div class="tab-content">
+                <t t-set="counter" t-value="0"/>
                 <t t-foreach="data" t-as="stage">
-                    <div t-att-id="stage.id" class="tab-pane fade">
-                        <h3><t t-esc="stage.stages"/></h3>
-                        <p><t t-esc="stage.foot_note"/></p>
-                    </div>
+                    <t t-if="counter &lt; 1">
+                        <div t-att-id="stage.id" class="tab-pane fade in active">
+                            <div class="row">
+                                <t t-foreach="stage.stages" t-as="cloumn">
+                                    <div class="col-md-3 cloumn_container">
+                                        <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
+                                    </div>
+                                </t>
+                            </div>
+                            <p class="foot_note"><t t-esc="stage.foot_note"/></p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div t-att-id="stage.id" class="tab-pane fade">
+                            <div class="row">
+                                <t t-foreach="stage.stages" t-as="cloumn">
+                                    <div class="col-md-3 cloumn_container">
+                                        <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
+                                    </div>
+                                </t>
+                            </div>
+                            <p class="foot_note"><t t-esc="stage.foot_note"/></p>
+                        </div>
+                    </t>
+                    <t t-set="counter" t-value="counter+1"/>
                 </t>
             </div>
         </div>

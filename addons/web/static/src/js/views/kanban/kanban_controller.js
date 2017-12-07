@@ -297,6 +297,7 @@ var KanbanController = BasicController.extend({
             buttons: false,
             $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.data}),
         }).open();
+        debugger;
     },
     /**
      * Loads the record of a given column (used in mobile, as the columns are
