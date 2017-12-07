@@ -31,7 +31,8 @@ var KanbanController = BasicController.extend({
         kanban_load_more: '_onLoadMore',
         kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
-        find_scroll_position: 'find_scroll_position',
+        find_scroll_position: 'findScrollPosition',
+        scrollTo: 'scrollTo'
     }),
     /**
      * @override
@@ -409,10 +410,15 @@ var KanbanController = BasicController.extend({
         this._applyChanges(ev.target.db_id, changes, ev);
     },
 
-    find_scroll_position: function(ev) {
+    scrollTo: function (ev) {
+        if (config.device.isMobile && this.scrollTopPosition) {
+            this.$(".o_active_group").scrollTop(this.scrollTopPosition);
+        }
+    },
+
+    findScrollPosition: function(ev) {
         if (config.device.isMobile) {
-            ev.data.position.top = this.$el.scrollTop;
-            ev.data.position.left = 0;
+            this.scrollTopPosition = this.$(".o_active_group").scrollTop();
         }
     },
 });
