@@ -1098,7 +1098,6 @@ class AccountInvoice(models.Model):
             if inv.payment_term_id:
                 totlines = inv.payment_term_id.with_context(currency_id=company_currency.id).compute(total, inv.date_invoice)[0]
                 res_amount_currency = total_currency
-                # ctx['date'] = inv.date or inv.date_invoice
                 for i, t in enumerate(totlines):
                     if inv.currency_id != company_currency:
                         amount_currency = company_currency.with_context(date = inv.date or inv.date_invoice).compute(t[1], inv.currency_id)
