@@ -1362,5 +1362,47 @@ QUnit.test('fieldmany2many tags email (edition)', function (assert) {
     form.destroy();
 });
 
+QUnit.test('fieldmany2many tags more email', function (assert) {
+    assert.expect(5);
+    var done = assert.async();
+
+    this.data.partner_type.records = [
+        {id: 15, display_name: "silver", email: 'silver@petite.perruche'},
+        {id: 16, display_name: "gold", email: 'gold@petite.perruche'},
+        {id: 17, display_name: "bronze", email: 'bronze@petite.perruche'},
+        {id: 18, display_name: "platinum", email: 'platinum@petite.perruche'}
+    ];
+    this.data.partner.records[0].timmy = [15, 16, 17, 18];
+
+    createAsyncView({
+        View: FormView,
+        model: 'partner',
+        data: this.data,
+        res_id: 1,
+        arch:'<form string="Partners">' +
+                '<sheet>' +
+                    '<field name="display_name"/>' +
+                    '<field name="timmy" widget="many2many_tags_email" options="{\'more_threshold\': 2}"/>' +
+                '</sheet>' +
+            '</form>',
+        viewOptions: {
+            mode: 'edit',
+        },
+    }).then(function (form) {
+        assert.strictEqual(form.$('.badge:visible').length, 2, "two partner should be visible");
+        assert.strictEqual(form.$('.more').length, 1, "more should be visible");
+        assert.strictEqual(form.$('.more').text(), '2 More', "more partners should be two");
+
+        concurrency.delay(100).then(function () {
+            form.$('.o_field_many2manytags input').trigger('focusin');
+            assert.strictEqual(form.$('.badge:visible').length, 4, "four partner should be visible");
+            form.$('.o_field_many2one input').trigger('focusout');
+            assert.strictEqual(form.$('.more').length, 1, "more should be visible");
+            form.destroy();
+            done();
+        });
+    });
+});
+
 });
 });
