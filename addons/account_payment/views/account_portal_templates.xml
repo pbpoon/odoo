@@ -55,11 +55,9 @@
                                     <t t-set="callback_method" t-value="''"/>
                                     <t t-set="form_action" t-value="'/invoice/pay/' + str(invoice.id) + '/s2s_token_tx/'"/>
                                     <t t-set="prepare_tx_url" t-value="'/invoice/pay/' + str(invoice.id) + '/form_tx/'"/>
+                                    <t t-set="submit_txt" t-value="'Pay Now'"/>
+                                    <t t-set="icon_class" t-value="'fa-lock'"/>
                                 </t>
-                            </div>
-                            <div class="modal-footer">
-                                <t t-set="submit_txt" t-value="'Pay Now'"/>
-                                <t t-set="icon_class" t-value="'fa-lock'"/>
                             </div>
                          </div>
                     </div>

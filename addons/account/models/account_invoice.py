@@ -1433,6 +1433,7 @@ class AccountInvoice(models.Model):
             fmt(r[1]['amount']), fmt(r[1]['base']),
         ) for r in res]
         return res
+        
 
 class AccountInvoiceLine(models.Model):
     _name = "account.invoice.line"

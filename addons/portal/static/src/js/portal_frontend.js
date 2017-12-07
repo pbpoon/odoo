@@ -12,7 +12,7 @@ if(!$('.o_has_portal_frontend').length) {
 $('timeago.timeago').each(function(index, el){
         var datetime = $(el).attr('datetime'),
             datetime_obj = time.str_to_date(datetime),
-            // if presentation 7 days, 24 hours, 60 min, 60 second, 1000 millis old(one week)
+            // if presentation 365 days, 24 hours, 60 min, 60 second, 1000 millis old(one week)
             // then return fix formate string else timeago
             display_str = "";
         if (datetime_obj && datetime_obj.getTime() - new Date().getTime() > 365 * 24 * 60 * 60 * 1000) {
@@ -21,7 +21,7 @@ $('timeago.timeago').each(function(index, el){
             display_str = moment(datetime_obj).fromNow();
         }
         $(el).text(display_str);
-})
+});
 
 var $bs_sidebar = $(".o_has_portal_frontend .bs-sidebar");
     $(window).on('resize', _.throttle(adapt_sidebar_position, 200, {leading: false}));

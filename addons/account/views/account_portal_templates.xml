@@ -1,5 +1,5 @@
 <odoo>
-        <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
+       <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <script type="text/javascript" src="/portal/static/src/js/portal_frontend.js"></script>
             <link rel="stylesheet" type="text/less" href="/portal/static/src/less/portal_frontend.less"/>
@@ -79,9 +79,12 @@
                 <div class="col-md-3 hidden-print">
                     <div class="bs-sidebar">
                         <div  class="text-center">
-                            <h3><span t-field="invoice.amount_total"/><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
+                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
                         </div>
                         <div class="text-center o_portal_div" id="o_portal_account_actions">
+                        </div>
+                        <div class="text-center visible-xs visible-sm" style="padding: 10px">
+                            <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><i class="fa fa-download fa-2x"/></a>
                         </div>
                         <div class="text-left o_portal_div">
                             <strong>Invoice: </strong>
@@ -118,7 +121,7 @@
         </t>
     </template>
 
-    <template id="chatter" name="Allow Comments &amp; History" customize_show="True" inherit_id="account.portal_invoice_page">
+    <template id="chatter" name="Allow Comments &amp; History" inherit_id="account.portal_invoice_page">
       <xpath expr="//div[@id='invoice_content']" position="inside">
           <h1 class="page-header" id="chatter">History</h1>
           <t t-call="portal.message_thread">
