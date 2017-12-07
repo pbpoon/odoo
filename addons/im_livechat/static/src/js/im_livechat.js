@@ -90,6 +90,11 @@ var LivechatButton = Widget.extend({
         }
         bus.on('notification', this, function (notifications) {
             var self = this;
+            if(!$('.o_chat_window').length && notifications[0][1]['author_id'][1]){
+                self.channel.state = 'open';
+                utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
+                self.open_chat(self.channel);
+            }
             _.each(notifications, function (notification) {
                 self._on_notification(notification);
             });
@@ -208,7 +213,8 @@ var LivechatButton = Widget.extend({
 
     close_chat: function () {
         this.chat_window.destroy();
-        utils.set_cookie('im_livechat_session', "", -1); // remove cookie
+        this.channel.state = 'folded';
+        utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
     },
 
     send_message: function (message) {
