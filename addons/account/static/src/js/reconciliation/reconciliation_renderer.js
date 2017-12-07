@@ -237,7 +237,7 @@ var StatementRenderer = Widget.extend(FieldManagerMixin, {
      * @private
      */
     _onValidateName: function () {
-        var name = this.model.get(this.handleNameRecord).data.name;
+        var name = this.$('.statement_name_edition input').val().trim();
         this.trigger_up('change_name', {'data': name});
     },
     /**
