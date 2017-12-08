@@ -1042,7 +1042,7 @@ class WebsiteSale(http.Controller):
         domain += [('website_published', '=', True)]
         order = ''
         if sortby:
-            order = sortby
+            order = '%s %s' % (sortby['name'], sortby['asc'] and 'ASC' or 'DESC')
         products = ProductTemplate.search(domain, order=order, limit=limit)
         for product in products:
             productDetails.append({

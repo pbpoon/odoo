@@ -199,6 +199,8 @@ options.registry.product_catalog = options.Class.extend({
         this.$el.find('[data-grid-size]:first').parent().parent().toggle(mode === 'grid');
         this.$el.find('li[data-catalog-type]').removeClass('active')
             .filter('li[data-catalog-type=' + this.$target.attr('data-catalog-type') + ']').addClass('active');
+        this.$el.find('li[data-sortby]').removeClass('active')
+            .filter('li[data-sortby=' + this.$target.attr('data-sortby') + ']').addClass('active');
         this.$el.find('li[data-product-selection]').removeClass('active')
             .filter('li[data-product-selection=' + this.$target.attr('data-product-selection') + ']').addClass('active');
     },
@@ -240,6 +242,7 @@ options.registry.product_catalog = options.Class.extend({
         this.productCatalog = new productCatalog.ProductCatalog(this.$target);
         this.$target.find('.product_grid').remove();
         this.productCatalog.appendTo(this.$target.find('.container')).then(function () {
+            self.$target.attr('data-productIds', self.productCatalog._getProductIds());
             self.trigger_up('cover_update');
         });
     },

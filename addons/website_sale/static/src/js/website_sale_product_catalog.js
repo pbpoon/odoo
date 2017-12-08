@@ -140,8 +140,16 @@ var ProductCatalog = Widget.extend({
         return domain;
     },
     _getSortby: function () {
-        var sortby = this.$target.attr('data-sortby');
-        return sortby;
+        var sortBy = {
+            'price_asc': {name: 'list_price', asc: true},
+            'price_desc': {name: 'list_price', asc: false},
+            'name_asc': {name: 'name', asc: true},
+            'name_desc': {name: 'name', asc: false},
+            'newest_to_oldest': {name: 'create_date', asc: true},
+            'oldest_to_newest': {name: 'create_date', asc: false},
+            'reorder_products':{}
+        };
+        return utils.into(sortBy, this.$target.attr('data-sortby'));
     },
     _getLimit: function () {
         return this.catalogType === 'grid' ? this.$target.attr('data-x') * this.$target.attr('data-y') :  this.$target.attr('data-carousel');
