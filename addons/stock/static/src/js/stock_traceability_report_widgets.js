@@ -57,7 +57,7 @@ var ReportWidget = Widget.extend({
                 active_id : $el.data('model_id'),
                 active_model : $el.data('model'),
                 autofold: true,
-                lot_name: $el.data('lot_name').toString(),
+                lot_name: $el.data('lot_name') !== undefined && $el.data('lot_name').toString(),
                 url: '/stock/output_format/stock/active_id'
             },
         });
