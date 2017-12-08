@@ -116,7 +116,7 @@
     </div>
 </t>
 
-<!-- Mobile templates -->
+<!-- Kanban Guied Step templates -->
 
 <t t-name="KanbanColumn.KananGuideDialog" class="stage_help_modal">
     <div class='container stage_help_modal'>
@@ -157,6 +157,7 @@
                                 <t t-foreach="stage.stages" t-as="cloumn">
                                     <div class="col-md-3 cloumn_container">
                                         <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
+                                        <t t-call="KanbanColumn.RecordGhost"/>
                                     </div>
                                 </t>
                             </div>
@@ -169,5 +170,22 @@
         </div>
     </div>
 </t>
-
+<t t-name="KanbanColumn.RecordGhost">
+    <div class="record_ghost">
+        <div class="oe_kanban_content">
+            <span class="o_kanban_record_top"/>
+            <div class="o_kanban_record_bottom">
+                <div class="small_option_group">
+                    <span class="small_option"/>
+                    <span class="small_option"/>
+                    <span class="small_option"/>
+                    <span class="small_option"/>
+                </div>
+                <div class="oe_kanban_bottom_right">
+                    <img width="24" height="24" src="http://localhost:8069/web/image?model=res.users&amp;field=image_small&amp;id=1&amp;unique=" title="Administrator"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</t>
 </template>

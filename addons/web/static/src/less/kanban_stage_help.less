@@ -3,8 +3,8 @@
 	background-color: @table-bg-accent;
 	border-left: thin solid #D6D6D6;
 	.cloumn_container {
-		background: url(/web/static/src/img/4_record_stage.png) no-repeat;
-	    background-position-y: 30px;
+		// background: url(/web/static/src/img/4_record_stage.png) no-repeat;
+	    // background-position-y: 30px;
 	    min-height: 300px;
 	    .fa-plus {
 	    	color: darkgrey;
@@ -50,5 +50,38 @@
 	.o_kanban_quick_create {
 	    background: url(/web/static/src/img/record_3_ghost.png) no-repeat;
 	    background-position-y: 52px;
+	}
+}
+
+.record_ghost {
+	background: transparent;
+	border: thin solid lightgray;
+	min-height: 60px;
+	.oe_kanban_content {
+		.o_kanban_record_top {
+			display: flex;
+			width: 125px;
+		    background: #d3d3d359;
+		    height: 14px;
+		    margin: 5px;
+		}
+		.o_kanban_record_bottom {
+			display: flex;
+		    margin-top: 10px;
+		    margin-right: 5px;
+		    .small_option_group{
+				display: flex;
+				margin-left: 5px;
+				.small_option {
+					width: 20px;
+				    background: #d3d3d359;
+				    margin-right: 5px;
+				    margin-top: 5px;
+				}
+		    }
+		    .oe_kanban_bottom_right {
+		        margin-left: 25px;
+		    }
+		}
 	}
 }
