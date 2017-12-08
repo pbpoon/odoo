@@ -399,14 +399,23 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
                 offset.top -= dom.getPosition(this.action_manager.el).top;
             }
         }
-        if (!config.device.isMobile) {
+        if (config.device.isMobile) {
+            $(window).scrollTop(offset.top);
+        } else {
             this.action_manager.el.scrollTop = offset.top;
-            this.action_manager.el.scrollLeft = offset.left;
         }
+        this.action_manager.el.scrollLeft = offset.left;
     },
 
+    /**
+     * Find the position of action manager element
+     *
+     * @param {OdooEvent} ev
+     */
     findScrollPosition: function(ev) {
-        if (!config.device.isMobile) {
+        if(config.device.isMobile) {
+            ev.data.position.top = $(window).scrollTop();
+        } else {
             ev.data.position.top = this.action_manager.el.scrollTop;
             ev.data.position.left = this.action_manager.el.scrollLeft;
         }

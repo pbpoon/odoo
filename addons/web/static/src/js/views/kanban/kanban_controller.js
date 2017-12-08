@@ -416,6 +416,11 @@ var KanbanController = BasicController.extend({
         }
     },
 
+     /**
+     * Find the top scroll position of active kanban group in mobile
+     *
+     * @param {OdooEvent} ev
+     */
     findScrollPosition: function(ev) {
         if (config.device.isMobile) {
             this.scrollTopPosition = this.$(".o_active_group").scrollTop();
