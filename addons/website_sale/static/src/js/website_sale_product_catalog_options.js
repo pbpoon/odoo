@@ -43,8 +43,33 @@ options.registry.product_catalog = options.Class.extend({
         this._renderProducts();
     },
     sortby: function (previewMode, value, $li) {
-        this.$target.attr('data-sortby', value);
-        this._renderProducts();
+        var self = this;
+        if (value != 'reorder_products') {
+            this.$target.attr('data-sortby', value);
+            this._renderProducts();
+        }
+        if (value == 'reorder_products') {
+            var $dialog = new Dialog(null, {
+                title: _t('Drag a product to re-arrange display sequence'),
+                $content: $(QWeb.render('website_sale.reorderProducts', {'products': this.productCatalog.products})),
+                buttons: [
+                    {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
+                        self.$target.attr('data-sortby', value);
+                        var productIds = _.map($dialog.$content.find('ul.reorder_products > li'), function(el) {
+                            return $(el).attr('data-menu-id');
+                        });
+                        self.$target.attr('data-productIds',productIds);
+                        self.$target.attr('data-sortby', value);
+                        self._renderProducts();
+                    }},
+                    {text: _t('Discard'), close: true}
+                ]
+            }).open();
+            $dialog.opened().then(function () {
+                $dialog.$el.find('.reorder_products').sortable();
+                $dialog.$el.find('.reorder_products').disableSelection();
+            });
+        }
     },
     /**
      * Products selection.
@@ -119,7 +144,7 @@ options.registry.product_catalog = options.Class.extend({
         }).then(function (result) {
             var dialog = new Dialog(null, {
                 title: _t('Select Product Category'),
-                $content: $(QWeb.render('product_catalog.catagorySelection')),
+                $content: $(QWeb.render('website_sale.catagorySelection')),
                 buttons: [
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
                         var categoryID = dialog.$content.find('[name="selection"]').val();
@@ -165,7 +190,7 @@ options.registry.product_catalog = options.Class.extend({
         }).then(function (result) {
             var dialog = new Dialog(null, {
                 title: _t('Select Product Manually'),
-                $content: $(QWeb.render('product_catalog.manualSelection')),
+                $content: $(QWeb.render('website_sale.manualSelection')),
                 buttons: [
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
                         var productIDS = dialog.$content.find('[name="selection"]').val().split(',');
@@ -242,7 +267,9 @@ options.registry.product_catalog = options.Class.extend({
         this.productCatalog = new productCatalog.ProductCatalog(this.$target);
         this.$target.find('.product_grid').remove();
         this.productCatalog.appendTo(this.$target.find('.container')).then(function () {
-            self.$target.attr('data-productIds', self.productCatalog._getProductIds());
+            if (self.$target.attr('data-sortby') != 'reorder_products') {
+                self.$target.attr('data-productIds', self.productCatalog._getProductIds());
+            }
             self.trigger_up('cover_update');
         });
     },

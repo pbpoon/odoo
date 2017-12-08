@@ -44,6 +44,9 @@ var ProductCatalog = Widget.extend({
                 'limit': this._getLimit(),
             }
         }).then(function (result) {
+            if (self.$target.attr('data-sortby') === 'reorder_products') {
+                self._reOrderingProducts(result);
+            }
             self.products = result.products;
             self.is_rating = result.is_rating_active;
         });
@@ -152,6 +155,7 @@ var ProductCatalog = Widget.extend({
         return utils.into(sortBy, this.$target.attr('data-sortby'));
     },
     _getLimit: function () {
+        // data-carousel is not available in snippet [TO-DO]
         return this.catalogType === 'grid' ? this.$target.attr('data-x') * this.$target.attr('data-y') :  this.$target.attr('data-carousel');
     },
 
@@ -169,6 +173,21 @@ var ProductCatalog = Widget.extend({
             }
         });
     },
+    /**
+     * Re-ordering products while selecting re-ordering products option.
+     *
+     * @private
+     * @param {Object} contain products detail
+     */
+    _reOrderingProducts: function (products) {
+        var reorderIDs = this.$target.attr('data-productIds').split(',').map(Number);
+        products['products'] = _.sortBy(products.products, function(product) {
+            return _.indexOf(reorderIDs, product.id)
+        })
+        return products;
+    },
+
+
 });
 base.ready().then(function () {
     if ($('.s_product_catalog').length) {
