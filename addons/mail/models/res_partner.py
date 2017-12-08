@@ -36,6 +36,123 @@ class Partner(models.Model):
     def message_get_default_recipients(self):
         return dict((res_id, {'partner_ids': [res_id], 'email_to': False, 'email_cc': False}) for res_id in self.ids)
 
+    # ------------------------------------------------------------
+    # Notification API
+    # ------------------------------------------------------------
+
+    def _notify_eval_context(self, message, add_sign=False):
+        user_author = message.author_id.user_ids[:1]
+
+        if user_author:
+            website_url = 'http://%s' % user_author.company_id.website if not user_author.company_id.website.lower().startswith(('http:', 'https:')) else user_author.company_id.website
+        else:
+            website_url = False
+
+        eval_context = {
+            'message': message,
+            'website_url': website_url,
+            'model_name': self.env['ir.model'].sudo()._get(message.model).display_name if message.model else '',
+        }
+
+        tracking = []
+        for tracking_value in self.env['mail.tracking.value'].sudo().search([('mail_message_id', '=', message.id)]):
+            tracking.append((tracking_value.field_desc,
+                             tracking_value.get_old_display_value()[0],
+                             tracking_value.get_new_display_value()[0]))
+
+        is_discussion = message.subtype_id.id == self.env['ir.model.data'].xmlid_to_res_id('mail.mt_comment')
+
+        if add_sign and user_author:
+            eval_context['signature'] = message.author_id and message.author_id.user_ids and message.author_id.user_ids[0].signature if message.author_id.user_ids else ''
+
+        return eval_context
+
+    @api.model
+    def _notify_send_v2(self, message, record, body, subject, recipients, **mail_values):
+        mail_ids = list()
+        MailSu = self.env['mail.mail'].sudo()
+        for email_chunk in split_every(50, recipients.ids):
+            if hasattr(record, 'message_get_recipient_values'):
+                recipient_values = record.message_get_recipient_values(notif_message=message, recipient_ids=email_chunk)
+            else:
+                recipient_values = self.env['mail.thread'].sudo().message_get_recipient_values(notif_message=message, recipient_ids=email_chunk)
+            create_values = {
+                'body_html': body,
+                'subject': subject,
+            }
+            create_values.update(mail_values)
+            create_values.update(recipient_values)
+            mail_ids.append(MailSu.create(create_values).id)
+        return mail_ids
+
+    def _notify_v2(self, message, record, add_sign=False, force_send=True, send_after_commit=True):
+        eval_context = self._notify_eval_context(message, add_sign=add_sign)
+        print(eval_context)
+
+        if hasattr(record, '_message_notification_recipients'):
+            recipients = record._message_notification_recipients(message, self)
+        else:
+            recipients = self.env['mail.thread']._message_notification_recipients(message, self)
+        print(recipients)
+
+        template = self.env['ir.model.data'].sudo().xmlid_to_object('mail.message_notification_email')
+
+        # custom values
+        custom_values = dict()
+        if record and hasattr(record, 'message_get_email_values'):
+            custom_values = record.message_get_email_values(message)
+
+        mail_values = {
+            'mail_message_id': message.id,
+            'mail_server_id': message.mail_server_id.id,
+            'auto_delete': self._context.get('mail_auto_delete', True),
+            'references': message.parent_id.message_id if message.parent_id else False,
+        }
+        mail_values.update(custom_values)
+
+        new_email_ids = list()
+        for rtype, rvals in recipients.items():
+            if rvals['followers']:
+                # generate notification email content
+                tmp_eval_context = dict(eval_context, **rvals)
+                tmp_eval_context['has_button_follow'] = False
+                rendered_template = template.render(tmp_eval_context, engine='ir.qweb')
+                # send email
+                new_email_ids += self._notify_send_v2(
+                    message, record,
+                    rendered_template, '', rvals['followers'],
+                    **mail_values)
+                # update notifications
+                # self._notify_udpate_notifications(new_emails)
+
+        # NOTE:
+        #   1. for more than 50 followers, use the queue system
+        #   2. do not send emails immediately if the registry is not loaded,
+        #      to prevent sending email during a simple update of the database
+        #      using the command-line.
+        test_mode = getattr(threading.currentThread(), 'testing', False)
+        if force_send and len(recipients) < 50 and \
+                (not self.pool._init or test_mode):
+            dbname = self.env.cr.dbname
+            _context = self._context
+
+            def send_notifications():
+                db_registry = registry(dbname)
+                with api.Environment.manage(), db_registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID, _context)
+                    env['mail.mail'].browse(new_email_ids).send()
+
+            # unless asked specifically, send emails after the transaction to
+            # avoid side effects due to emails being sent while the transaction fails
+            if not test_mode and send_after_commit:
+                self._cr.after('commit', send_notifications)
+            else:
+                self.env['mail.mail'].sudo().browse(new_email_ids).send()
+
+    # ------------------------------------------------------------
+    # Old Notification API
+    # ------------------------------------------------------------
+
     @api.model
     def _notify_prepare_template_context(self, message):
         # compute signature

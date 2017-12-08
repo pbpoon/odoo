@@ -811,7 +811,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
 
             return this._rpc({
                     model: options.model,
-                    method: 'message_post',
+                    method: 'message_post_v2',
                     args: [options.res_id],
                     kwargs: msg,
                 })

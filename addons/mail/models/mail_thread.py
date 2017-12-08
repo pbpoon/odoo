@@ -1970,6 +1970,113 @@ class MailThread(models.AbstractModel):
             composer.write(update_values)
         return composer.send_mail()
 
+    @api.multi
+    @api.returns('self', lambda value: value.id)
+    def message_post_v2(self, body='', subject=False, parent_id=False, attachments=None,
+                        message_type='notification', subtype='mail.mt_comment', content_subtype='html',
+                        **kwargs):
+        """ UPDATE ME """
+        current_user = self.env.user
+
+        if attachments is None:
+            attachments = {}
+
+        email_from = kwargs.pop('email_from', False)
+        if 'author_id' in kwargs:
+            author_id = kwargs.pop('author_id')
+            if author_id:
+                author = self.env['res.partner'].sudo().browse(author_id)
+                email_from = formataddr((author.name, author.email))
+            elif email_from:
+                author = self.env['res.partner'].sudo()
+            else:
+                pass
+                # raise UserError('Author or email')
+        else:
+            author = current_user.partner_id
+            email_from = formataddr((author.name, author.email))
+
+        if content_subtype == 'plaintext':
+            body = tools.plaintext2html(body)
+
+        if subtype:
+            subtype_rec = self.env['ir.model.data'].sudo().xmlid_to_object(subtype, raise_if_not_found=False)
+        elif kwargs.get('subtype_id'):
+            subtype_rec = self.env['mail.message.subtype'].sudo().browse(kwargs.pop('subtype_id'))
+        else:
+            subtype_rec = self.env['mail.message.subtype'].sudo()
+
+        res_id = self.ids[0] if self._name != 'mail.thread' and self.ids else False
+        model = self._name if self._name != 'mail.thread' and res_id else False
+
+        record = False
+        if model and res_id:
+            record = self.env[model].sudo().browse(res_id)
+            if 'record_name' not in kwargs:
+                record_name = record.name_get()[0][1]
+        if 'reply_to' not in kwargs:
+            reply_to = self.env[model or 'mail.thread'].sudo().message_get_reply_to([res_id], default=email_from)[res_id]
+
+        if kwargs.get('no_auto_thread', False) is True:
+            message_id = tools.generate_tracking_message_id('reply_to')
+        elif model and res_id:
+            message_id = tools.generate_tracking_message_id('%s-%s' % (res_id, model))
+        else:
+            message_id = tools.generate_tracking_message_id('message-notify')
+
+        message_values = {
+            'subject': subject,
+            'body': body,
+            'author_id': author.id,
+            'email_from': email_from,
+            'message_type': message_type,
+            'subtype_id': subtype_rec.id,
+            'model': model,
+            'res_id': res_id,
+            'record_name': record_name,
+            'reply_to': reply_to,
+            'message_id': message_id,
+        }
+        message_values.update(kwargs)
+        message = self.env['mail.message'].sudo().with_context(message_create_from_mail_mail=True).create(message_values)
+
+        if author and model and res_id and message_type != 'notification' and not self._context.get('mail_create_nosubscribe'):
+            self.message_subscribe([author.id], force=False)
+
+        self.sudo()._message_post_notify(message)
+        return message
+
+    def _message_post_notify(self, message):
+        # pids = message.partner_ids.ids
+        # cids = message.channel_ids.ids
+        inbox_pids = []
+        email_pids = []
+        cids = []
+
+        if message.subtype_id:
+            query = """SELECT fol.partner_id, fol.channel_id, partner.partner_share, users.notification_type
+                        FROM mail_followers fol
+                        RIGHT JOIN mail_followers_mail_message_subtype_rel subrel ON subrel.mail_followers_id = fol.id
+                        LEFT JOIN res_partner partner ON partner.id = fol.partner_id
+                        LEFT JOIN res_users users ON users.partner_id = fol.partner_id
+                        WHERE subrel.mail_message_subtype_id = %s AND fol.res_model = %s AND fol.res_id = %s
+                    """
+            self.env.cr.execute(query, (message.subtype_id.id, message.model, message.res_id))
+            res = self.env.cr.fetchall()
+            for pid, cid, share, notif in res:
+                if pid and (share or notif == 'email'):
+                    email_pids.append(pid)
+                elif pid:
+                    inbox_pids.append(pid)
+                elif cid:
+                    cids.append(cid)
+
+        print(email_pids, inbox_pids, cids)
+        self.env['res.partner'].sudo().browse(email_pids)._notify_v2(
+            message, self, add_sign=True,
+            force_send=True, send_after_commit=True)
+
+
     # ------------------------------------------------------
     # Followers API
     # ------------------------------------------------------
