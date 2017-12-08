@@ -20,6 +20,7 @@ from odoo.http import request
 class WebsiteForum(http.Controller):
     _post_per_page = 10
     _user_per_page = 30
+    error_templates = {403: 'website_forum.403'}
 
     def _get_notifications(self):
         badge_subtype = request.env.ref('gamification.mt_badge_granted')
@@ -113,12 +114,9 @@ class WebsiteForum(http.Controller):
                  '/forum/<model("forum.forum"):forum>/page/<int:page>',
                  '''/forum/<model("forum.forum"):forum>/tag/<model("forum.tag"):tag>/questions''',
                  '''/forum/<model("forum.forum"):forum>/tag/<model("forum.tag"):tag>/questions/page/<int:page>''',
-                 ], type='http', auth="public", website=True, sitemap=sitemap_forum)
+                 ], type='http', auth="public", website=True, sitemap=sitemap_forum, error_templates=error_templates)
     def questions(self, forum, tag=None, page=1, filters='all', sorting=None, search='', post_type=None, **post):
         Post = request.env['forum.post']
-
-        if not forum.active:
-            return request.render("website.403")
 
         domain = [('forum_id', '=', forum.id), ('parent_id', '=', False), ('state', '=', 'active')]
         if search:
@@ -325,7 +323,7 @@ class WebsiteForum(http.Controller):
             return werkzeug.utils.redirect('/forum/%s' % slug(forum))
         if not user.email or not tools.single_email_re.match(user.email):
             return werkzeug.utils.redirect("/forum/%s/user/%s/edit?email_required=1" % (slug(forum), request.session.uid))
-        values = self._prepare_forum_values(forum=forum, searches={}, header={'ask_hide': True})
+        values = self._prepare_forum_values(forum=forum, searches={}, header={'ask_hide': not forum.active})
         return request.render("website_forum.new_%s" % post_type, values)
 
     @http.route(['/forum/<model("forum.forum"):forum>/new',

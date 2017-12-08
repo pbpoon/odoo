@@ -213,7 +213,10 @@ class Http(models.AbstractModel):
                 cls._auth_method_public()
 
             try:
-                html = request.env['ir.ui.view'].render_template('website.%s' % code, values)
+                rule, arguments = cls._find_handler(return_rule=True)
+                error_templates = rule.endpoint.routing.get('error_templates')
+                template = error_templates[code] if error_templates and code in error_templates.keys() else 'website.%s' % code
+                html = request.env['ir.ui.view'].render_template(template, values)
             except Exception:
                 html = request.env['ir.ui.view'].render_template('website.http_error', values)
             return werkzeug.wrappers.Response(html, status=code, content_type='text/html;charset=utf-8')

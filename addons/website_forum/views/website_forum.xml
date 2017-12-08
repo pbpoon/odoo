@@ -49,7 +49,7 @@
 
 <!-- Page Index -->
 <template id="header" name="Forum Index">
-    <t t-call="website_forum.layout">
+    <t t-call="website_forum.layout" t-if="not header.get('ask_hide')">
         <div t-if="is_public_user and not forum_welcome_message" class="forum_intro">
             <div t-field="forum.welcome_message"/>
         </div>
@@ -216,9 +216,12 @@
         </div>
         <div class="oe_structure"/>
     </t>
+    <t t-else="">
+        <t t-call="website_forum.403"/>
+    </t>
 </template>
 
-<template id="website.403">
+<template id="403">
     <t t-call="website_forum.layout">
         <div class="text-center text-muted">
             <p class="css_editable_hidden" groups="!base.group_erp_manager">
