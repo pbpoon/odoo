@@ -133,6 +133,22 @@ class PortalAccount(CustomerPortal):
         ]
         return request.make_response(pdf, headers=pdfhttpheaders)
 
+    @http.route(['/my/invoice/pdf/<int:invoice_id>/<string:access_token>'], type='http', auth="public", website=True)
+    def portal_my_invoice_report(self, invoice_id, access_token, **kw):
+        try:
+            invoice_sudo = self._invoice_check_access(invoice_id, access_token)
+        except AccessError:
+            return request.redirect('/my')
+
+        # print report as sudo, since it require access to taxes, payment term, ... and portal
+        # does not have those access rights.
+        pdf = request.env.ref('account.account_invoices').sudo().render_qweb_pdf([invoice_sudo.id])[0]
+        pdfhttpheaders = [
+            ('Content-Type', 'application/pdf'),
+            ('Content-Length', len(pdf)),
+        ]
+        return request.make_response(pdf, headers=pdfhttpheaders)
+
     # ------------------------------------------------------------
     # My Home
     # ------------------------------------------------------------

@@ -133,7 +133,7 @@
     <template id="portal_invoice_report" name="Invoice Portal Report">
         <div name="customer_address">
             <div class="o_portal_invoice_pdf hidden-xs hidden-sm">
-                <iframe height="100%" width="100%" t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}" />
+                <iframe height="100%" width="100%" t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/my/invoice/pdf/#{invoice.id}/#{invoice.access_token}" />
             </div>
         </div>
 
