@@ -533,6 +533,13 @@ ListRenderer.include({
         this.currentRow = null;
         return this._super.apply(this, arguments);
     },
+    on_attach_callback: function() {
+        var self = this;
+        this._super.apply(this, arguments);
+        this.$el.on('scroll', function () {
+            self.$('thead').css('transform', 'translateY(' + this.scrollTop + 'px)');
+        });
+    },
     /**
      * Force the resequencing of the items in the list.
      *
