@@ -5,9 +5,10 @@ from odoo import api, models
 
 
 class ProductTemplate(models.Model):
-    _inherit = "product.template"
+    _inherit = 'product.template'
 
-    @api.onchange('can_be_expensed')
-    def _onchange_can_be_expensed(self):
-        if not self.can_be_expensed:
+    @api.onchange('type')
+    def _onchange_type(self):
+        if self.type in ['product', 'consu']:
             self.expense_policy = 'no'
+            self.service_type = 'manual'
