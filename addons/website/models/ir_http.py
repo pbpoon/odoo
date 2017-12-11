@@ -77,10 +77,10 @@ class Http(models.AbstractModel):
         request.website = request.env['website'].get_current_website()  # can use `request.env` since auth methods are called
         context['website_id'] = request.website.id
 
-        super(Http, cls)._add_dispatch_parameters(func)
-
         # bind modified context
         request.context = context
+
+        super(Http, cls)._add_dispatch_parameters(func)
 
         if request.routing_iteration == 1:
             request.website = request.website.with_context(context)
