@@ -69,7 +69,6 @@ class Http(models.AbstractModel):
 
     @classmethod
     def _add_dispatch_parameters(cls, func):
-        super(Http, cls)._add_dispatch_parameters(func)
 
         context = dict(request.context)
         if not context.get('tz'):
@@ -78,11 +77,13 @@ class Http(models.AbstractModel):
         request.website = request.env['website'].get_current_website()  # can use `request.env` since auth methods are called
         context['website_id'] = request.website.id
 
-        if request.routing_iteration == 1:
-            request.website = request.website.with_context(context)
+        super(Http, cls)._add_dispatch_parameters(func)
 
         # bind modified context
         request.context = context
+
+        if request.routing_iteration == 1:
+            request.website = request.website.with_context(context)
 
     @classmethod
     def _get_languages(cls):
@@ -92,7 +93,7 @@ class Http(models.AbstractModel):
 
     @classmethod
     def _get_language_codes(cls):
-        if request.website:
+        if getattr(request, 'website', False):
             return request.website._get_languages()
         return super(Http, cls)._get_language_codes()
 
