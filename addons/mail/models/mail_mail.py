@@ -154,40 +154,52 @@ class MailMail(models.Model):
     # ------------------------------------------------------
 
     @api.multi
-    def send_get_mail_body(self, partner=None):
+    def _send_mail_prepare_body(self):
         """Return a specific ir_email body. The main purpose of this method
-        is to be inherited to add custom content depending on some module."""
+        is to be inherited to add custom content depending on some module
+        like URL / links management. """
         self.ensure_one()
-        body = self.body_html or ''
-        return body
+        return self.body_html or ''
 
-    @api.multi
-    def send_get_mail_to(self, partner=None):
-        """Forge the email_to with the following heuristic:
-          - if 'partner', recipient specific (Partner Name <email>)
-          - else fallback on mail.email_to splitting """
-        self.ensure_one()
-        if partner:
-            email_to = [formataddr((partner.name or 'False', partner.email or 'False'))]
-        else:
-            email_to = tools.email_split_and_format(self.email_to)
-        return email_to
-
-    @api.multi
-    def send_get_email_dict(self, partner=None):
-        """Return a dictionary for specific email values, depending on a
-        partner, or generic to the whole recipients given by mail.email_to.
-
-            :param Model partner: specific recipient partner
-        """
-        self.ensure_one()
-        body = self.send_get_mail_body(partner=partner)
+    def _send_mail_prepare_values(self):
+        body = self._send_mail_prepare_body()
         body_alternative = tools.html2plaintext(body)
-        res = {
+
+        # load attachment binary data with a separate read(), as prefetching all
+        # `datas` (binary field) could bloat the browse cache, triggerring
+        # soft/hard mem limits with temporary data.
+        attachments = [(a['datas_fname'], base64.b64decode(a['datas']), a['mimetype'])
+                       for a in self.attachment_ids.sudo().read(['datas_fname', 'datas', 'mimetype'])]
+
+        generic_values = {
+            'email_from': self.email_from,
+            'subject': self.subject,
             'body': body,
             'body_alternative': body_alternative,
-            'email_to': self.send_get_mail_to(partner=partner),
+            'reply_to': self.reply_to,
+            'attachments': attachments,
+            'message_id': self.message_id,
+            'references': self.references,
+            'object_id': '%s-%s' % (self.res_id, self.model) if self.res_id else '',
+            'subtype': 'html',
+            'subtype_alternative': 'plain',
         }
+
+        emails_based = {
+            'email_from': self.email_from,
+            'email_to': tools.email_split_and_format(self.email_to),
+            'email_cc': tools.email_split(self.email_cc),
+        }
+        emails_based.update(generic_values)
+        res = [emails_based]
+
+        for recipient in self.recipient_ids:
+            partner_based = {
+                'email_to': [formataddr((recipient.name or 'False', recipient.email or 'False'))],
+            }
+            partner_based.update(generic_values)
+            res.append(partner_based)
+
         return res
 
     @api.multi
@@ -200,10 +212,11 @@ class MailMail(models.Model):
         groups = defaultdict(list)
         # Turn prefetch OFF to avoid MemoryError on very large mail queues, we only care
         # about the mail server ids in this case.
-        for mail in self.with_context(prefetch_fields=False):
+        # Browse as sudo to lessen query number - this is an internal method only dispatching mails
+        # so no security breach
+        for mail in self.sudo().with_context(prefetch_fields=False):
             groups[mail.mail_server_id.id].append(mail.id)
-        sys_params = self.env['ir.config_parameter'].sudo()
-        batch_size = int(sys_params.get_param('mail.session.batch.size', 1000))
+        batch_size = int(self.env['ir.config_parameter'].sudo().get_param('mail.session.batch.size', 1000))
         for server_id, record_ids in groups.items():
             for mail_batch in tools.split_every(batch_size, record_ids):
                 yield server_id, mail_batch
@@ -250,54 +263,39 @@ class MailMail(models.Model):
     @api.multi
     def _send(self, auto_commit=False, raise_exception=False, smtp_session=None):
         IrMailServer = self.env['ir.mail_server']
+        MailSudo = self.env['mail.mail'].sudo()
+        ICP = self.env['ir.config_parameter'].sudo()
+        bounce_alias = ICP.get_param("mail.bounce.alias")
+        catchall_domain = ICP.get_param("mail.catchall.domain")
+
         for mail_id in self.ids:
             try:
-                mail = self.browse(mail_id)
-                if mail.state != 'outgoing':
-                    if mail.state != 'exception' and mail.auto_delete:
-                        mail.sudo().unlink()
+                mail_sudo = MailSudo.browse(mail_id)
+                if mail_sudo.state != 'outgoing':
+                    if mail_sudo.state != 'exception' and mail_sudo.auto_delete:
+                        mail_sudo.unlink()
                     continue
-                # TDE note: remove me when model_id field is present on mail.message - done here to avoid doing it multiple times in the sub method
-                if mail.model:
-                    model = self.env['ir.model']._get(mail.model)[0]
-                else:
-                    model = None
-                if model:
-                    mail = mail.with_context(model_name=model.name)
-
-                # load attachment binary data with a separate read(), as prefetching all
-                # `datas` (binary field) could bloat the browse cache, triggerring
-                # soft/hard mem limits with temporary data.
-                attachments = [(a['datas_fname'], base64.b64decode(a['datas']), a['mimetype'])
-                               for a in mail.attachment_ids.sudo().read(['datas_fname', 'datas', 'mimetype'])]
 
                 # specific behavior to customize the send email for notified partners
-                email_list = []
-                if mail.email_to:
-                    email_list.append(mail.send_get_email_dict())
-                for partner in mail.recipient_ids:
-                    email_list.append(mail.send_get_email_dict(partner=partner))
+                email_list = mail_sudo._send_mail_prepare_values()
 
                 # headers
                 headers = {}
-                ICP = self.env['ir.config_parameter'].sudo()
-                bounce_alias = ICP.get_param("mail.bounce.alias")
-                catchall_domain = ICP.get_param("mail.catchall.domain")
                 if bounce_alias and catchall_domain:
-                    if mail.model and mail.res_id:
-                        headers['Return-Path'] = '%s+%d-%s-%d@%s' % (bounce_alias, mail.id, mail.model, mail.res_id, catchall_domain)
+                    if mail_sudo.model and mail_sudo.res_id:
+                        headers['Return-Path'] = '%s+%d-%s-%d@%s' % (bounce_alias, mail_sudo.id, mail_sudo.model, mail_sudo.res_id, catchall_domain)
                     else:
-                        headers['Return-Path'] = '%s+%d@%s' % (bounce_alias, mail.id, catchall_domain)
-                if mail.headers:
+                        headers['Return-Path'] = '%s+%d@%s' % (bounce_alias, mail_sudo.id, catchall_domain)
+                if mail_sudo.headers:
                     try:
-                        headers.update(safe_eval(mail.headers))
+                        headers.update(safe_eval(mail_sudo.headers))
                     except Exception:
                         pass
 
                 # Writing on the mail object may fail (e.g. lock on user) which
                 # would trigger a rollback *after* actually sending the email.
                 # To avoid sending twice the same email, provoke the failure earlier
-                mail.write({
+                mail_sudo.write({
                     'state': 'exception',
                     'failure_reason': _('Error without exception. Probably due do sending an email without computed recipients.'),
                 })
@@ -307,23 +305,11 @@ class MailMail(models.Model):
                 res = None
                 for email in email_list:
                     msg = IrMailServer.build_email(
-                        email_from=mail.email_from,
-                        email_to=email.get('email_to'),
-                        subject=mail.subject,
-                        body=email.get('body'),
-                        body_alternative=email.get('body_alternative'),
-                        email_cc=tools.email_split(mail.email_cc),
-                        reply_to=mail.reply_to,
-                        attachments=attachments,
-                        message_id=mail.message_id,
-                        references=mail.references,
-                        object_id=mail.res_id and ('%s-%s' % (mail.res_id, mail.model)),
-                        subtype='html',
-                        subtype_alternative='plain',
-                        headers=headers)
+                        headers=headers,
+                        **email)
                     try:
                         res = IrMailServer.send_email(
-                            msg, mail_server_id=mail.mail_server_id.id, smtp_session=smtp_session)
+                            msg, mail_server_id=mail_sudo.mail_server_id.id, smtp_session=smtp_session)
                     except AssertionError as error:
                         if str(error) == IrMailServer.NO_VALID_RECIPIENT:
                             # No valid recipient found for this particular
@@ -331,24 +317,24 @@ class MailMail(models.Model):
                             # delivery to next recipients, if any. If this is
                             # the only recipient, the mail will show as failed.
                             _logger.info("Ignoring invalid recipients for mail.mail %s: %s",
-                                         mail.message_id, email.get('email_to'))
+                                         mail_sudo.message_id, email.get('email_to'))
                         else:
                             raise
                 if res:
-                    mail.write({'state': 'sent', 'message_id': res, 'failure_reason': False})
+                    mail_sudo.write({'state': 'sent', 'message_id': res, 'failure_reason': False})
                     mail_sent = True
 
                 # /!\ can't use mail.state here, as mail.refresh() will cause an error
                 # see revid:odo@openerp.com-20120622152536-42b2s28lvdv3odyr in 6.1
                 if mail_sent:
-                    _logger.info('Mail with ID %r and Message-Id %r successfully sent', mail.id, mail.message_id)
-                mail._postprocess_sent_message(mail_sent=mail_sent)
+                    _logger.info('Mail with ID %r and Message-Id %r successfully sent', mail_sudo.id, mail_sudo.message_id)
+                mail_sudo._postprocess_sent_message(mail_sent=mail_sent)
             except MemoryError:
                 # prevent catching transient MemoryErrors, bubble up to notify user or abort cron job
                 # instead of marking the mail as failed
                 _logger.exception(
                     'MemoryError while processing mail with ID %r and Msg-Id %r. Consider raising the --limit-memory-hard startup option',
-                    mail.id, mail.message_id)
+                    mail_sudo.id, mail_sudo.message_id)
                 raise
             except psycopg2.Error:
                 # If an error with the database occurs, chances are that the cursor is unusable.
@@ -358,9 +344,9 @@ class MailMail(models.Model):
                 raise
             except Exception as e:
                 failure_reason = tools.ustr(e)
-                _logger.exception('failed sending mail (id: %s) due to %s', mail.id, failure_reason)
-                mail.write({'state': 'exception', 'failure_reason': failure_reason})
-                mail._postprocess_sent_message(mail_sent=False)
+                _logger.exception('failed sending mail (id: %s) due to %s', mail_sudo.id, failure_reason)
+                mail_sudo.write({'state': 'exception', 'failure_reason': failure_reason})
+                mail_sudo._postprocess_sent_message(mail_sent=False)
                 if raise_exception:
                     if isinstance(e, AssertionError):
                         # get the args of the original error, wrap into a value and throw a MailDeliveryException

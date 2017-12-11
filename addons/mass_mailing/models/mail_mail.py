@@ -53,12 +53,12 @@ class MailMail(models.Model):
         return url
 
     @api.multi
-    def send_get_mail_body(self, partner=None):
+    def _send_mail_prepare_body(self):
         """ Override to add the tracking URL to the body and to add
         Statistic_id in shorted urls """
         # TDE: temporary addition (mail was parameter) due to semi-new-API
         self.ensure_one()
-        body = super(MailMail, self).send_get_mail_body(partner=partner)
+        body = super(MailMail, self)._send_mail_prepare_body()
 
         if self.mailing_id and body and self.statistics_ids:
             for match in re.findall(URL_REGEX, self.body_html):
@@ -83,23 +83,25 @@ class MailMail(models.Model):
 
         # generate tracking URL
         if self.statistics_ids:
-            tracking_url = self._get_tracking_url(partner)
+            tracking_url = self._get_tracking_url()
             if tracking_url:
                 body = tools.append_content_to_html(body, tracking_url, plaintext=False, container_tag='div')
         return body
 
     @api.multi
-    def send_get_email_dict(self, partner=None):
+    def _send_mail_prepare_values(self):
         # TDE: temporary addition (mail was parameter) due to semi-new-API
-        res = super(MailMail, self).send_get_email_dict(partner)
+        res_lst = super(MailMail, self)._send_mail_prepare_values()
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        if self.mailing_id and res.get('body') and res.get('email_to'):
-            emails = tools.email_split(res.get('email_to')[0])
-            email_to = emails and emails[0] or False
-            unsubscribe_url = self._get_unsubscribe_url(email_to)
-            link_to_replace = base_url + '/unsubscribe_from_list'
-            if link_to_replace in res['body']:
-                res['body'] = res['body'].replace(link_to_replace, unsubscribe_url if unsubscribe_url else '#')
+        if self.mailing_id:
+            for res in res_lst:
+                if res.get('body') and res.get('email_to'):
+                    emails = tools.email_split(res.get('email_to')[0])
+                    email_to = emails and emails[0] or False
+                    unsubscribe_url = self._get_unsubscribe_url(email_to)
+                    link_to_replace = base_url + '/unsubscribe_from_list'
+                    if link_to_replace in res['body']:
+                        res['body'] = res['body'].replace(link_to_replace, unsubscribe_url if unsubscribe_url else '#')
         return res
 
     @api.multi
