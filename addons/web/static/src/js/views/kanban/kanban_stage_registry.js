@@ -27,6 +27,7 @@ var KanbanStageRegistry = Class.extend({
         if (!this.contains(key)) {
             this.map[key] = [];
         }
+        value.id = 'stage_'+_.uniqueId();
         this.map[key].push(value);
         return this;
     },

@@ -145,6 +145,9 @@
                                 <t t-foreach="stage.stages" t-as="cloumn">
                                     <div class="col-md-3 cloumn_container">
                                         <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
+                                        <t t-foreach="[1,2,3,4]" t-as="cloumn">
+                                            <t t-call="KanbanColumn.RecordGhost"/>
+                                        </t>
                                     </div>
                                 </t>
                             </div>
@@ -157,7 +160,9 @@
                                 <t t-foreach="stage.stages" t-as="cloumn">
                                     <div class="col-md-3 cloumn_container">
                                         <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
-                                        <t t-call="KanbanColumn.RecordGhost"/>
+                                        <t t-foreach="[1,2,3,4]" t-as="cloumn">
+                                            <t t-call="KanbanColumn.RecordGhost"/>
+                                        </t>
                                     </div>
                                 </t>
                             </div>
@@ -184,6 +189,23 @@
                 <div class="oe_kanban_bottom_right">
                     <img width="24" height="24" src="http://localhost:8069/web/image?model=res.users&amp;field=image_small&amp;id=1&amp;unique=" title="Administrator"/>
                 </div>
+            </div>
+        </div>
+    </div>
+</t>
+
+<t t-name="KanbanColumn.Sample">
+    <div class='kanban_sample_cloumn o_kanban_group o_column_quick_create'>
+        <div class="o_kanban_quick_create">
+            <div class='sample_header'>
+                <div class="input-group">
+                    <input type="text" class="form-control o_input" t-att-placeholder="placeholder"/>
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-primary o_kanban_add_from_sample" type="button">Add Column</button>
+                    </span>
+                </div>
+                <span class="btn-link exampleDialog">See Examples</span>
+                <span class="pull-right text-muted">or Esc to cancel</span>
             </div>
         </div>
     </div>

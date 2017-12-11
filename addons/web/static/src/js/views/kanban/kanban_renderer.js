@@ -86,6 +86,9 @@ var KanbanRenderer = BasicRenderer.extend({
     custom_events: _.extend({}, BasicRenderer.prototype.custom_events || {}, {
         'set_progress_bar_state': '_onSetProgressBarState',
     }),
+    events: {
+        'click .o_kanban_add_from_sample': '_onAddColumnFromSample',
+    },
 
     /**
      * @override
@@ -117,7 +120,12 @@ var KanbanRenderer = BasicRenderer.extend({
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
-
+    _onAddColumnFromSample: function (event) {
+        var cloumnText = $(event.currentTarget).parent().siblings().first().val();
+        if (cloumnText) {
+            this.trigger_up('quick_create_add_column', {value:cloumnText});
+        }
+    },
     /**
      * Displays the quick create record in the first column.
      */
@@ -257,7 +265,17 @@ var KanbanRenderer = BasicRenderer.extend({
                     self.trigger_up('resequence_columns', {ids: ids});
                 },
             });
-
+            var temp = {
+                placeholder_1: 'ToDo',
+                placeholder_2: 'In Progress',
+                placeholder_3: 'Done'
+            };
+            var $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'ToDo'}));
+            $cloumn.appendTo(fragment);
+            $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'In Progress'}));
+            $cloumn.appendTo(fragment);
+            $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'Done'}));
+            $cloumn.appendTo(fragment);
             // Enable column quickcreate
             if (this.createColumnEnabled) {
                 this.quickCreate = new ColumnQuickCreate(this);

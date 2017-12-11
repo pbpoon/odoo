@@ -30,6 +30,8 @@ var KanbanColumn = Widget.extend({
         'click .o_kanban_quick_add': '_onAddQuickCreate',
         'click .o_kanban_load_more': '_onLoadMore',
         'click .o_kanban_toggle_fold': '_onToggleFold',
+        'click .exampleDialog': '_openDialogTrigger'
+
     },
     /**
      * @override
