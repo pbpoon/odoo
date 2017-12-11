@@ -181,6 +181,32 @@ class TestHeavyMailPerformance(TestPerformance):
         )
 
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    @queryCount(admin=20, emp=41)
+    def test_mail_mail_send(self):
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
+        self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
+        message = self.env['mail.message'].sudo().with_context(message_create_from_mail_mail=True).create({
+            'subject': self.str('Test'),
+            'body': '<p>%s</p>' % (self.str('Test')),
+            'author_id': self.env.user.partner_id.id,
+            'email_from': self.env.user.partner_id.email,
+            'model': 'mail.test',
+            'res_id': self.umbrella.id,
+        })
+        mail = self.env['mail.mail'].sudo().create({
+            'mail_message_id': message.id,
+            'recipient_ids': [(4, pid) for pid in self.partners.ids],
+        })
+        mail_ids = mail.ids
+
+        self.resetQueryCount()
+        self.env['mail.mail'].browse(mail_ids).send()
+
+        self.haltQueryCount()
+        # self.assertEqual(record.message_ids[0].body, '<p>Test Post Performances</p>')
+
+    @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @queryCount(admin=112, emp=131)
     def test_message_post(self):
         self.umbrella.message_subscribe(self.user_portal.partner_id.ids)
