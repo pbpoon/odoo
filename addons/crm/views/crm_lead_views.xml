@@ -641,7 +641,7 @@
                     <separator/>
                     <filter string="Overdue Opportunities" name="overdue_opp"
                             domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('date_closed', '=', False)]"
-                            help="Opportunities with a date of Expected Closing is passed"/>
+                            help="Opportunities with a date of Expected Closing which is in the past"/>
 
                     <filter string="To Close Today" name="close_today"
                             domain="[('date_deadline', '=', context_today().strftime('%Y-%m-%d'))]"/>
