@@ -52,10 +52,12 @@ KanbanRenderer.include({
         var self = this;
         var index = _.findIndex(this.widgets, {db_id: localID});
         var $column = this.widgets[index].$el;
+        $column.removeClass('o_active_group');
         var left = $column.css('left');
         var scrollTop = $column.scrollTop();
         return this._super.apply(this, arguments).then(function () {
             $column = self.widgets[index].$el;
+            $column.addClass('o_active_group');
             $column.css({left: left});
             $column.scrollTop(scrollTop); // required when clicking on 'Load More'
             self._enableSwipe();
@@ -107,7 +109,6 @@ KanbanRenderer.include({
                 // update the columns and tabs positions (optionally with an animation)
                 var updateFunc = animate ? 'animate' : 'css';
                 self.$('.o_kanban_mobile_tab').removeClass('o_current');
-                self.$('.o_kanban_group').removeClass('o_active_group');
                 _.each(self.widgets, function (column, index) {
                     var columnID = column.id || column.db_id;
                     var $column = self.$('.o_kanban_group[data-id="' + columnID + '"]');
@@ -122,7 +123,6 @@ KanbanRenderer.include({
                         $column[updateFunc]({left: '0%'});
                         $tab[updateFunc]({left: '50%'});
                         $tab.addClass('o_current');
-                        $column.addClass('o_active_group');
                     } else if (index < moveToIndex) {
                         $column.css({left: '-100%'});
                         $tab[updateFunc]({left: '-100%'});

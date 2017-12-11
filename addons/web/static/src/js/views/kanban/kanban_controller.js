@@ -410,6 +410,11 @@ var KanbanController = BasicController.extend({
         this._applyChanges(ev.target.db_id, changes, ev);
     },
 
+    /**
+     * Scrolls the current active column from top
+     *
+     * @param {OdooEvent} ev
+     */
     scrollTo: function (ev) {
         if (config.device.isMobile && this.scrollTopPosition) {
             this.$(".o_active_group").scrollTop(this.scrollTopPosition);
