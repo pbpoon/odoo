@@ -51,6 +51,7 @@ class MassMailingList(models.Model):
     contact_ids = fields.Many2many(
         'mail.mass_mailing.contact', 'mail_mass_mailing_contact_list_rel', 'list_id', 'contact_id',
         string='Mailing Lists')
+    user_id = fields.Many2one('res.users', string='Mailing List Manager', default=lambda self: self.env.user)
 
     # Compute number of contacts non opt-out for a mailing list
     def _compute_contact_nbr(self):
@@ -389,8 +390,7 @@ class MassMailing(models.Model):
     color = fields.Integer(string='Color Index')
     # mailing options
     reply_to_mode = fields.Selection(
-        [('thread', 'Followers of leads/applicants'), ('email', 'Specified Email Address')],
-        string='Reply-To Mode', required=True)
+        [('thread', 'Followers'), ('email', 'Specified Email Address')], string='Reply-To Mode', required=True)
     reply_to = fields.Char(string='Reply To', help='Preferred Reply-To Address',
         default=lambda self: self.env['mail.message']._get_default_from())
     # recipients
@@ -520,6 +520,8 @@ class MassMailing(models.Model):
                 self.mailing_domain = "[('list_ids', 'in', [%s]), ('opt_out', '=', False)]" % (','.join(str(id) for id in self.contact_list_ids.ids),)
             else:
                 self.mailing_domain = "[(0, '=', 1)]"
+        elif self.mailing_model_name == 'res.partner':
+            self.mailing_domain = "[('customer', '=', True)]"
         elif self.mailing_model_name and 'opt_out' in self.env[self.mailing_model_name]._fields and not self.mailing_domain:
             self.mailing_domain = "[('opt_out', '=', False)]"
         self.body_html = "on_change_model_and_list"

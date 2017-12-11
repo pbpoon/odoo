@@ -4,6 +4,7 @@
         <xpath expr="." position="inside">
             <link rel="stylesheet" href="/mass_mailing/static/src/less/mass_mailing.less"/>
             <link rel="stylesheet" href="/mass_mailing/static/src/css/email_template.css"/>
+            <script type="text/javascript" src="/mass_mailing/static/src/js/tour.js"></script>
             <script type="text/javascript" src="/mass_mailing/static/src/js/mass_mailing.js"></script>
         </xpath>
     </template>

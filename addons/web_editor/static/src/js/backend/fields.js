@@ -313,6 +313,7 @@ var FieldTextHtml = AbstractField.extend({
     old_initialize_content: function () {
         this.$el.closest('.modal-body').css('max-height', 'none');
         this.$iframe = this.$el.find('iframe');
+        // deactivate any button to avoid saving a not ready iframe
         this.document = null;
         this.$body = $();
         this.$content = $();
@@ -405,6 +406,7 @@ var FieldTextHtml = AbstractField.extend({
         }
         return $.when(this.contentLoadedDeferred, this.editorLoadedDeferred, result).then(function () {
             // switch to WYSIWYG mode if currently in code mode to get all changes
+            debugger;
             if (config.debug && self.editor.rte) {
                 var layoutInfo = self.editor.rte.editable().data('layoutInfo');
                 $.summernote.pluginEvents.codeview(undefined, undefined, layoutInfo, false);
