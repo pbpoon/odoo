@@ -52,3 +52,9 @@ class ProductTemplate(models.Model):
         help='Ordered Quantity: Invoice based on the quantity the customer ordered.\n'
              'Delivered Quantity: Invoiced based on the quantity the vendor delivered (time or deliveries).',
         default='order')
+
+    @api.onchange('type')
+    def _onchange_type(self):
+        if self.type == 'consu':
+            self.invoice_policy = 'order'
+            self.service_type = 'manual'
