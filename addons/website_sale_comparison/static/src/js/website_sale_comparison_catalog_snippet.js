@@ -20,8 +20,7 @@ ProductCatalog.ProductCatalog.include({
      * @override
      */
     start: function () {
-        var self = this;
-        return this._super.apply(this, arguments).then(function() {
+        return this._super.apply(this, arguments).then(function () {
             Comparison.appendTo('body');
         });
     },

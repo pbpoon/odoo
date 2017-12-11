@@ -108,7 +108,7 @@ var ProductCatalog = Widget.extend({
      * @returns {Array} Contains product ids.
      */
     _getProductIds: function () {
-        return _.map(this.$target.find('.product-item'), function(el) {
+        return _.map(this.$target.find('.product-item'), function (el) {
             return $(el).data('product-id');
         });
     },
@@ -120,7 +120,7 @@ var ProductCatalog = Widget.extend({
      * @returns {Array} Contains arrays of products.
      */
     _getProducts: function () {
-        var lists = _.groupBy(this.products, function(product, index){
+        var lists = _.groupBy(this.products, function (product, index) {
             return Math.floor(index/(config.device.size_class + 1));
         });
         return _.toArray(lists);
@@ -137,7 +137,7 @@ var ProductCatalog = Widget.extend({
                 break;
             case 'manual':
                 var productIds = this.$target.attr('data-productIds').split(',').map(Number);
-                domain = ['id', 'in', productIds]
+                domain = ['id', 'in', productIds];
                 break;
         }
         return domain;
@@ -181,9 +181,9 @@ var ProductCatalog = Widget.extend({
      */
     _reOrderingProducts: function (products) {
         var reorderIDs = this.$target.attr('data-productIds').split(',').map(Number);
-        products['products'] = _.sortBy(products.products, function(product) {
-            return _.indexOf(reorderIDs, product.id)
-        })
+        products['products'] = _.sortBy(products.products, function (product) {
+            return _.indexOf(reorderIDs, product.id);
+        });
         return products;
     },
 

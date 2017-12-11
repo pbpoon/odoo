@@ -1,7 +1,6 @@
 odoo.define('website_sale_wishlist.product_catalog', function (require) {
 'use strict';
 
-var core = require('web.core');
 var ProductWishlist = require('website_sale_wishlist.wishlist');
 var ProductCatalog = require('website_sale.product_catalog');
 var WebsiteSaleUtils = require('website_sale.utils');
