@@ -303,6 +303,8 @@ var ListController = BasicController.extend({
     _update: function () {
         this.selectedRecords = [];
         this._toggleSidebar();
+        var scrollElement = this.mode == 'edit' ? this.$('.table-responsive') : this.$el.scrollParent();
+        this.$('thead').css('transform', 'translateY(' + scrollElement.scrollTop() + 'px)');
         return this._super.apply(this, arguments);
     },
     /**
