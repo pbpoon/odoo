@@ -75,6 +75,8 @@ var ListRenderer = BasicRenderer.extend({
 
     on_attach_callback: function() {
         var self = this;
+        // when list view is scrolled down transform table header(listview header) to the
+        // scroll top of element to get the effect of sticky header
         this.$el.scrollParent().on('scroll', function () {
             self.$('thead').css('transform', 'translateY(' + this.scrollTop + 'px)');
         });

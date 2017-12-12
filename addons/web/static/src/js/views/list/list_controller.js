@@ -8,6 +8,7 @@ odoo.define('web.ListController', function (require) {
  */
 
 var core = require('web.core');
+var config = require('web.config');
 var BasicController = require('web.BasicController');
 var DataExport = require('web.DataExport');
 var pyeval = require('web.pyeval');
@@ -104,7 +105,9 @@ var ListController = BasicController.extend({
         });
     },
     on_attach_callback: function () {
-        this.renderer.on_attach_callback();
+        if(!config.device.isMobile){
+            this.renderer.on_attach_callback();
+        }
     },
     /**
      * Display and bind all buttons in the control panel
@@ -303,8 +306,20 @@ var ListController = BasicController.extend({
     _update: function () {
         this.selectedRecords = [];
         this._toggleSidebar();
-        var scrollElement = this.mode == 'edit' ? this.$('.table-responsive') : this.$el.scrollParent();
-        this.$('thead').css('transform', 'translateY(' + scrollElement.scrollTop() + 'px)');
+        // When update listview set the table header (listview header) to the top of
+        // element. for example when we sort the column header should set to the top
+        // of element again.
+        if(!config.device.isMobile){
+            if(this.getParent().el && this.getParent().$el.hasClass('list-scroll')){
+                // for list view which is in modal dialog
+                this.$('thead').css('transform', 'translateY(' + this.$('.table-responsive').scrollTop() + 'px)');
+            }
+            else{
+                // for listview and editable listview
+                var scrollElement = this.mode == 'edit' ? this.$('.table-responsive') : this.$el.scrollParent();
+                this.$('thead').css('transform', 'translateY(' + scrollElement.scrollTop() + 'px)');
+            }
+        }
         return this._super.apply(this, arguments);
     },
     /**

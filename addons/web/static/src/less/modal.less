@@ -72,6 +72,17 @@
                         }
                     }
                 }
+                .list-scroll{
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    >:nth-child(2) {
+                        display: flex;
+                    }
+                    .table-responsive{
+                        overflow: auto;
+                    }
+                }
             }
         }
     }

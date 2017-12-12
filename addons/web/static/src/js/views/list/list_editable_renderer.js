@@ -536,6 +536,8 @@ ListRenderer.include({
     on_attach_callback: function() {
         var self = this;
         this._super.apply(this, arguments);
+        // when editable list view is scrolled down transform table header(listview header)
+        // to the scroll top of element to get the effect of sticky header
         this.$el.on('scroll', function () {
             self.$('thead').css('transform', 'translateY(' + this.scrollTop + 'px)');
         });

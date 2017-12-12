@@ -306,6 +306,12 @@ var SelectCreateDialog = ViewDialog.extend({
                         callbacks: [{widget: self.list_controller}],
                         in_DOM: true,
                     });
+                    // when modal dialog opened with list view add the class to scroll only
+                    // listview table not modal-body to stick the header to scrolltop of
+                    // the element
+                    if (self.$('.o_list_view').length >0){
+                        self.$el.addClass('list-scroll');
+                    }
                     self.set_buttons(self.__buttons);
                 });
                 _super();
