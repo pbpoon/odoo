@@ -8,6 +8,7 @@
     'data': [
         'data/website_form_data.xml',
         'views/assets.xml',
+        'views/website_form_templates.xml',
     ],
     'installable': True,
     'auto_install': True,
