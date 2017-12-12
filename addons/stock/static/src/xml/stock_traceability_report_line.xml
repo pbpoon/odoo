@@ -15,7 +15,7 @@
         <t t-if="l.model == 'stock.move.line'"><t t-set="trclass" t-value="'o_stock_reports_level0'"/></t>
         <t t-set="space_td" t-value="'margin-left: '+ l.level + 'px;'"/>
         <t t-set="domainClass" t-value="'o_stock_reports_domain_line_0'"/>
-        <t t-if="l.name == false and l.unfoldable == true"><t t-set="style" t-value="'font-weight: normal;'"/></t>
+        <t t-if="l.lot_name == false or l.unfoldable == true"><t t-set="style" t-value="'font-weight: normal;'"/></t>
         <t t-if="l.unfoldable == false">
             <t t-set="domainClass" t-value="'o_stock_reports_domain_line_1'"/>
         </t>
