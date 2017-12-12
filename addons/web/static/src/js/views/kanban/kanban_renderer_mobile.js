@@ -52,16 +52,22 @@ KanbanRenderer.include({
         var self = this;
         var index = _.findIndex(this.widgets, {db_id: localID});
         var $column = this.widgets[index].$el;
-        $column.removeClass('o_active_group');
         var left = $column.css('left');
         var scrollTop = $column.scrollTop();
         return this._super.apply(this, arguments).then(function () {
             $column = self.widgets[index].$el;
-            $column.addClass('o_active_group');
             $column.css({left: left});
             $column.scrollTop(scrollTop); // required when clicking on 'Load More'
             self._enableSwipe();
         });
+    },
+    scrollTo: function (position) {
+        var $column = this.widgets[this.activeColumnIndex].$el;
+        $column.scrollTop(position);
+    },
+    findScrollPosition: function () {
+        var $column = this.widgets[this.activeColumnIndex].$el
+        return {top: $column.scrollTop(), left: $column.scrollLeft()};
     },
 
     //--------------------------------------------------------------------------

@@ -408,7 +408,7 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
     },
 
     /**
-     * Find the position of action manager element
+     * Find the scroll position of action manager element
      *
      * @param {OdooEvent} ev
      */

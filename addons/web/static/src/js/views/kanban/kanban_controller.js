@@ -416,8 +416,8 @@ var KanbanController = BasicController.extend({
      * @param {OdooEvent} ev
      */
     scrollTo: function (ev) {
-        if (config.device.isMobile && this.scrollTopPosition) {
-            this.$(".o_active_group").scrollTop(this.scrollTopPosition);
+        if (config.device.isMobile) {
+            this.renderer.scrollTo(ev.data.top);
         }
     },
 
@@ -427,8 +427,10 @@ var KanbanController = BasicController.extend({
      * @param {OdooEvent} ev
      */
     findScrollPosition: function(ev) {
-        if (config.device.isMobile) {
-            this.scrollTopPosition = this.$(".o_active_group").scrollTop();
+        var data = this.model.get(this.handle, {raw: true});
+        if (config.device.isMobile && data.groupedBy.length) {
+            ev.stopPropagation();
+            _.extend(ev.data.position, this.renderer.findScrollPosition());
         }
     },
 });
