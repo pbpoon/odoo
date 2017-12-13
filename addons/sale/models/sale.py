@@ -30,8 +30,16 @@ class SaleOrder(models.Model):
                 amount_untaxed += line.price_subtotal
                 amount_tax += line.price_tax
             order.update({
-                'amount_untaxed': order.pricelist_id.currency_id.round(amount_untaxed),
-                'amount_tax': order.pricelist_id.currency_id.round(amount_tax),
+                'amount_untaxed': (
+                    order.pricelist_id and
+                    order.pricelist_id.currency_id.round(amount_untaxed) or
+                    self.currency_id.round(amount_untaxed)
+                ),
+                'amount_tax': (
+                    order.pricelist_id and
+                    order.pricelist_id.currency_id.round(amount_tax) or
+                    self.currency_id.round(amount_tax)
+                ),
                 'amount_total': amount_untaxed + amount_tax,
             })
 
@@ -137,9 +145,20 @@ class SaleOrder(models.Model):
     partner_id = fields.Many2one('res.partner', string='Customer', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, required=True, change_default=True, index=True, track_visibility='always')
     partner_invoice_id = fields.Many2one('res.partner', string='Invoice Address', readonly=True, required=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)]}, help="Invoice address for current sales order.")
     partner_shipping_id = fields.Many2one('res.partner', string='Delivery Address', readonly=True, required=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)]}, help="Delivery address for current sales order.")
-
-    pricelist_id = fields.Many2one('product.pricelist', string='Pricelist', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Pricelist for current sales order.")
-    currency_id = fields.Many2one("res.currency", default=_get_default_currency, string="Currency", readonly=True, required=True)
+    pricelist_id = fields.Many2one(
+        'product.pricelist',
+        string='Pricelist',
+        readonly=True,
+        states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},
+        help="Pricelist for current sales order."
+    )
+    currency_id = fields.Many2one(
+        "res.currency",
+        default=_get_default_currency,
+        string="Currency",
+        readonly=True,
+        required=True
+    )
     analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="The analytic account related to a sales order.", copy=False, oldname='project_id')
 
     order_line = fields.One2many('sale.order.line', 'order_id', string='Order Lines', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True, auto_join=True)
@@ -365,7 +384,9 @@ class SaleOrder(models.Model):
             'partner_id': self.partner_invoice_id.id,
             'partner_shipping_id': self.partner_shipping_id.id,
             'journal_id': journal_id,
-            'currency_id': self.pricelist_id.currency_id.id,
+            'currency_id': ((self.pricelist_id and
+                            self.pricelist_id.currency_id.id) or
+                            self.currency_id),
             'comment': self.note,
             'payment_term_id': self.payment_term_id.id,
             'fiscal_position_id': self.fiscal_position_id.id or self.partner_invoice_id.property_account_position_id.id,
@@ -991,16 +1012,38 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     def _get_display_price(self, product):
-        # TO DO: move me in master/saas-16 on sale.order
-        if self.order_id.pricelist_id.discount_policy == 'with_discount':
-            return product.with_context(pricelist=self.order_id.pricelist_id.id).price
-        final_price, rule_id = self.order_id.pricelist_id.get_product_price_rule(self.product_id, self.product_uom_qty or 1.0, self.order_id.partner_id)
-        context_partner = dict(self.env.context, partner_id=self.order_id.partner_id.id, date=self.order_id.date_order)
-        base_price, currency_id = self.with_context(context_partner)._get_real_price_currency(self.product_id, rule_id, self.product_uom_qty, self.product_uom, self.order_id.pricelist_id.id)
-        if currency_id != self.order_id.pricelist_id.currency_id.id:
-            base_price = self.env['res.currency'].browse(currency_id).with_context(context_partner).compute(base_price, self.order_id.pricelist_id.currency_id)
-        # negative discounts (= surcharge) are included in the display price
-        return max(base_price, final_price)
+        # TODO: move me in master/saas-16 on sale.order
+        pricelist = self.order_id.pricelist_id
+        if pricelist is not None:
+            if pricelist.discount_policy == 'with_discount':
+                return product.with_context(pricelist=pricelist.id).price
+            final_price, rule_id = pricelist.get_product_price_rule(
+                self.product_id,
+                self.product_uom_qty or 1.0,
+                self.order_id.partner_id
+            )
+            context_partner = dict(self.env.context, partner_id=self.order_id.partner_id.id, date=self.order_id.date_order)
+            base_price, currency_id = self.with_context(
+                context_partner
+            )._get_real_price_currency(
+                self.product_id, rule_id, self.product_uom_qty,
+                self.product_uom, pricelist.id
+            )
+            if currency_id != pricelist.currency_id.id:
+                base_price = self.env['res.currency'].browse(
+                    currency_id
+                ).with_context(context_partner).compute(
+                    base_price, pricelist.currency_id
+                )
+            # negative discounts (= surcharge) are included
+            return max(base_price, final_price)
+        product_uom = self.env.context.get('uom') or product.uom_id.id
+        if self.product_uom.id != product_uom:
+            # the unit price is in a different uom
+            uom_factor = self.product_uom._compute_price(1.0, product.uom_id)
+        else:
+            uom_factor = 1.0
+        return product.price * uom_factor
 
     @api.multi
     @api.onchange('product_id')
@@ -1019,7 +1062,8 @@ class SaleOrderLine(models.Model):
             partner=self.order_id.partner_id.id,
             quantity=vals.get('product_uom_qty') or self.product_uom_qty,
             date=self.order_id.date_order,
-            pricelist=self.order_id.pricelist_id.id,
+            pricelist=(self.order_id.pricelist_id and
+                       self.order_id.pricelist_id.id or None),
             uom=self.product_uom.id
         )
 
