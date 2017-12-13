@@ -60,7 +60,7 @@ var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMi
      * @override
      */
     isSet: function () {
-        return this.value && this.value !== "<p><br/></p>" && this.value.match(/\S/);
+        return this.value && this.value.replace(/ style="([^"]*)"|&nbsp;|\s/g,'') !== "<p><br></p>" && this.value.match(/\S/);
     },
     /**
      * Do not re-render this field if it was the origin of the onchange call.
