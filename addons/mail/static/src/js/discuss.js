@@ -1,4 +1,4 @@
-odoo.define('mail.chat_client_action', function (require) {
+odoo.define('mail.chat_discuss', function (require) {
 "use strict";
 
 var chat_manager = require('mail.chat_manager');
@@ -103,8 +103,8 @@ var PartnerInviteDialog = Dialog.extend({
     },
 });
 
-var ChatAction = Widget.extend(ControlPanelMixin, {
-    template: 'mail.client_action',
+var Discuss = Widget.extend(ControlPanelMixin, {
+    template: 'mail.discuss',
     custom_events: {
         search: '_onSearch',
     },
@@ -945,8 +945,8 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
     },
 });
 
-core.action_registry.add('mail.chat.instant_messaging', ChatAction);
+core.action_registry.add('mail.chat.instant_messaging', Discuss);
 
-return ChatAction;
+return Discuss;
 
 });

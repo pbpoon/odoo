@@ -1,7 +1,7 @@
-odoo.define('im_livechat.chat_client_action', function (require) {
+odoo.define('im_livechat.chat_discuss', function (require) {
 "use strict";
 
-require('mail.chat_client_action');
+require('mail.chat_discuss');
 var chat_manager = require('mail.chat_manager');
 var core = require('web.core');
 

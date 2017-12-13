@@ -1,7 +1,7 @@
-odoo.define('mail.chat_client_action_mobile', function (require) {
+odoo.define('mail.chat_discuss_mobile', function (require) {
 "use strict";
 
-var ChatAction = require('mail.chat_client_action');
+var Discuss = require('mail.chat_discuss');
 var chat_manager = require('mail.chat_manager');
 
 var config = require('web.config');
@@ -14,10 +14,10 @@ if (!config.device.isMobile) {
     return;
 }
 
-ChatAction.include({
-    template: 'mail.client_action_mobile',
+Discuss.include({
+    template: 'mail.discuss_mobile',
     need_control_panel: false, // in mobile, we use a custom control panel
-    events: _.extend(ChatAction.prototype.events, {
+    events: _.extend(Discuss.prototype.events, {
         'click .o_mail_mobile_tab': '_onMobileTabClicked',
         'click .o_channel_inbox_item': '_onMobileInboxButtonClicked',
         'click .o_mail_channel_preview': '_onMobileChannelClicked',

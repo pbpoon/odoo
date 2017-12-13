@@ -648,8 +648,8 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     start: function () {
         this.is_ready = session.is_bound.then(function(){
                 var context = _.extend({isMobile: config.device.isMobile}, session.user_context);
-                return session.rpc('/mail/client_action', {context: context});
-            }).then(this._onMailClientAction.bind(this));
+                return session.rpc('/mail/init_messaging', {context: context});
+            }).then(this._onMailInitMessaging.bind(this));
 
         add_channel({
             id: "channel_inbox",
@@ -664,7 +664,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         });
     },
 
-    _onMailClientAction: function (result) {
+    _onMailInitMessaging: function (result) {
         _.each(result.channel_slots, function (channels) {
             _.each(channels, add_channel);
         });
