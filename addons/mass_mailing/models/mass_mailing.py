@@ -399,6 +399,8 @@ class MassMailing(models.Model):
         default=lambda self: self.env.ref('mass_mailing.model_mail_mass_mailing_list').id)
     mailing_model_name = fields.Char(related='mailing_model_id.model', string='Recipients Model Name')
     mailing_domain = fields.Char(string='Domain', oldname='domain', default=[])
+    mail_server_id = fields.Many2one('ir.mail_server', string='Specific Mail Server',
+        help="Select your preferred server for outgoing mails. If not set, the highest priority one will be used.")
     contact_list_ids = fields.Many2many('mail.mass_mailing.list', 'mail_mass_mailing_list_rel',
         string='Mailing Lists')
     contact_ab_pc = fields.Integer(string='A/B Testing percentage',
@@ -745,6 +747,7 @@ class MassMailing(models.Model):
                 'mass_mailing_id': mailing.id,
                 'mailing_list_ids': [(4, l.id) for l in mailing.contact_list_ids],
                 'no_auto_thread': mailing.reply_to_mode != 'thread',
+                'mail_server_id': mailing.mail_server_id.id,
             }
             if mailing.reply_to_mode == 'email':
                 composer_values['reply_to'] = mailing.reply_to

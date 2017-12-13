@@ -448,6 +448,7 @@
                                             <field name="reply_to"
                                                 attrs="{'required': [('reply_to_mode', '=', 'email')]}"/>
                                         </div>
+                                        <field name="mail_server_id" groups="base.group_no_one" options="{'no_create': True, 'no_open': True}"/>
                                         <field name="schedule_date" />
                                         <field name="create_date" readonly="1" attrs="{'invisible': [('create_date', '=', False)]}"/>
                                         <field name="sent_date" readonly="1" attrs="{'invisible': [('sent_date', '=', False)]}"/>
