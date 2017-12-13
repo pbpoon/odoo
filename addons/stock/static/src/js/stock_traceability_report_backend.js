@@ -92,6 +92,7 @@ var stock_report_generic = Widget.extend(ControlPanelMixin, {
                         'id': $el.data('id'),
                         'model_id': $el.data('model_id'),
                         'model_name': $el.data('model'),
+                        'type': $el.data('type'),
                         'unfoldable': $el.data('unfold'),
                         'level': $el.find('td:first').data('level') || 1
                 });

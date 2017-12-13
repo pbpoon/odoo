@@ -117,8 +117,8 @@
                             <t t-set="space_td" t-value="'margin-left: '+ str(a['level']) + 'px;'"/>
                             <t t-set="trclass" t-value="'o_stock_reports_default_style'"/>
                             <t t-if="a.get('model') == 'stock.move.line'"><t t-set="trclass" t-value="'o_stock_reports_level0'"/></t>
-                            <t t-if="not a.get('name')"><t t-set="style" t-value="'font-weight: normal;'"/></t>
-                            <t t-if="a.get('name')"><t t-set="style" t-value="'font-weight: bold;'"/></t>
+                            <t t-if="a.get('type') == 'head'"><t t-set="style" t-value="'font-weight: normal;'"/></t>
+                            <t t-if="a.get('type') == 'line'"><t t-set="style" t-value="'font-weight: bold;'"/></t>
                             <t t-set="column" t-value="0" />
                             <tr t-att-data-type="a['type']" t-att-data-id="a['id']" t-att-data-model="a['model']" t-att-class="trclass" t-att-style="style">
                                 <t t-set="tdclass" t-value="''" />

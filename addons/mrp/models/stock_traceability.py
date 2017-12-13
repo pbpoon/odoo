@@ -23,16 +23,8 @@ class MrpStockReport(models.TransientModel):
     @api.model
     def get_linked_move_lines(self, move_line):
         move_lines, is_used = super(MrpStockReport, self).get_linked_move_lines(move_line)
-        # return produced lines of unbuild order
-        produced_lined = move_line.move_id.consume_unbuild_id and move_line.produce_line_ids
-        # return consumed lines of production order
-        consumed_lines = move_line.move_id.production_id and move_line.consume_line_ids
-        # return consumed lines  if materials used in unbuild order
-        is_consumed = move_line.move_id.unbuild_id and move_line.consume_line_ids
-        # return produced lines if materials used in production order
-        is_produced = move_line.move_id.raw_material_production_id and move_line.produce_line_ids
         if not move_lines:
-            move_lines = produced_lined or consumed_lines
+            move_lines = (move_line.move_id.consume_unbuild_id and move_line.produce_line_ids) or (move_line.move_id.production_id and move_line.consume_line_ids)
         if not is_used:
-            is_used = is_consumed or is_produced
+            is_used = (move_line.move_id.unbuild_id and move_line.consume_line_ids) or (move_line.move_id.raw_material_production_id and move_line.produce_line_ids)
         return move_lines, is_used
