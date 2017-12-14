@@ -2,7 +2,7 @@ odoo.define('mail.chat_discuss_mobile', function (require) {
 "use strict";
 
 var Discuss = require('mail.chat_discuss');
-var chat_manager = require('mail.chat_manager');
+var chatManager = require('mail.chatManager');
 
 var config = require('web.config');
 var core = require('web.core');
@@ -106,7 +106,7 @@ Discuss.include({
      */
     _setChannel: function (channel) {
         if (channel.type !== 'static') {
-            chat_manager.detach_channel(channel);
+            chatManager.detach_channel(channel);
         } else {
             this._super.apply(this, arguments);
         }
@@ -170,8 +170,8 @@ Discuss.include({
         if (inInbox) {
             def = this._fetchAndRenderThread();
         } else {
-            var channels = _.where(chat_manager.get_channels(), {type: type});
-            def = chat_manager.get_channels_preview(channels);
+            var channels = _.where(chatManager.get_channels(), {type: type});
+            def = chatManager.get_channels_preview(channels);
         }
         return $.when(def).then(function (channelsPreview) {
             // update content
@@ -187,7 +187,7 @@ Discuss.include({
                 self.extended_composer.$el.detach();
                 var $content = $(QWeb.render("mail.chat.MobileTabPane", {
                     channels: channelsPreview,
-                    get_message_body_preview: chat_manager.get_message_body_preview,
+                    get_message_body_preview: chatManager.get_message_body_preview,
                     moment: moment,
                     partner_id: session.partner_id,
                     type: type,
@@ -252,7 +252,7 @@ Discuss.include({
      * @param {MouseEvent}
      */
     _onMobileInboxButtonClicked: function (event) {
-        this._setChannel(chat_manager.get_channel($(event.currentTarget).data('type')));
+        this._setChannel(chatManager.get_channel($(event.currentTarget).data('type')));
         this._updateContent(this.channel.id);
     },
     /**
@@ -264,7 +264,7 @@ Discuss.include({
     _onMobileTabClicked: function (event) {
         var type = $(event.currentTarget).data('type');
         if (type === 'channel_inbox') {
-            this._setChannel(chat_manager.get_channel('channel_inbox'));
+            this._setChannel(chatManager.get_channel('channel_inbox'));
         }
         this._updateContent(type);
     },
@@ -276,7 +276,7 @@ Discuss.include({
      */
     _onMobileChannelClicked: function (event) {
         var channelId = $(event.currentTarget).data("channel_id");
-        chat_manager.detach_channel(chat_manager.get_channel(channelId));
+        chatManager.detach_channel(chatManager.get_channel(channelId));
     },
 });
 

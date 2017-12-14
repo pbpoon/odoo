@@ -2,7 +2,7 @@ odoo.define('im_livechat.chat_discuss', function (require) {
 "use strict";
 
 require('mail.chat_discuss');
-var chat_manager = require('mail.chat_manager');
+var chatManager = require('mail.chatManager');
 var core = require('web.core');
 
 core.action_registry.get('mail.chat.instant_messaging').include({
@@ -19,9 +19,9 @@ core.action_registry.get('mail.chat.instant_messaging').include({
     },
 });
 
-chat_manager.bus.on('new_message', null, function (msg) {
+chatManager.bus.on('new_message', null, function (msg) {
     _.each(msg.channel_ids, function (channel_id) {
-        var channel = chat_manager.get_channel(channel_id);
+        var channel = chatManager.get_channel(channel_id);
         if (channel) {
             channel.last_message_date = msg.date; // update the last message's date of the channel
         }

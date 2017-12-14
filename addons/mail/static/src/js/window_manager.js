@@ -1,7 +1,7 @@
 odoo.define('mail.window_manager', function (require) {
 "use strict";
 
-var chat_manager = require('mail.chat_manager');
+var chatManager = require('mail.chatManager');
 var ExtendedChatWindow = require('mail.ExtendedChatWindow');
 
 var config = require('web.config');
@@ -58,31 +58,31 @@ function open_chat (session, options) {
         };
         chat_session.window.on("close_chat_session", null, function () {
             close_chat(chat_session);
-            chat_manager.close_chat_session(chat_session.id);
+            chatManager.close_chat_session(chat_session.id);
         });
         chat_session.window.on("toggle_star_status", null, function (message_id) {
-            chat_manager.toggle_star_status(message_id);
+            chatManager.toggle_star_status(message_id);
         });
 
         chat_session.window.on("fold_channel", null, function (channel_id, folded) {
-            chat_manager.fold_channel(channel_id, folded);
+            chatManager.fold_channel(channel_id, folded);
         });
 
         chat_session.window.on("post_message", null, function (message, channel_id) {
-            chat_manager
+            chatManager
                 .post_message(message, {channel_id: channel_id})
                 .then(function () {
                     chat_session.window.thread.scroll_to();
                 });
         });
         chat_session.window.on("redirect", null, function (res_model, res_id) {
-            chat_manager.redirect(res_model, res_id, open_chat);
+            chatManager.redirect(res_model, res_id, open_chat);
         });
         chat_session.window.on("redirect_to_channel", null, function (channel_id) {
             var session = _.findWhere(chat_sessions, {id: channel_id});
             if (!session) {
-                chat_manager.join_channel(channel_id).then(function (channel) {
-                    chat_manager.detach_channel(channel);
+                chatManager.join_channel(channel_id).then(function (channel) {
+                    chatManager.detach_channel(channel);
                 });
             } else {
                 session.window.toggle_fold(false);
@@ -103,24 +103,24 @@ function open_chat (session, options) {
         chat_session.window.appendTo($('body'))
             .then(function () {
                 reposition_windows({remove_new_chat: remove_new_chat});
-                return chat_manager.get_messages({channel_id: chat_session.id});
+                return chatManager.get_messages({channel_id: chat_session.id});
             }).then(function (messages) {
                 chat_session.window.render(messages);
                 chat_session.window.thread.scroll_to();
                 setTimeout(function () {
                     chat_session.window.thread.$el.on("scroll", null, _.debounce(function () {
                         if (!chat_session.keep_unread && chat_session.window.thread.is_at_bottom()) {
-                            chat_manager.mark_channel_as_seen(session);
+                            chatManager.mark_channel_as_seen(session);
                         }
                     }, 100));
                 }, 0); // setTimeout to prevent to execute handler on first scroll_to, which is asynchronous
                 if (options.passively) {
                     // mark first unread messages as seen when focusing the window, then on scroll to bottom as usual
                     chat_session.window.$('.o_mail_thread, .o_chat_composer').one('click', function () {
-                        chat_manager.mark_channel_as_seen(session);
+                        chatManager.mark_channel_as_seen(session);
                     });
                 } else if (!display_state.chat_windows_hidden && !session.is_folded) {
-                    chat_manager.mark_channel_as_seen(session);
+                    chatManager.mark_channel_as_seen(session);
                 }
             });
     } else if (!options.passively) {
@@ -141,13 +141,13 @@ function open_chat_without_session () {
         new_chat_session.window.on("close_chat_session", null, close_new_chat);
         new_chat_session.window.on('open_dm_session', null, function (partner_id) {
             new_chat_session.partner_id = partner_id;
-            var dm = chat_manager.get_dm_from_partner_id(partner_id);
+            var dm = chatManager.get_dm_from_partner_id(partner_id);
             if (!dm) {
-                chat_manager.open_and_detach_dm(partner_id);
+                chatManager.open_and_detach_dm(partner_id);
             } else {
                 var dm_session = _.findWhere(chat_sessions, {id: dm.id});
                 if (!dm_session) {
-                    chat_manager.detach_channel(dm);
+                    chatManager.detach_channel(dm);
                 } else {
                     close_chat(dm_session);
                     dm.is_folded = false;
@@ -291,9 +291,9 @@ function update_sessions (message, scrollBottom) {
             var message_visible = !display_state.chat_windows_hidden && !session.window.folded &&
                                   !session.window.is_hidden && session.window.thread.is_at_bottom();
             if (message_visible && !session.keep_unread) {
-                chat_manager.mark_channel_as_seen(chat_manager.get_channel(session.id));
+                chatManager.mark_channel_as_seen(chatManager.get_channel(session.id));
             }
-            chat_manager.get_messages({channel_id: session.id}).then(function (messages) {
+            chatManager.get_messages({channel_id: session.id}).then(function (messages) {
                 session.window.render(messages);
                 if (scrollBottom && message_visible) {
                     session.window.thread.scroll_to();
@@ -305,24 +305,24 @@ function update_sessions (message, scrollBottom) {
 
 
 core.bus.on('web_client_ready', null, function () {
-    chat_manager.bus.on('open_chat', null, open_chat);
-    chat_manager.bus.on('close_chat', null, function (channel, options) {
+    chatManager.bus.on('open_chat', null, open_chat);
+    chatManager.bus.on('close_chat', null, function (channel, options) {
         var session = _.find(chat_sessions, {id: channel.id});
         if (session) {
             close_chat(session, options);
         }
     });
-    chat_manager.bus.on('channel_toggle_fold', null, toggle_fold_chat);
+    chatManager.bus.on('channel_toggle_fold', null, toggle_fold_chat);
 
-    chat_manager.bus.on('new_message', null, function (message) {
+    chatManager.bus.on('new_message', null, function (message) {
         update_sessions(message, true);
     });
 
-    chat_manager.bus.on('update_message', null, function (message) {
+    chatManager.bus.on('update_message', null, function (message) {
         update_sessions(message, false);
     });
 
-    chat_manager.bus.on('anyone_listening', null, function (channel, query) {
+    chatManager.bus.on('anyone_listening', null, function (channel, query) {
         _.each(chat_sessions, function (session) {
             if (channel.id === session.id && session.window.thread.is_at_bottom() && !session.window.is_hidden) {
                 query.is_displayed = true;
@@ -330,7 +330,7 @@ core.bus.on('web_client_ready', null, function () {
         });
     });
 
-    chat_manager.bus.on('unsubscribe_from_channel', null, function (channel_id) {
+    chatManager.bus.on('unsubscribe_from_channel', null, function (channel_id) {
         _.each(chat_sessions, function (session) {
             if (channel_id === session.id) {
                 close_chat(session);
@@ -338,7 +338,7 @@ core.bus.on('web_client_ready', null, function () {
         });
     });
 
-    chat_manager.bus.on('update_channel_unread_counter', null, function (channel) {
+    chatManager.bus.on('update_channel_unread_counter', null, function (channel) {
         display_state.hidden_unread_counter = 0;
         _.each(chat_sessions, function (session) {
             if (channel.id === session.id) {
@@ -357,7 +357,7 @@ core.bus.on('web_client_ready', null, function () {
         }
     });
 
-    chat_manager.bus.on('update_dm_presence', null, function (channel) {
+    chatManager.bus.on('update_dm_presence', null, function (channel) {
         _.each(chat_sessions, function (session) {
             if (channel.id === session.id) {
                 session.window.update_status(channel.status);
@@ -365,18 +365,18 @@ core.bus.on('web_client_ready', null, function () {
         });
     });
 
-    chat_manager.is_ready.then(function() {
-        _.each(chat_manager.get_channels(), function (channel) {
+    chatManager.is_ready.then(function() {
+        _.each(chatManager.get_channels(), function (channel) {
             if (channel.is_detached) {
                 open_chat(channel);
             }
         });
     });
 
-    chat_manager.bus.on('detach_channel', null, function (channel) {
+    chatManager.bus.on('detach_channel', null, function (channel) {
         var chat_session = _.findWhere(chat_sessions, {id: channel.id});
         if (!chat_session || chat_session.window.folded) {
-            chat_manager.detach_channel(channel);
+            chatManager.detach_channel(channel);
         } else if (chat_session.window.is_hidden) {
             make_session_visible(chat_session);
         } else {
@@ -384,7 +384,7 @@ core.bus.on('web_client_ready', null, function () {
         }
     });
 
-    chat_manager.bus.on('client_action_open', null, function (open) {
+    chatManager.bus.on('client_action_open', null, function (open) {
         display_state.chat_windows_hidden = open;
         if (open) {
             $('body').addClass('o_no_chat_window');

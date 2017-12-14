@@ -1214,7 +1214,7 @@ QUnit.test('does not render and crash when destroyed before chat system is ready
     });
 
     form.destroy();
-    // here, the chat_manager system is ready, and the chatter can try to render
+    // here, the chatManager system is ready, and the chatter can try to render
     // itself. We simply make sure here that no crashes occur (since the form
     // view is destroyed, all rpcs will be dropped, and many other mechanisms
     // relying on events will not work, such as _getBus)

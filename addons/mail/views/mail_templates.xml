@@ -12,6 +12,7 @@
                 <script type="text/javascript" src="/mail/static/src/js/document_viewer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/composer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/chat_manager.js"></script>
+                <script type="text/javascript" src="/mail/static/src/js/chat_manager_def.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/chatter.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/chatter_composer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/followers.js"></script>

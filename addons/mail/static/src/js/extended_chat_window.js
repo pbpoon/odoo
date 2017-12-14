@@ -3,7 +3,7 @@ odoo.define('mail.ExtendedChatWindow', function (require) {
 
 var core = require('web.core');
 
-var chat_manager = require('mail.chat_manager');
+var chatManager = require('mail.chatManager');
 var ChatWindow = require('mail.ChatWindow');
 var composer = require('mail.composer');
 
@@ -20,7 +20,7 @@ return ChatWindow.extend({
             this.$('.o_chat_search_input input')
                 .autocomplete({
                     source: function(request, response) {
-                        chat_manager.search_partner(request.term, 10).done(response);
+                        chatManager.search_partner(request.term, 10).done(response);
                     },
                     select: function(event, ui) {
                         self.trigger('open_dm_session', ui.item.id);
@@ -33,9 +33,9 @@ return ChatWindow.extend({
                 this.trigger('post_message', message, this.channel_id);
             });
             basic_composer.once('input_focused', self, function () {
-                var channel = chat_manager.get_channel(this.channel_id);
-                var commands = chat_manager.get_commands(channel);
-                var partners = chat_manager.get_mention_partner_suggestions(channel);
+                var channel = chatManager.get_channel(this.channel_id);
+                var commands = chatManager.get_commands(channel);
+                var partners = chatManager.get_mention_partner_suggestions(channel);
                 basic_composer.mention_set_enabled_commands(commands);
                 basic_composer.mention_set_prefetched_partners(partners);
             });
@@ -49,7 +49,7 @@ return ChatWindow.extend({
         event.stopPropagation();
     },
     on_reverse_breadcrumb: function () {
-        chat_manager.bus.trigger('client_action_open', false);
+        chatManager.bus.trigger('client_action_open', false);
      },
     on_click_expand: _.debounce(function (event) {
         event.preventDefault();

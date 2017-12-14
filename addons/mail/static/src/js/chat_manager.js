@@ -1,4 +1,4 @@
-odoo.define('mail.chat_manager', function (require) {
+odoo.define('mail.ChatManager', function (require) {
 "use strict";
 
 var bus = require('bus.bus').bus;
@@ -12,7 +12,6 @@ var web_client = require('web.web_client');
 var Class = require('web.Class');
 var Mixins = require('web.mixins');
 var ServicesMixin = require('web.ServicesMixin');
-var ServiceProviderMixin = require('web.ServiceProviderMixin');
 
 var _t = core._t;
 var _lt = core._lt;
@@ -48,579 +47,10 @@ bus.on("window_focus", null, function() {
     web_client.set_title_part("_chat");
 });
 
-function notify_incoming_message (msg, options) {
-    if (bus.is_odoo_focused() && options.is_displayed) {
-        // no need to notify
-        return;
-    }
-    var title = _t('New message');
-    if (msg.author_id[1]) {
-        title = _.escape(msg.author_id[1]);
-    }
-    var content = utils.parse_and_transform(msg.body, utils.strip_html).substr(0, preview_msg_max_size);
-
-    if (!bus.is_odoo_focused()) {
-        global_unread_counter++;
-        var tab_title = _.str.sprintf(_t("%d Messages"), global_unread_counter);
-        web_client.set_title_part("_chat", tab_title);
-    }
-
-    utils.send_notification(web_client, title, content);
-}
-
-// Message and channel manipulation helpers
-//----------------------------------------------------------------------------------
-
-// options: channel_id, silent
-function add_message (data, options) {
-    options = options || {};
-    var msg = _.findWhere(messages, { id: data.id });
-
-    if (!msg) {
-        msg = chat_manager.make_message(data);
-        // Keep the array ordered by id when inserting the new message
-        messages.splice(_.sortedIndex(messages, msg, 'id'), 0, msg);
-        _.each(msg.channel_ids, function (channel_id) {
-            var channel = chat_manager.get_channel(channel_id);
-            if (channel) {
-                // update the channel's last message (displayed in the channel
-                // preview, in mobile)
-                if (!channel.last_message || msg.id > channel.last_message.id) {
-                    channel.last_message = msg;
-                }
-                add_to_cache(msg, []);
-                if (options.domain && options.domain !== []) {
-                    add_to_cache(msg, options.domain);
-                }
-                if (channel.hidden) {
-                    channel.hidden = false;
-                    chat_manager.bus.trigger('new_channel', channel);
-                }
-                if (channel.type !== 'static' && !msg.is_author && !msg.is_system_notification) {
-                    if (options.increment_unread) {
-                        update_channel_unread_counter(channel, channel.unread_counter+1);
-                    }
-                    if (channel.is_chat && options.show_notification) {
-                        if (!client_action_open && !config.device.isMobile) {
-                            // automatically open chat window
-                            chat_manager.bus.trigger('open_chat', channel, { passively: true });
-                        }
-                        var query = {is_displayed: false};
-                        chat_manager.bus.trigger('anyone_listening', channel, query);
-                        notify_incoming_message(msg, query);
-                    }
-                }
-            }
-        });
-        if (!options.silent) {
-            chat_manager.bus.trigger('new_message', msg);
-        }
-    } else if (options.domain && options.domain !== []) {
-        add_to_cache(msg, options.domain);
-    }
-    return msg;
-}
-
-function make_message (data) {
-    var msg = {
-        id: data.id,
-        author_id: data.author_id,
-        body: data.body || "",
-        date: moment(time.str_to_datetime(data.date)),
-        message_type: data.message_type,
-        subtype_description: data.subtype_description,
-        is_author: data.author_id && data.author_id[0] === session.partner_id,
-        is_note: data.is_note,
-        is_system_notification: (data.message_type === 'notification' && data.model === 'mail.channel')
-            || data.info === 'transient_message',
-        attachment_ids: data.attachment_ids || [],
-        subject: data.subject,
-        email_from: data.email_from,
-        customer_email_status: data.customer_email_status,
-        customer_email_data: data.customer_email_data,
-        record_name: data.record_name,
-        tracking_value_ids: data.tracking_value_ids,
-        channel_ids: data.channel_ids,
-        model: data.model,
-        res_id: data.res_id,
-        url: session.url("/mail/view?message_id=" + data.id),
-        module_icon:data.module_icon,
-    };
-
-    _.each(_.keys(emoji_substitutions), function (key) {
-        var escaped_key = String(key).replace(/([.*+?=^!:${}()|[\]\/\\])/g, '\\$1');
-        var regexp = new RegExp("(?:^|\\s|<[a-z]*>)(" + escaped_key + ")(?=\\s|$|</[a-z]*>)", "g");
-        msg.body = msg.body.replace(regexp, ' <span class="o_mail_emoji">'+emoji_substitutions[key]+'</span> ');
-    });
-
-    function property_descr(channel) {
-        return {
-            enumerable: true,
-            get: function () {
-                return _.contains(msg.channel_ids, channel);
-            },
-            set: function (bool) {
-                if (bool) {
-                    add_channel_to_message(msg, channel);
-                } else {
-                    msg.channel_ids = _.without(msg.channel_ids, channel);
-                }
-            }
-        };
-    }
-
-    Object.defineProperties(msg, {
-        is_starred: property_descr("channel_starred"),
-        is_needaction: property_descr("channel_inbox"),
-    });
-
-    if (_.contains(data.needaction_partner_ids, session.partner_id)) {
-        msg.is_needaction = true;
-    }
-    if (_.contains(data.starred_partner_ids, session.partner_id)) {
-        msg.is_starred = true;
-    }
-    if (msg.model === 'mail.channel') {
-        var real_channels = _.without(msg.channel_ids, 'channel_inbox', 'channel_starred');
-        var origin = real_channels.length === 1 ? real_channels[0] : undefined;
-        var channel = origin && chat_manager.get_channel(origin);
-        if (channel) {
-            msg.origin_id = origin;
-            msg.origin_name = channel.name;
-        }
-    }
-
-    // Compute displayed author name or email
-    if ((!msg.author_id || !msg.author_id[0]) && msg.email_from) {
-        msg.mailto = msg.email_from;
-    } else {
-        msg.displayed_author = (msg.author_id === ODOOBOT_ID) && "OdooBot" ||
-                               msg.author_id && msg.author_id[1] ||
-                               msg.email_from || _t('Anonymous');
-    }
-
-    // Don't redirect on author clicked of self-posted or OdooBot messages
-    msg.author_redirect = !msg.is_author && msg.author_id !== ODOOBOT_ID;
-
-    // Compute the avatar_url
-    if (msg.author_id === ODOOBOT_ID) {
-        msg.avatar_src = "/mail/static/src/img/odoo_o.png";
-    } else if (msg.author_id && msg.author_id[0]) {
-        msg.avatar_src = "/web/image/res.partner/" + msg.author_id[0] + "/image_small";
-    } else if (msg.message_type === 'email') {
-        msg.avatar_src = "/mail/static/src/img/email_icon.png";
-    } else {
-        msg.avatar_src = "/mail/static/src/img/smiley/avatar.jpg";
-    }
-
-    // add anchor tags to urls
-    msg.body = utils.parse_and_transform(msg.body, utils.add_link);
-
-    // Compute url of attachments
-    _.each(msg.attachment_ids, function(a) {
-        a.url = '/web/content/' + a.id + '?download=true';
-    });
-
-    // format date to the local only once by message
-    // can not be done in preprocess, since it alter the original value
-    if (msg.tracking_value_ids && msg.tracking_value_ids.length) {
-        _.each(msg.tracking_value_ids, function(f) {
-            if (f.field_type === 'datetime') {
-                var format = 'LLL';
-                if (f.old_value) {
-                    f.old_value = moment.utc(f.old_value).local().format(format);
-                }
-                if (f.new_value) {
-                    f.new_value = moment.utc(f.new_value).local().format(format);
-                }
-            } else if (f.field_type === 'date') {
-                var format = 'LL';
-                if (f.old_value) {
-                    f.old_value = moment(f.old_value).local().format(format);
-                }
-                if (f.new_value) {
-                    f.new_value = moment(f.new_value).local().format(format);
-                }
-            }
-        });
-    }
-
-    return msg;
-}
-
-function add_channel_to_message (message, channel_id) {
-    message.channel_ids.push(channel_id);
-    message.channel_ids = _.uniq(message.channel_ids);
-}
-
-function add_channel (data, options) {
-    options = typeof options === "object" ? options : {};
-    var channel = chat_manager.get_channel(data.id);
-    if (channel) {
-        if (channel.is_folded !== (data.state === "folded")) {
-            channel.is_folded = (data.state === "folded");
-            chat_manager.bus.trigger("channel_toggle_fold", channel);
-        }
-    } else {
-        channel = chat_manager.make_channel(data, options);
-        channels.push(channel);
-        if (data.last_message) {
-            channel.last_message = add_message(data.last_message);
-        }
-        // In case of a static channel (Inbox, Starred), the name is translated thanks to _lt
-        // (lazy translate). In this case, channel.name is an object, not a string.
-        channels = _.sortBy(channels, function (channel) { return _.isString(channel.name) ? channel.name.toLowerCase() : '' });
-        if (!options.silent) {
-            chat_manager.bus.trigger("new_channel", channel);
-        }
-        if (channel.is_detached) {
-            chat_manager.bus.trigger("open_chat", channel);
-        }
-    }
-    return channel;
-}
-
-function make_channel (data, options) {
-    var channel = {
-        id: data.id,
-        name: data.name,
-        server_type: data.channel_type,
-        type: data.type || data.channel_type,
-        all_history_loaded: false,
-        uuid: data.uuid,
-        is_detached: data.is_minimized,
-        is_folded: data.state === "folded",
-        autoswitch: 'autoswitch' in options ? options.autoswitch : true,
-        hidden: options.hidden,
-        display_needactions: options.display_needactions,
-        mass_mailing: data.mass_mailing,
-        group_based_subscription: data.group_based_subscription,
-        needaction_counter: data.message_needaction_counter || 0,
-        unread_counter: 0,
-        last_seen_message_id: data.seen_message_id,
-        cache: {'[]': {
-            all_history_loaded: false,
-            loaded: false,
-            messages: [],
-        }},
-    };
-    if (channel.type === "channel") {
-        channel.type = data.public !== "private" ? "public" : "private";
-    }
-    if (_.size(data.direct_partner) > 0) {
-        channel.type = "dm";
-        channel.name = data.direct_partner[0].name;
-        channel.direct_partner_id = data.direct_partner[0].id;
-        channel.status = data.direct_partner[0].im_status;
-        pinned_dm_partners.push(channel.direct_partner_id);
-        bus.update_option('bus_presence_partner_ids', pinned_dm_partners);
-    } else if ('anonymous_name' in data) {
-        channel.name = data.anonymous_name;
-    }
-    if (data.last_message_date) {
-        channel.last_message_date = moment(time.str_to_datetime(data.last_message_date));
-    }
-    channel.is_chat = !channel.type.match(/^(public|private|static)$/);
-    if (data.message_unread_counter) {
-        update_channel_unread_counter(channel, data.message_unread_counter);
-    }
-    return channel;
-}
-
-function remove_channel (channel) {
-    if (!channel) { return; }
-    if (channel.type === 'dm') {
-        var index = pinned_dm_partners.indexOf(channel.direct_partner_id);
-        if (index > -1) {
-            pinned_dm_partners.splice(index, 1);
-            bus.update_option('bus_presence_partner_ids', pinned_dm_partners);
-        }
-    }
-    channels = _.without(channels, channel);
-    delete channel_defs[channel.id];
-}
-
-function get_channel_cache (channel, domain) {
-    var stringified_domain = JSON.stringify(domain || []);
-    if (!channel.cache[stringified_domain]) {
-        channel.cache[stringified_domain] = {
-            all_history_loaded: false,
-            loaded: false,
-            messages: [],
-        };
-    }
-    return channel.cache[stringified_domain];
-}
-
-function invalidate_caches(channel_ids) {
-    _.each(channel_ids, function (channel_id) {
-        var channel = chat_manager.get_channel(channel_id);
-        if (channel) {
-            channel.cache = { '[]': channel.cache['[]']};
-        }
-    });
-}
-
-function add_to_cache(message, domain) {
-    _.each(message.channel_ids, function (channel_id) {
-        var channel = chat_manager.get_channel(channel_id);
-        if (channel) {
-            var channel_cache = get_channel_cache(channel, domain);
-            var index = _.sortedIndex(channel_cache.messages, message, 'id');
-            if (channel_cache.messages[index] !== message) {
-                channel_cache.messages.splice(index, 0, message);
-            }
-        }
-    });
-}
-
-function remove_message_from_channel (channel_id, message) {
-    message.channel_ids = _.without(message.channel_ids, channel_id);
-    var channel = _.findWhere(channels, { id: channel_id });
-    _.each(channel.cache, function (cache) {
-        cache.messages = _.without(cache.messages, message);
-    });
-}
-
-function update_channel_unread_counter (channel, counter) {
-    if (channel.unread_counter > 0 && counter === 0) {
-        unread_conversation_counter = Math.max(0, unread_conversation_counter-1);
-    } else if (channel.unread_counter === 0 && counter > 0) {
-        unread_conversation_counter++;
-    }
-    if (channel.is_chat) {
-        chat_unread_counter = Math.max(0, chat_unread_counter - channel.unread_counter + counter);
-    }
-    channel.unread_counter = counter;
-    chat_manager.bus.trigger("update_channel_unread_counter", channel);
-}
-
-// Notification handlers
-// ---------------------------------------------------------------------------------
-function on_notification (notifications) {
-    // sometimes, the web client receives unsubscribe notification and an extra
-    // notification on that channel.  This is then followed by an attempt to
-    // rejoin the channel that we just left.  The next few lines remove the
-    // extra notification to prevent that situation to occur.
-    var unsubscribed_notif = _.find(notifications, function (notif) {
-        return notif[1].info === "unsubscribe";
-    });
-    if (unsubscribed_notif) {
-        notifications = _.reject(notifications, function (notif) {
-            return notif[0][1] === "mail.channel" && notif[0][2] === unsubscribed_notif[1].id;
-        });
-    }
-    _.each(notifications, function (notification) {
-        var model = notification[0][1];
-        if (model === 'ir.needaction') {
-            // new message in the inbox
-            on_needaction_notification(notification[1]);
-        } else if (model === 'mail.channel') {
-            // new message in a channel
-            on_channel_notification(notification[1]);
-        } else if (model === 'res.partner') {
-            // channel joined/left, message marked as read/(un)starred, chat open/closed
-            on_partner_notification(notification[1]);
-        } else if (model === 'bus.presence') {
-            // update presence of users
-            on_presence_notification(notification[1]);
-        }
-    });
-}
-
-function on_needaction_notification (message) {
-    message = add_message(message, {
-        channel_id: 'channel_inbox',
-        show_notification: true,
-        increment_unread: true,
-    });
-    invalidate_caches(message.channel_ids);
-    if (message.channel_ids.length !== 0) {
-        needaction_counter++;
-    }
-    _.each(message.channel_ids, function (channel_id) {
-        var channel = chat_manager.get_channel(channel_id);
-        if (channel) {
-            channel.needaction_counter++;
-        }
-    });
-    chat_manager.bus.trigger('update_needaction', needaction_counter);
-}
-
-function on_channel_notification (message) {
-    var def;
-    var channel_already_in_cache = true;
-    if (message.channel_ids.length === 1) {
-        channel_already_in_cache = !!chat_manager.get_channel(message.channel_ids[0]);
-        def = chat_manager.join_channel(message.channel_ids[0], {autoswitch: false});
-    } else {
-        def = $.when();
-    }
-    def.then(function () {
-        // don't increment unread if channel wasn't in cache yet as its unread counter has just been fetched
-        add_message(message, { show_notification: true, increment_unread: channel_already_in_cache });
-        invalidate_caches(message.channel_ids);
-    });
-}
-
-function on_partner_notification (data) {
-    if (data.info === "unsubscribe") {
-        var channel = chat_manager.get_channel(data.id);
-        if (channel) {
-            var msg;
-            if (_.contains(['public', 'private'], channel.type)) {
-                msg = _.str.sprintf(_t('You unsubscribed from <b>%s</b>.'), channel.name);
-            } else {
-                msg = _.str.sprintf(_t('You unpinned your conversation with <b>%s</b>.'), channel.name);
-            }
-            remove_channel(channel);
-            chat_manager.bus.trigger("unsubscribe_from_channel", data.id);
-            web_client.do_notify(_("Unsubscribed"), msg);
-        }
-    } else if (data.type === 'toggle_star') {
-        on_toggle_star_notification(data);
-    } else if (data.type === 'mark_as_read') {
-        on_mark_as_read_notification(data);
-    } else if (data.type === 'mark_as_unread') {
-        on_mark_as_unread_notification(data);
-    } else if (data.info === 'channel_seen') {
-        on_channel_seen_notification(data);
-    } else if (data.info === 'transient_message') {
-        on_transient_message_notification(data);
-    } else if (data.type === 'activity_updated') {
-        onActivityUpdateNodification(data);
-    } else {
-        on_chat_session_notification(data);
-    }
-}
-
-function on_toggle_star_notification (data) {
-    _.each(data.message_ids, function (msg_id) {
-        var message = _.findWhere(messages, { id: msg_id });
-        if (message) {
-            invalidate_caches(message.channel_ids);
-            message.is_starred = data.starred;
-            if (!message.is_starred) {
-                remove_message_from_channel("channel_starred", message);
-                starred_counter--;
-            } else {
-                add_to_cache(message, []);
-                var channel_starred = chat_manager.get_channel('channel_starred');
-                channel_starred.cache = _.pick(channel_starred.cache, "[]");
-                starred_counter++;
-            }
-            chat_manager.bus.trigger('update_message', message);
-        }
-    });
-    chat_manager.bus.trigger('update_starred', starred_counter);
-}
-
-function on_mark_as_read_notification (data) {
-    _.each(data.message_ids, function (msg_id) {
-        var message = _.findWhere(messages, { id: msg_id });
-        if (message) {
-            invalidate_caches(message.channel_ids);
-            remove_message_from_channel("channel_inbox", message);
-            chat_manager.bus.trigger('update_message', message, data.type);
-        }
-    });
-    if (data.channel_ids) {
-        _.each(data.channel_ids, function (channel_id) {
-            var channel = chat_manager.get_channel(channel_id);
-            if (channel) {
-                channel.needaction_counter = Math.max(channel.needaction_counter - data.message_ids.length, 0);
-            }
-        });
-    } else { // if no channel_ids specified, this is a 'mark all read' in the inbox
-        _.each(channels, function (channel) {
-            channel.needaction_counter = 0;
-        });
-    }
-    needaction_counter = Math.max(needaction_counter - data.message_ids.length, 0);
-    chat_manager.bus.trigger('update_needaction', needaction_counter);
-}
-
-function on_mark_as_unread_notification (data) {
-    _.each(data.message_ids, function (message_id) {
-        var message = _.findWhere(messages, { id: message_id });
-        if (message) {
-            invalidate_caches(message.channel_ids);
-            add_channel_to_message(message, 'channel_inbox');
-            add_to_cache(message, []);
-        }
-    });
-    var channel_inbox = chat_manager.get_channel('channel_inbox');
-    channel_inbox.cache = _.pick(channel_inbox.cache, "[]");
-
-    _.each(data.channel_ids, function (channel_id) {
-        var channel = chat_manager.get_channel(channel_id);
-        if (channel) {
-            channel.needaction_counter += data.message_ids.length;
-        }
-    });
-    needaction_counter += data.message_ids.length;
-    chat_manager.bus.trigger('update_needaction', needaction_counter);
-}
-
-function on_channel_seen_notification (data) {
-    var channel = chat_manager.get_channel(data.id);
-    if (channel) {
-        channel.last_seen_message_id = data.last_message_id;
-        if (channel.unread_counter) {
-            update_channel_unread_counter(channel, 0);
-        }
-    }
-}
-
-function on_chat_session_notification (chat_session) {
-    var channel;
-    if ((chat_session.channel_type === "channel") && (chat_session.state === "open")) {
-        add_channel(chat_session, {autoswitch: false});
-        if (!chat_session.is_minimized && chat_session.info !== 'creation') {
-            web_client.do_notify(_t("Invitation"), _t("You have been invited to: ") + chat_session.name);
-        }
-    }
-    // partner specific change (open a detached window for example)
-    if ((chat_session.state === "open") || (chat_session.state === "folded")) {
-        channel = chat_session.is_minimized && chat_manager.get_channel(chat_session.id);
-        if (channel) {
-            channel.is_detached = true;
-            channel.is_folded = (chat_session.state === "folded");
-            chat_manager.bus.trigger("open_chat", channel);
-        }
-    } else if (chat_session.state === "closed") {
-        channel = chat_manager.get_channel(chat_session.id);
-        if (channel) {
-            channel.is_detached = false;
-            chat_manager.bus.trigger("close_chat", channel, {keep_open_if_unread: true});
-        }
-    }
-}
-
-function on_presence_notification (data) {
-    var dm = chat_manager.get_dm_from_partner_id(data.id);
-    if (dm) {
-        dm.status = data.im_status;
-        chat_manager.bus.trigger('update_dm_presence', dm);
-    }
-}
-
-function on_transient_message_notification (data) {
-    var last_message = _.last(messages);
-    data.id = (last_message ? last_message.id : 0) + 0.01;
-    data.author_id = data.author_id || ODOOBOT_ID;
-    add_message(data);
-}
-
-function onActivityUpdateNodification (data) {
-    chat_manager.bus.trigger('activity_updated', data);
-}
 // Public interface
 //----------------------------------------------------------------------------------
 var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     // these two functions are exposed for extensibility purposes and shouldn't be called by other modules
-    make_message: make_message,
-    make_channel: make_channel,
 
     init: function (parent) {
         var self = this;
@@ -632,7 +62,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             client_action_open = open;
         });
 
-        bus.on('notification', null, on_notification);
+        bus.on('notification', this, this.on_notification);
 
         this.channel_seen = _.throttle(function (channel) {
             return self._rpc({
@@ -649,24 +79,25 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         this.is_ready = session.is_bound.then(function(){
                 var context = _.extend({isMobile: config.device.isMobile}, session.user_context);
                 return session.rpc('/mail/init_messaging', {context: context});
-            }).then(this._onMailInitMessaging.bind(this));
+            }).then(this._onMailClientAction.bind(this));
 
-        add_channel({
+        this.add_channel({
             id: "channel_inbox",
             name: _lt("Inbox"),
             type: "static",
         }, { display_needactions: true });
 
-        add_channel({
+        this.add_channel({
             id: "channel_starred",
             name: _lt("Starred"),
             type: "static"
         });
     },
 
-    _onMailInitMessaging: function (result) {
+    _onMailClientAction: function (result) {
+        var self = this;
         _.each(result.channel_slots, function (channels) {
-            _.each(channels, add_channel);
+            _.each(channels, self.add_channel.bind(self));
         });
         needaction_counter = result.needaction_inbox_counter;
         starred_counter = result.starred_counter;
@@ -694,12 +125,13 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
 
     // options: domain, load_more
     _fetchFromChannel: function (channel, options) {
+        var self = this;
         options = options || {};
         var domain =
             (channel.id === "channel_inbox") ? [['needaction', '=', true]] :
             (channel.id === "channel_starred") ? [['starred', '=', true]] :
                                                 [['channel_ids', 'in', channel.id]];
-        var cache = get_channel_cache(channel, options.domain);
+        var cache = this.get_channel_cache(channel, options.domain);
 
         if (options.domain) {
             domain = domain.concat(options.domain || []);
@@ -722,14 +154,15 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                 cache.loaded = true;
 
                 _.each(msgs, function (msg) {
-                    add_message(msg, {channel_id: channel.id, silent: true, domain: options.domain});
+                    self.add_message.bind(self)(msg, {channel_id: channel.id, silent: true, domain: options.domain});
                 });
-                var channel_cache = get_channel_cache(channel, options.domain || []);
+                var channel_cache = self.get_channel_cache.bind(self)(channel, options.domain || []);
                 return channel_cache.messages;
             });
     },
     // options: force_fetch
     _fetchDocumentMessages : function (ids, options) {
+        var self = this;
         var loaded_msgs = _.filter(messages, function (message) {
             return _.contains(ids, message.id);
         });
@@ -748,7 +181,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                 .then(function (msgs) {
                     var processed_msgs = [];
                     _.each(msgs, function (msg) {
-                        processed_msgs.push(add_message(msg, {silent: true}));
+                        processed_msgs.push(self.add_message.bind(self)(msg, {silent: true}));
                     });
                     return _.sortBy(loaded_msgs.concat(processed_msgs), function (msg) {
                         return msg.id;
@@ -825,7 +258,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                         .then(function (msgs) {
                             msgs[0].model = options.model;
                             msgs[0].res_id = options.res_id;
-                            add_message(msgs[0]);
+                            self.add_message.bind(self)(msgs[0]);
                         });
                 });
         }
@@ -836,6 +269,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     get_messages: function (options) {
         var channel;
+        var self = this;
 
         if ('channel_id' in options && options.load_more) {
             // get channel messages, force load_more
@@ -845,7 +279,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         if ('channel_id' in options) {
             // channel message, check in cache first
             channel = this.get_channel(options.channel_id);
-            var channel_cache = get_channel_cache(channel, options.domain);
+            var channel_cache = this.get_channel_cache(channel, options.domain);
             if (channel_cache.loaded) {
                 return $.when(channel_cache.messages);
             } else {
@@ -855,7 +289,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         if ('ids' in options) {
             // get messages from their ids (chatter is the main use case)
             return this._fetchDocumentMessages(options.ids, options).then(function(result) {
-                chat_manager.mark_as_read(options.ids);
+                self.mark_as_read.bind(self)(options.ids);
                 return result;
             });
         }
@@ -870,7 +304,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                     kwargs: {limit: 30},
                 })
                 .then(function (msgs) {
-                    return _.map(msgs, add_message);
+                    return _.map(msgs, self.add_message.bind(self));
                 });
         }
     },
@@ -923,7 +357,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     mark_channel_as_seen: function (channel) {
         if (channel.unread_counter > 0 && channel.type !== 'static') {
-            update_channel_unread_counter(channel, 0);
+            this.update_channel_unread_counter(channel, 0);
             this.channel_seen(channel);
         }
     },
@@ -941,7 +375,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
 
     all_history_loaded: function (channel, domain) {
-        return get_channel_cache(channel, domain).all_history_loaded;
+        return this.get_channel_cache(channel, domain).all_history_loaded;
     },
 
     get_mention_partner_suggestions: function (channel) {
@@ -1040,9 +474,10 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                 args: args,
                 kwargs: {context: context},
             })
-            .then(add_channel);
+            .then(this.add_channel.bind(this));
     },
     join_channel: function (channel_id, options) {
+        var self = this;
         if (channel_id in channel_defs) {
             // prevents concurrent calls to channel_join_and_get_info
             return channel_defs[channel_id];
@@ -1058,7 +493,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                     args: [[channel_id]],
                 })
                 .then(function (result) {
-                    return add_channel(result, options);
+                    return self.add_channel.bind(self)(result, options);
                 });
         }
         return channel_defs[channel_id];
@@ -1069,10 +504,10 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                 method: 'channel_get_and_minimize',
                 args: [[partner_id]],
             })
-            .then(add_channel);
+            .then(this.add_channel.bind(this));
     },
     open_channel: function (channel) {
-        chat_manager.bus.trigger(client_action_open ? 'open_channel' : 'detach_channel', channel);
+        this.bus.trigger(client_action_open ? 'open_channel' : 'detach_channel', channel);
     },
 
     unsubscribe: function (channel) {
@@ -1139,7 +574,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
                 })
                 .then(function (user_ids) {
                     if (user_ids.length && user_ids[0] !== session.uid && dm_redirection_callback) {
-                        self.create_channel(res_id, 'dm').then(dm_redirection_callback);
+                        self.create_channel.bind(self)(res_id, 'dm').then(dm_redirection_callback);
                     } else {
                         redirect_to_document(res_model, res_id);
                     }
@@ -1157,6 +592,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
 
     get_channels_preview: function (channels) {
+        var self = this;
         var channels_preview = _.map(channels, function (channel) {
             var info;
             if (channel.channel_ids && _.contains(channel.channel_ids,"channel_inbox")) {
@@ -1203,7 +639,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             _.each(missing_channels, function (channel_preview) {
                 var channel = _.findWhere(channels, {id: channel_preview.id});
                 if (channel) {
-                    channel_preview.last_message = add_message(channel.last_message);
+                    channel_preview.last_message = self.add_message.bind(self)(channel.last_message);
                 }
             });
             // sort channels: 1. unread, 2. chat, 3. date of last msg
@@ -1217,7 +653,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             // generate last message preview (inline message body and compute date to display)
             _.each(channels_preview, function (channel) {
                 if (channel.last_message) {
-                    channel.last_message_preview = chat_manager.get_message_body_preview(channel.last_message.body);
+                    channel.last_message_preview = self.get_message_body_preview.bind(self)(channel.last_message.body);
                     channel.last_message_date = channel.last_message.date.fromNow();
                 }
             });
@@ -1259,17 +695,593 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             return _.sortBy(autocomplete_data, 'label');
         });
     },
-});
 
-var CallService = Class.extend(Mixins.EventDispatcherMixin, ServiceProviderMixin, {
-    init: function () {
-        Mixins.EventDispatcherMixin.init.call(this);
-        ServiceProviderMixin.init.call(this);
+
+/*=========================================
+ * OLD FUNCTIONS (treated)
+ *========================================*/
+
+    notify_incoming_message: function (msg, options) {
+        if (bus.is_odoo_focused() && options.is_displayed) {
+            // no need to notify
+            return;
+        }
+        var title = _t('New message');
+        if (msg.author_id[1]) {
+            title = _.escape(msg.author_id[1]);
+        }
+        var content = utils.parse_and_transform(msg.body, utils.strip_html).substr(0, preview_msg_max_size);
+
+        if (!bus.is_odoo_focused()) {
+            global_unread_counter++;
+            var tab_title = _.str.sprintf(_t("%d Messages"), global_unread_counter);
+            web_client.set_title_part("_chat", tab_title);
+        }
+
+        utils.send_notification(web_client, title, content);
     },
-});
-var chat_manager = new ChatManager(new CallService());
-chat_manager.start();
 
-return chat_manager;
+    // Message and channel manipulation helpers
+    //----------------------------------------------------------------------------------
+
+    // options: channel_id, silent
+    add_message: function (data, options) {
+        var self = this;
+        options = options || {};
+        var msg = _.findWhere(messages, { id: data.id });
+
+        if (!msg) {
+            msg = this.make_message(data);
+            // Keep the array ordered by id when inserting the new message
+            messages.splice(_.sortedIndex(messages, msg, 'id'), 0, msg);
+            _.each(msg.channel_ids, function (channel_id) {
+                var channel = self.get_channel.bind(self)(channel_id);
+                if (channel) {
+                    // update the channel's last message (displayed in the channel
+                    // preview, in mobile)
+                    if (!channel.last_message || msg.id > channel.last_message.id) {
+                        channel.last_message = msg;
+                    }
+                    self.add_to_cache.bind(self)(msg, []);
+                    if (options.domain && options.domain !== []) {
+                        self.add_to_cache.bind(self)(msg, options.domain);
+                    }
+                    if (channel.hidden) {
+                        channel.hidden = false;
+                        self.bus.trigger('new_channel', channel);
+                    }
+                    if (channel.type !== 'static' && !msg.is_author && !msg.is_system_notification) {
+                        if (options.increment_unread) {
+                            self.update_channel_unread_counter.bind(self)(channel, channel.unread_counter+1);
+                        }
+                        if (channel.is_chat && options.show_notification) {
+                            if (!client_action_open && !config.device.isMobile) {
+                                // automatically open chat window
+                                self.bus.trigger('open_chat', channel, { passively: true });
+                            }
+                            var query = {is_displayed: false};
+                            self.bus.trigger('anyone_listening', channel, query);
+                            self.notify_incoming_message.bind(self)(msg, query);
+                        }
+                    }
+                }
+            });
+            if (!options.silent) {
+                this.bus.trigger('new_message', msg);
+            }
+        } else if (options.domain && options.domain !== []) {
+            this.add_to_cache(msg, options.domain);
+        }
+        return msg;
+    },
+
+    make_message: function (data) {
+        var self = this;
+        var msg = {
+            id: data.id,
+            author_id: data.author_id,
+            body: data.body || "",
+            date: moment(time.str_to_datetime(data.date)),
+            message_type: data.message_type,
+            subtype_description: data.subtype_description,
+            is_author: data.author_id && data.author_id[0] === session.partner_id,
+            is_note: data.is_note,
+            is_system_notification: (data.message_type === 'notification' && data.model === 'mail.channel')
+                || data.info === 'transient_message',
+            attachment_ids: data.attachment_ids || [],
+            subject: data.subject,
+            email_from: data.email_from,
+            customer_email_status: data.customer_email_status,
+            customer_email_data: data.customer_email_data,
+            record_name: data.record_name,
+            tracking_value_ids: data.tracking_value_ids,
+            channel_ids: data.channel_ids,
+            model: data.model,
+            res_id: data.res_id,
+            url: session.url("/mail/view?message_id=" + data.id),
+            module_icon:data.module_icon,
+        };
+
+        _.each(_.keys(emoji_substitutions), function (key) {
+            var escaped_key = String(key).replace(/([.*+?=^!:${}()|[\]\/\\])/g, '\\$1');
+            var regexp = new RegExp("(?:^|\\s|<[a-z]*>)(" + escaped_key + ")(?=\\s|$|</[a-z]*>)", "g");
+            msg.body = msg.body.replace(regexp, ' <span class="o_mail_emoji">'+emoji_substitutions[key]+'</span> ');
+        });
+
+        function property_descr(channel) {
+            return {
+                enumerable: true,
+                get: function () {
+                    return _.contains(msg.channel_ids, channel);
+                },
+                set: function (bool) {
+                    if (bool) {
+                        self.add_channel_to_message.bind(self)(msg, channel);
+                    } else {
+                        msg.channel_ids = _.without(msg.channel_ids, channel);
+                    }
+                }
+            };
+        }
+
+        Object.defineProperties(msg, {
+            is_starred: property_descr("channel_starred"),
+            is_needaction: property_descr("channel_inbox"),
+        });
+
+        if (_.contains(data.needaction_partner_ids, session.partner_id)) {
+            msg.is_needaction = true;
+        }
+        if (_.contains(data.starred_partner_ids, session.partner_id)) {
+            msg.is_starred = true;
+        }
+        if (msg.model === 'mail.channel') {
+            var real_channels = _.without(msg.channel_ids, 'channel_inbox', 'channel_starred');
+            var origin = real_channels.length === 1 ? real_channels[0] : undefined;
+            var channel = origin && this.get_channel(origin);
+            if (channel) {
+                msg.origin_id = origin;
+                msg.origin_name = channel.name;
+            }
+        }
+
+        // Compute displayed author name or email
+        if ((!msg.author_id || !msg.author_id[0]) && msg.email_from) {
+            msg.mailto = msg.email_from;
+        } else {
+            msg.displayed_author = (msg.author_id === ODOOBOT_ID) && "OdooBot" ||
+                                   msg.author_id && msg.author_id[1] ||
+                                   msg.email_from || _t('Anonymous');
+        }
+
+        // Don't redirect on author clicked of self-posted or OdooBot messages
+        msg.author_redirect = !msg.is_author && msg.author_id !== ODOOBOT_ID;
+
+        // Compute the avatar_url
+        if (msg.author_id === ODOOBOT_ID) {
+            msg.avatar_src = "/mail/static/src/img/odoo_o.png";
+        } else if (msg.author_id && msg.author_id[0]) {
+            msg.avatar_src = "/web/image/res.partner/" + msg.author_id[0] + "/image_small";
+        } else if (msg.message_type === 'email') {
+            msg.avatar_src = "/mail/static/src/img/email_icon.png";
+        } else {
+            msg.avatar_src = "/mail/static/src/img/smiley/avatar.jpg";
+        }
+
+        // add anchor tags to urls
+        msg.body = utils.parse_and_transform(msg.body, utils.add_link);
+
+        // Compute url of attachments
+        _.each(msg.attachment_ids, function(a) {
+            a.url = '/web/content/' + a.id + '?download=true';
+        });
+
+        // format date to the local only once by message
+        // can not be done in preprocess, since it alter the original value
+        if (msg.tracking_value_ids && msg.tracking_value_ids.length) {
+            _.each(msg.tracking_value_ids, function(f) {
+                if (f.field_type === 'datetime') {
+                    var format = 'LLL';
+                    if (f.old_value) {
+                        f.old_value = moment.utc(f.old_value).local().format(format);
+                    }
+                    if (f.new_value) {
+                        f.new_value = moment.utc(f.new_value).local().format(format);
+                    }
+                } else if (f.field_type === 'date') {
+                    var format = 'LL';
+                    if (f.old_value) {
+                        f.old_value = moment(f.old_value).local().format(format);
+                    }
+                    if (f.new_value) {
+                        f.new_value = moment(f.new_value).local().format(format);
+                    }
+                }
+            });
+        }
+
+        return msg;
+    },
+
+    add_channel_to_message: function (message, channel_id) {
+        message.channel_ids.push(channel_id);
+        message.channel_ids = _.uniq(message.channel_ids);
+    },
+
+    add_channel: function (data, options) {
+        options = typeof options === "object" ? options : {};
+        var channel = this.get_channel(data.id);
+        if (channel) {
+            if (channel.is_folded !== (data.state === "folded")) {
+                channel.is_folded = (data.state === "folded");
+                this.bus.trigger("channel_toggle_fold", channel);
+            }
+        } else {
+            channel = this.make_channel(data, options);
+            channels.push(channel);
+            if (data.last_message) {
+                channel.last_message = this.add_message(data.last_message);
+            }
+            // In case of a static channel (Inbox, Starred), the name is translated thanks to _lt
+            // (lazy translate). In this case, channel.name is an object, not a string.
+            channels = _.sortBy(channels, function (channel) { return _.isString(channel.name) ? channel.name.toLowerCase() : '' });
+            if (!options.silent) {
+                this.bus.trigger("new_channel", channel);
+            }
+            if (channel.is_detached) {
+                this.bus.trigger("open_chat", channel);
+            }
+        }
+        return channel;
+    },
+
+    make_channel: function (data, options) {
+        var channel = {
+            id: data.id,
+            name: data.name,
+            server_type: data.channel_type,
+            type: data.type || data.channel_type,
+            all_history_loaded: false,
+            uuid: data.uuid,
+            is_detached: data.is_minimized,
+            is_folded: data.state === "folded",
+            autoswitch: 'autoswitch' in options ? options.autoswitch : true,
+            hidden: options.hidden,
+            display_needactions: options.display_needactions,
+            mass_mailing: data.mass_mailing,
+            group_based_subscription: data.group_based_subscription,
+            needaction_counter: data.message_needaction_counter || 0,
+            unread_counter: 0,
+            last_seen_message_id: data.seen_message_id,
+            cache: {'[]': {
+                all_history_loaded: false,
+                loaded: false,
+                messages: [],
+            }},
+        };
+        if (channel.type === "channel") {
+            channel.type = data.public !== "private" ? "public" : "private";
+        }
+        if (_.size(data.direct_partner) > 0) {
+            channel.type = "dm";
+            channel.name = data.direct_partner[0].name;
+            channel.direct_partner_id = data.direct_partner[0].id;
+            channel.status = data.direct_partner[0].im_status;
+            pinned_dm_partners.push(channel.direct_partner_id);
+            bus.update_option('bus_presence_partner_ids', pinned_dm_partners);
+        } else if ('anonymous_name' in data) {
+            channel.name = data.anonymous_name;
+        }
+        if (data.last_message_date) {
+            channel.last_message_date = moment(time.str_to_datetime(data.last_message_date));
+        }
+        channel.is_chat = !channel.type.match(/^(public|private|static)$/);
+        if (data.message_unread_counter) {
+            this.update_channel_unread_counter(channel, data.message_unread_counter);
+        }
+        return channel;
+    },
+
+    remove_channel: function (channel) {
+        if (!channel) { return; }
+        if (channel.type === 'dm') {
+            var index = pinned_dm_partners.indexOf(channel.direct_partner_id);
+            if (index > -1) {
+                pinned_dm_partners.splice(index, 1);
+                bus.update_option('bus_presence_partner_ids', pinned_dm_partners);
+            }
+        }
+        channels = _.without(channels, channel);
+        delete channel_defs[channel.id];
+    },
+
+    get_channel_cache: function (channel, domain) {
+        var stringified_domain = JSON.stringify(domain || []);
+        if (!channel.cache[stringified_domain]) {
+            channel.cache[stringified_domain] = {
+                all_history_loaded: false,
+                loaded: false,
+                messages: [],
+            };
+        }
+        return channel.cache[stringified_domain];
+    },
+
+
+    invalidate_caches: function (channel_ids) {
+        var self = this;
+        _.each(channel_ids, function (channel_id) {
+            var channel = self.get_channel.bind(self)(channel_id);
+            if (channel) {
+                channel.cache = { '[]': channel.cache['[]']};
+            }
+        });
+    },
+
+    add_to_cache: function (message, domain) {
+        var self = this;
+        _.each(message.channel_ids, function (channel_id) {
+            var channel = self.get_channel.bind(self)(channel_id);
+            if (channel) {
+                var channel_cache = self.get_channel_cache.bind(self)(channel, domain);
+                var index = _.sortedIndex(channel_cache.messages, message, 'id');
+                if (channel_cache.messages[index] !== message) {
+                    channel_cache.messages.splice(index, 0, message);
+                }
+            }
+        });
+    },
+
+    remove_message_from_channel: function (channel_id, message) {
+        message.channel_ids = _.without(message.channel_ids, channel_id);
+        var channel = _.findWhere(channels, { id: channel_id });
+        _.each(channel.cache, function (cache) {
+            cache.messages = _.without(cache.messages, message);
+        });
+    },
+
+    update_channel_unread_counter: function (channel, counter) {
+        if (channel.unread_counter > 0 && counter === 0) {
+            unread_conversation_counter = Math.max(0, unread_conversation_counter-1);
+        } else if (channel.unread_counter === 0 && counter > 0) {
+            unread_conversation_counter++;
+        }
+        if (channel.is_chat) {
+            chat_unread_counter = Math.max(0, chat_unread_counter - channel.unread_counter + counter);
+        }
+        channel.unread_counter = counter;
+        this.bus.trigger("update_channel_unread_counter", channel);
+    },
+
+    // Notification handlers
+    // ---------------------------------------------------------------------------------
+    on_notification: function (notifications) {
+        // sometimes, the web client receives unsubscribe notification and an extra
+        // notification on that channel.  This is then followed by an attempt to
+        // rejoin the channel that we just left.  The next few lines remove the
+        // extra notification to prevent that situation to occur.
+        var self = this;
+        var unsubscribed_notif = _.find(notifications, function (notif) {
+            return notif[1].info === "unsubscribe";
+        });
+        if (unsubscribed_notif) {
+            notifications = _.reject(notifications, function (notif) {
+                return notif[0][1] === "mail.channel" && notif[0][2] === unsubscribed_notif[1].id;
+            });
+        }
+        _.each(notifications, function (notification) {
+            var model = notification[0][1];
+            if (model === 'ir.needaction') {
+                // new message in the inbox
+                self.on_needaction_notification.bind(self)(notification[1]);
+            } else if (model === 'mail.channel') {
+                // new message in a channel
+                self.on_channel_notification.bind(self)(notification[1]);
+            } else if (model === 'res.partner') {
+                // channel joined/left, message marked as read/(un)starred, chat open/closed
+                self.on_partner_notification.bind(self)(notification[1]);
+            } else if (model === 'bus.presence') {
+                // update presence of users
+                self.on_presence_notification.bind(self)(notification[1]);
+            }
+        });
+    },
+
+    on_needaction_notification: function (message) {
+        var self = this;
+        message = this.add_message(message, {
+            channel_id: 'channel_inbox',
+            show_notification: true,
+            increment_unread: true,
+        });
+        this.invalidate_caches(message.channel_ids);
+        if (message.channel_ids.length !== 0) {
+            needaction_counter++;
+        }
+        _.each(message.channel_ids, function (channel_id) {
+            var channel = self.get_channel.bind(self)(channel_id);
+            if (channel) {
+                channel.needaction_counter++;
+            }
+        });
+        this.bus.trigger('update_needaction', needaction_counter);
+    },
+
+    on_channel_notification: function (message) {
+        var def;
+        var self = this;
+        var channel_already_in_cache = true;
+        if (message.channel_ids.length === 1) {
+            channel_already_in_cache = !!this.get_channel(message.channel_ids[0]);
+            def = this.join_channel(message.channel_ids[0], {autoswitch: false});
+        } else {
+            def = $.when();
+        }
+        def.then(function () {
+            // don't increment unread if channel wasn't in cache yet as its unread counter has just been fetched
+            self.add_message.bind(self)(message, { show_notification: true, increment_unread: channel_already_in_cache });
+            self.invalidate_caches.bind(self)(message.channel_ids);
+        });
+    },
+
+    on_partner_notification: function (data) {
+        if (data.info === "unsubscribe") {
+            var channel = this.get_channel(data.id);
+            if (channel) {
+                var msg;
+                if (_.contains(['public', 'private'], channel.type)) {
+                    msg = _.str.sprintf(_t('You unsubscribed from <b>%s</b>.'), channel.name);
+                } else {
+                    msg = _.str.sprintf(_t('You unpinned your conversation with <b>%s</b>.'), channel.name);
+                }
+                this.remove_channel(channel);
+                this.bus.trigger("unsubscribe_from_channel", data.id);
+                web_client.do_notify(_("Unsubscribed"), msg);
+            }
+        } else if (data.type === 'toggle_star') {
+            this.on_toggle_star_notification(data);
+        } else if (data.type === 'mark_as_read') {
+            this.on_mark_as_read_notification(data);
+        } else if (data.type === 'mark_as_unread') {
+            this.on_mark_as_unread_notification(data);
+        } else if (data.info === 'channel_seen') {
+            this.on_channel_seen_notification(data);
+        } else if (data.info === 'transient_message') {
+            this.on_transient_message_notification(data);
+        } else if (data.type === 'activity_updated') {
+            this.onActivityUpdateNotification(data);
+        } else {
+            this.on_chat_session_notification(data);
+        }
+    },
+
+    on_toggle_star_notification: function (data) {
+        var self = this;
+        _.each(data.message_ids, function (msg_id) {
+            var message = _.findWhere(messages, { id: msg_id });
+            if (message) {
+                self.invalidate_caches.bind(self)(message.channel_ids);
+                message.is_starred = data.starred;
+                if (!message.is_starred) {
+                    self.remove_message_from_channel.bind(self)("channel_starred", message);
+                    starred_counter--;
+                } else {
+                    self.add_to_cache.bind(self)(message, []);
+                    var channel_starred = this.get_channel('channel_starred');
+                    channel_starred.cache = _.pick(channel_starred.cache, "[]");
+                    starred_counter++;
+                }
+                self.bus.trigger('update_message', message);
+            }
+        });
+        this.bus.trigger('update_starred', starred_counter);
+    },
+
+    on_mark_as_read_notification: function (data) {
+        var self = this;
+        _.each(data.message_ids, function (msg_id) {
+            var message = _.findWhere(messages, { id: msg_id });
+            if (message) {
+                self.invalidate_caches.bind(self)(message.channel_ids);
+                self.remove_message_from_channel.bind(self)("channel_inbox", message);
+                self.bus.trigger('update_message', message, data.type);
+            }
+        });
+        if (data.channel_ids) {
+            _.each(data.channel_ids, function (channel_id) {
+                var channel = self.get_channel.bind(self)(channel_id);
+                if (channel) {
+                    channel.needaction_counter = Math.max(channel.needaction_counter - data.message_ids.length, 0);
+                }
+            });
+        } else { // if no channel_ids specified, this is a 'mark all read' in the inbox
+            _.each(channels, function (channel) {
+                channel.needaction_counter = 0;
+            });
+        }
+        needaction_counter = Math.max(needaction_counter - data.message_ids.length, 0);
+        this.bus.trigger('update_needaction', needaction_counter);
+    },
+
+    on_mark_as_unread_notification: function (data) {
+        var self = this;
+        _.each(data.message_ids, function (message_id) {
+            var message = _.findWhere(messages, { id: message_id });
+            if (message) {
+                self.invalidate_caches.bind(self)(message.channel_ids);
+                self.add_channel_to_message.bind(self)(message, 'channel_inbox');
+                self.add_to_cache.bind(self)(message, []);
+            }
+        });
+        var channel_inbox = this.get_channel('channel_inbox');
+        channel_inbox.cache = _.pick(channel_inbox.cache, "[]");
+
+        _.each(data.channel_ids, function (channel_id) {
+            var channel = self.get_channel.bind(self)(channel_id);
+            if (channel) {
+                channel.needaction_counter += data.message_ids.length;
+            }
+        });
+        needaction_counter += data.message_ids.length;
+        this.bus.trigger('update_needaction', needaction_counter);
+    },
+
+    on_channel_seen_notification: function (data) {
+        var channel = this.get_channel(data.id);
+        if (channel) {
+            channel.last_seen_message_id = data.last_message_id;
+            if (channel.unread_counter) {
+                this.update_channel_unread_counter(channel, 0);
+            }
+        }
+    },
+
+    on_chat_session_notification: function (chat_session) {
+        var channel;
+        if ((chat_session.channel_type === "channel") && (chat_session.state === "open")) {
+            this.add_channel(chat_session, {autoswitch: false});
+            if (!chat_session.is_minimized && chat_session.info !== 'creation') {
+                web_client.do_notify(_t("Invitation"), _t("You have been invited to: ") + chat_session.name);
+            }
+        }
+        // partner specific change (open a detached window for example)
+        if ((chat_session.state === "open") || (chat_session.state === "folded")) {
+            channel = chat_session.is_minimized && this.get_channel(chat_session.id);
+            if (channel) {
+                channel.is_detached = true;
+                channel.is_folded = (chat_session.state === "folded");
+                this.bus.trigger("open_chat", channel);
+            }
+        } else if (chat_session.state === "closed") {
+            channel = this.get_channel(chat_session.id);
+            if (channel) {
+                channel.is_detached = false;
+                this.bus.trigger("close_chat", channel, {keep_open_if_unread: true});
+            }
+        }
+    },
+
+    on_presence_notification: function (data) {
+        var dm = this.get_dm_from_partner_id(data.id);
+        if (dm) {
+            dm.status = data.im_status;
+            this.bus.trigger('update_dm_presence', dm);
+        }
+    },
+
+    on_transient_message_notification: function (data) {
+        var last_message = _.last(messages);
+        data.id = (last_message ? last_message.id : 0) + 0.01;
+        data.author_id = data.author_id || ODOOBOT_ID;
+        this.add_message(data);
+    },
+
+    onActivityUpdateNotification: function (data) {
+        this.bus.trigger('activity_updated', data);
+    },
+
+});
+
+return ChatManager;
 
 });
