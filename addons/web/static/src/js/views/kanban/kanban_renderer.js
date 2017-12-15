@@ -88,7 +88,7 @@ var KanbanRenderer = BasicRenderer.extend({
         'set_progress_bar_state': '_onSetProgressBarState',
     }),
     events: {
-        'click .o_kanban_add_from_sample': '_onAddColumnFromSample',
+        // 'click .o_kanban_add_from_sample': '_onAddColumnFromSample',
     },
 
     /**
@@ -110,7 +110,7 @@ var KanbanRenderer = BasicRenderer.extend({
         });
         this.columnOptions = _.extend({}, params.column_options, { 
             qweb: this.qweb,
-            stageHelp: this.stageTag
+            stageHelp: this.stageTag,
         });
         if (this.columnOptions.hasProgressBar) {
             this.columnOptions.progressBarStates = {};
@@ -122,12 +122,12 @@ var KanbanRenderer = BasicRenderer.extend({
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
-    _onAddColumnFromSample: function (event) {
-        var cloumnText = $(event.currentTarget).parent().siblings().first().val();
-        if (cloumnText) {
-            this.trigger_up('quick_create_add_column', {value:cloumnText});
-        }
-    },
+    // _onAddColumnFromSample: function (event) {
+    //     var cloumnText = $(event.currentTarget).parent().siblings().first().val();
+    //     if (cloumnText) {
+    //         this.trigger_up('quick_create_add_column', {value:cloumnText});
+    //     }
+    // },
     /**
      * Displays the quick create record in the first column.
      */
@@ -247,13 +247,13 @@ var KanbanRenderer = BasicRenderer.extend({
                 self.widgets.push(column);
             }
         });
-        if (this.stageTag && this.state.count == 0) {
-            this.stageData = KanbanStageRegistry.get(this.stageTag);
-            _.each(this.stageData.helpStages, function(cloumn){
-                var $column = $(qweb.render('KanbanColumn.Sample',{data: cloumn}));
-                $column.appendTo(fragment);
-            });
-        }
+        // if (this.stageTag && this.state.count == 0) {
+        //     this.stageData = KanbanStageRegistry.get(this.stageTag);
+        //     _.each(this.stageData.helpStages, function(cloumn){
+        //         var $column = $(qweb.render('KanbanColumn.Sample',{data: cloumn}));
+        //         $column.appendTo(fragment);
+        //     });
+        // }
 
         if (this.groupedByM2O) {
             // Enable column sorting
@@ -276,7 +276,7 @@ var KanbanRenderer = BasicRenderer.extend({
             });
             // Enable column quickcreate
             if (this.createColumnEnabled) {
-                this.quickCreate = new ColumnQuickCreate(this);
+                this.quickCreate = new ColumnQuickCreate(this, this.stageTag, this.state);
                 this.quickCreate.appendTo(fragment);
             }
         }

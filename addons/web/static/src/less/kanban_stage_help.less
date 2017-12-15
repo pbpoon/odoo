@@ -18,7 +18,7 @@
 }
 
 .stage_container > .tab-content > .tab-pane > .row {
-	min-height: 420px;
+	min-height: 365px;
 	overflow-x: auto;
 	white-space: nowrap;
 	.col-md-3 {
@@ -34,11 +34,6 @@
 		li {
 			margin-top: 0px;
 			padding: 5px 0px;
-		}
-		.example_title {
-			font-size: 16px;
-			padding: 16px 0px;
-			text-align: center;
 		}
 	}
 	li.active {
@@ -56,27 +51,29 @@
 .record_ghost {
 	background: transparent;
 	border: thin solid @gray-lighter-dark;
-	min-height: 60px;
+	min-height: 50px;
+	margin-top: -1px;
+	opacity: 0.8;
 	.oe_kanban_content {
 		.o_kanban_record_top {
 			display: flex;
 			width: 125px;
 			background: darken(@gray-lighter, 5%);
 			height: 14px;
-			margin: 5px;
+			margin: 5px 5px 0px 5px;
 		}
 		.o_kanban_record_bottom {
 			display: flex;
-			margin-top: 10px;
 			margin-right: 5px;
 			.small_option_group{
 				display: flex;
 				margin-left: 5px;
 				.small_option {
 					width: 20px;
+					height: 12px;
 					background: darken(@gray-lighter, 5%);
 					margin-right: 5px;
-					margin-top: 5px;
+					margin-top: 10px;
 				}
 			}
 			.oe_kanban_bottom_right {
@@ -85,31 +82,38 @@
 		}
 	}
 }
-
-.kanban_sample_cloumn.o_column_quick_create {
-	.o_kanban_quick_create {
-		display: block !important;
-		width: 262px !important;
-		.sample_header {
-			visibility: visible;
-		}
-		.record_blank {
-			background: @gray-lighter-dark;
-			width: 245px;
-			height: 75px;
-			margin: 10px 0px;
-		}
-	}
+.record_blank {
+	background: @gray-lighter-dark;
+	width: 245px;
+	height: 75px;
+	margin: 10px 0px;
 }
+
+// .kanban_sample_cloumn.o_column_quick_create {
+// 	.o_kanban_quick_create {
+// 		display: block !important;
+// 		width: 262px !important;
+// 		.sample_header {
+// 			visibility: visible;
+// 		}
+// 		.record_blank {
+// 			background: @gray-lighter-dark;
+// 			width: 245px;
+// 			height: 75px;
+// 			margin: 10px 0px;
+// 		}
+// 	}
+// }
+
 
 //Hide the sample column header and lighten the record color to all except first column.
-.o_kanban_view > .kanban_sample_cloumn ~ .kanban_sample_cloumn{
-	.o_kanban_quick_create {
-		.sample_header {
-			visibility: hidden;
-		}
-		.record_blank {
-			background: lighten(@gray-lighter-dark, 5%);
-		}
-	}
-}
+// .o_kanban_view > .kanban_sample_cloumn ~ .kanban_sample_cloumn{
+// 	.o_kanban_quick_create {
+// 		.sample_header {
+// 			visibility: hidden;
+// 		}
+// 		.record_blank {
+// 			background: lighten(@gray-lighter-dark, 5%);
+// 		}
+// 	}
+// }

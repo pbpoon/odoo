@@ -7,6 +7,8 @@ odoo.define('web.kanban_quick_create', function (require) {
  */
 
 var Widget = require('web.Widget');
+var KanbanStageRegistry = require('web.KanbanStageRegistry');
+
 
 var AbstractQuickCreate = Widget.extend({
     events: {
@@ -227,15 +229,25 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
     events: _.extend({}, AbstractQuickCreate.prototype.events, {
         'click .o_column_header': 'toggleFold',
         'click input': '_onInputClicked',
-        'click .exampleDialog': '_openDialogTrigger'
-        // 'focusout': '_onFocusout',
+        'click .exampleDialog': '_openDialogTrigger',
+        'focusout': '_onFocusout',
     }),
     /**
      * @override
      */
-    init: function () {
+    init: function (parent, stageTag, state) {
         this._super.apply(this, arguments);
         this.folded = true;
+        this.isGuiedStepEnable = stageTag && state.count == 0;
+        if (this.isGuiedStepEnable) {
+            this.stepData = KanbanStageRegistry.get(stageTag);
+            if (this.stepData.helpStages.length > state.data.length) {
+                this.placeholder = this.stepData.helpStages[state.data.length].placeholder;
+                this.recordNumbers = _.random(1,4);
+            } else {
+                this.isGuiedStepEnable = false;
+            }
+        }
     },
     /**
      * @override
@@ -255,7 +267,6 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      * Toggle fold/unfold the Column quick create widget
      */
     toggleFold: function () {
-        console.log('toggleFold.....................');
         this.folded = !this.folded;
         this._update();
         if (!this.folded) {
@@ -296,7 +307,6 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      * @private
      */
     _onFocusout: function () {
-        console.log('_onFocusout........................');
         var hasFocus = this.$(':focus').length > 0;
         if (hasFocus) {
             return;

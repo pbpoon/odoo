@@ -294,7 +294,7 @@ var KanbanController = BasicController.extend({
         this.sampleData = KanbanStageRegistry.get(this.stageTag);
         _.mapObject(this.sampleData.exampleStages, function(exStage) {
             _.each(exStage.stages, function(stage) {
-                stage.random = _.random(1,4);
+                stage.randomNumer = _.random(1,4);
             });
             return exStage;
         });

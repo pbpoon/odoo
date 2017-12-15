@@ -61,6 +61,11 @@ var KanbanColumn = Widget.extend({
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
 
+        this.isGuiedStepEnable = false;
+        if (options.stageHelp && this.data.count == 0) {
+            this.isGuiedStepEnable = true;
+            this.recordNumbers = _.random(1,4);
+        }
         if (options.hasProgressBar) {
             this.barOptions = {
                 columnID: this.db_id,

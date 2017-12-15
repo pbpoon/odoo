@@ -31,6 +31,11 @@
                 <span t-if="widget.quick_create" class="o_kanban_quick_add"><i class="fa fa-plus"/></span>
             </div>
         </div>
+        <t t-if="widget.isGuiedStepEnable">
+            <t t-foreach='widget.recordNumbers'>
+                <t t-call='KanbanColumn.BlankRecord'/>
+            </t>
+        </t>
         <div t-if="widget.remaining > 0" class="o_kanban_load_more">
             <t t-call="KanbanView.LoadMore"/>
         </div>
@@ -49,13 +54,23 @@
         </div>
         <div class="o_kanban_quick_create">
             <div class="input-group">
+            <t t-if="widget.isGuiedStepEnable">
+              <input type="text" class="form-control o_input" t-att-placeholder="widget.placeholder"/>
+            </t>
+            <t t-else="">
               <input type="text" class="form-control o_input" placeholder="Column title"/>
+            </t>
               <span class="input-group-btn">
                 <button class="btn btn-sm btn-primary o_kanban_add" type="button">Add Column</button>
               </span>
             </div>
-            <span class="btn-link exampleDialog">See Examples</span>
-            <span class="pull-right text-muted">or Esc to cancel</span>
+            <t t-if="widget.isGuiedStepEnable">
+                <span class="btn-link exampleDialog">See Examples</span>
+                <span class="pull-right text-muted">or Esc to cancel</span>
+                <t t-foreach='widget.recordNumbers'>
+                    <t t-call='KanbanColumn.BlankRecord'/>
+                </t>
+            </t>
         </div>
     </div>
 </t>
@@ -122,7 +137,7 @@
     <div class='container stage_help_modal'>
         <div class="col-md-2 stage_navigation">
             <ul class="nav nav-pills nav-stacked">
-                <li class="example_title"><b>Kanban Examples</b></li>
+                <!-- <li class="example_title"><b>Kanban Examples</b></li> -->
                 <t t-set="counter" t-value="0"/>
                 <t t-foreach="data.exampleStages" t-as="stage">
                     <t t-if="counter &lt; 1">
@@ -145,7 +160,7 @@
                                 <t t-foreach="stage.stages" t-as="cloumn">
                                     <div class="col-md-3 cloumn_container">
                                         <h6><b><t t-esc="cloumn.name"/></b><i class="fa fa-plus pull-right"></i></h6>
-                                        <t t-set="counter" t-value="cloumn.random"/>
+                                        <t t-set="counter" t-value="cloumn.randomNumer"/>
                                         <t t-foreach="[1,2,3,4,5]">
                                             <t t-if="counter &gt; 0">
                                                 <t t-call="KanbanColumn.RecordGhost"/>
@@ -164,7 +179,7 @@
                                 <t t-foreach="stage.stages" t-as="cloumn">
                                     <div class="col-md-3 cloumn_container">
                                         <h6><b><t t-esc="cloumn.name"/></b><i class="fa fa-plus pull-right"></i></h6>
-                                        <t t-set="counter" t-value="cloumn.random"/>
+                                        <t t-set="counter" t-value="cloumn.randomNumer"/>
                                         <t t-foreach="[1,2,3,4]">
                                             <t t-if="counter &gt; 0">
                                                 <t t-call="KanbanColumn.RecordGhost"/>
@@ -196,7 +211,7 @@
                     <span class="small_option"/>
                 </div>
                 <div class="oe_kanban_bottom_right">
-                    <img width="24" height="24" src="http://localhost:8069/web/image?model=res.users&amp;field=image_small&amp;id=1&amp;unique=" title="Administrator"/>
+                    <img width="24" height="24" src="http://localhost:8069/base/static/img/avatar.png" title="User"/>
                 </div>
             </div>
         </div>
@@ -207,7 +222,7 @@
     <div class="record_blank"/>
 </t>
 
-<t t-name="KanbanColumn.Sample">
+<!-- <t t-name="KanbanColumn.Sample">
     <div class='kanban_sample_cloumn o_kanban_group o_column_quick_create'>
         <div class="o_kanban_quick_create">
             <div class='sample_header'>
@@ -225,5 +240,5 @@
             </t>
         </div>
     </div>
-</t>
+</t> -->
 </template>
