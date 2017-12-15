@@ -2,16 +2,31 @@
 <template>
     <t t-name="website_sale.product_catalog">
         <div class="row product_grid o_not_editable" contenteditable="false">
-            <t t-if="widget.catalogType === 'grid'">
-                <t t-set="products" t-value="widget.products"/>
-                <t t-set="size" t-value="widget.size"/>
-                <t t-call="website_sale.product_cell"/>
-                <div class="col-md-12 text-center btn-all-products mt16">
-                    <a href="/shop/" class="btn btn-default">View All Products</a>
+            <t t-if="!widget.products.length">
+                <div class="form-group text-center mt16">
+                    <div class="text-center text-muted oe_product">
+                        <t t-if="!widget.products_available">
+                            <h3 class="css_editable_display">No product defined.</h3>
+                            <p groups="sales_team.group_sale_manager">Click <i>'New'</i> in the top-right corner to create your first product.</p>
+                        </t>
+                        <t t-else="">
+                            <h3 class="css_editable_display">No products are publish yet.</h3>
+                        </t>
+                    </div>
                 </div>
             </t>
             <t t-else="">
-                <t t-call="website_sale.carousel"/>
+                <t t-if="widget.catalogType === 'grid'">
+                    <t t-set="products" t-value="widget.products"/>
+                    <t t-set="size" t-value="widget.size"/>
+                    <t t-call="website_sale.product_cell"/>
+                    <div class="col-md-12 text-center btn-all-products mt16">
+                        <a href="/shop/" class="btn btn-default">View All Products</a>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-call="website_sale.carousel"/>
+                </t>
             </t>
         </div>
     </t>

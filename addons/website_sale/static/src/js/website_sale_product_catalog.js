@@ -49,6 +49,7 @@ var ProductCatalog = Widget.extend({
             }
             self.products = result.products;
             self.is_rating = result.is_rating_active;
+            self.products_available = result.products_available;
         });
         return $.when(this._super.apply(this, arguments), def);
     },
@@ -60,6 +61,7 @@ var ProductCatalog = Widget.extend({
      * @returns {Deferred}
      */
     start: function () {
+        this.$target.toggleClass('o_empty_catalog',!this.products.length);
         if (this.is_rating) {
             this._renderRating();
         }

@@ -1044,6 +1044,9 @@ class WebsiteSale(http.Controller):
         if sortby:
             order = '%s %s' % (sortby['name'], sortby['asc'] and 'ASC' or 'DESC')
         products = ProductTemplate.search(domain, order=order, limit=limit)
+        products_available = False
+        if not(products):
+            products_available = True if ProductTemplate.search_count([]) else False
         for product in products:
             productDetails.append({
                 'id': product.id,
@@ -1058,4 +1061,4 @@ class WebsiteSale(http.Controller):
                 'rating': product.rating_get_stats(),
             })
         is_rating_active = request.env.ref('website_sale.product_comment').active
-        return {'products': productDetails, 'is_rating_active': is_rating_active}
+        return {'products': productDetails, 'is_rating_active': is_rating_active, 'products_available': products_available}
