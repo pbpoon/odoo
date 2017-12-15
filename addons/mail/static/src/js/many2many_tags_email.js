@@ -34,6 +34,8 @@ BasicModel.include({
             var record = self.localData[id];
             if (!record.data.email) {
                 invalidPartnerIds.push(record);
+            } else {
+                record.data.isValidEmail = record.data.email.match(/[\w]+@[\w]+\.[\w]+/g);
             }
         });
         var def;
@@ -51,6 +53,7 @@ BasicModel.include({
 });
 
 var FieldMany2ManyTagsEmail = M2MTags.extend({
+    tag_template: "Many2ManyComposerTitle",
     fieldsToFetch: _.extend({}, M2MTags.prototype.fieldsToFetch, {
         email: {type: 'char'},
     }),

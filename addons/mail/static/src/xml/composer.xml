@@ -78,4 +78,13 @@
         </t>
     </t>
 
+    <t t-name="Many2ManyComposerTitle" t-extend="FieldMany2ManyTag">
+        <t t-jquery="span:first" t-operation="before">
+            <t t-if="el.isValidEmail" t-set="color" t-value="el[colorField] || 0"/>
+            <t t-else="" t-set="color" t-value="1"/>
+        </t>
+        <t t-jquery=".o_badge_text" t-operation="replace">
+            <span class="o_badge_text" t-attf-title="#{el.isValidEmail ? el.email:'Invalid Email'}"><t t-raw="el.display_name"/></span>
+        </t>
+    </t>
 </templates>
