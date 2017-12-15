@@ -11,6 +11,7 @@ var session = require('web.session');
 var utils = require('web.utils');
 
 var ColumnQuickCreate = quick_create.ColumnQuickCreate;
+var KanbanStageRegistry = require('web.KanbanStageRegistry');
 
 var qweb = core.qweb;
 
@@ -101,6 +102,7 @@ var KanbanRenderer = BasicRenderer.extend({
         var templates = findInNode(this.arch, function (n) { return n.tag === 'templates';});
         transformQwebTemplate(templates, state.fields);
         this.qweb.add_template(utils.json_node_to_xml(templates));
+        this.stageTag = this.arch.attrs.stage_help_tag;
 
         this.recordOptions = _.extend({}, params.record_options, {
             qweb: this.qweb,
@@ -108,7 +110,7 @@ var KanbanRenderer = BasicRenderer.extend({
         });
         this.columnOptions = _.extend({}, params.column_options, { 
             qweb: this.qweb,
-            stageHelp: this.arch.attrs.stage_help_tag
+            stageHelp: this.stageTag
         });
         if (this.columnOptions.hasProgressBar) {
             this.columnOptions.progressBarStates = {};
@@ -245,6 +247,13 @@ var KanbanRenderer = BasicRenderer.extend({
                 self.widgets.push(column);
             }
         });
+        if (this.stageTag && this.state.count == 0) {
+            this.stageData = KanbanStageRegistry.get(this.stageTag);
+            _.each(this.stageData.helpStages, function(cloumn){
+                var $column = $(qweb.render('KanbanColumn.Sample',{data: cloumn}));
+                $column.appendTo(fragment);
+            });
+        }
 
         if (this.groupedByM2O) {
             // Enable column sorting
@@ -265,17 +274,6 @@ var KanbanRenderer = BasicRenderer.extend({
                     self.trigger_up('resequence_columns', {ids: ids});
                 },
             });
-            var temp = {
-                placeholder_1: 'ToDo',
-                placeholder_2: 'In Progress',
-                placeholder_3: 'Done'
-            };
-            var $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'ToDo'}));
-            $cloumn.appendTo(fragment);
-            $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'In Progress'}));
-            $cloumn.appendTo(fragment);
-            $cloumn = $(qweb.render('KanbanColumn.Sample',{placeholder:'Done'}));
-            $cloumn.appendTo(fragment);
             // Enable column quickcreate
             if (this.createColumnEnabled) {
                 this.quickCreate = new ColumnQuickCreate(this);

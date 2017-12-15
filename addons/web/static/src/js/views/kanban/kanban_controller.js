@@ -291,11 +291,17 @@ var KanbanController = BasicController.extend({
             });
     },
     _openExampleDialog: function (event) {
-        this.data = KanbanStageRegistry.get(this.stageTag);
+        this.sampleData = KanbanStageRegistry.get(this.stageTag);
+        _.mapObject(this.sampleData.exampleStages, function(exStage) {
+            _.each(exStage.stages, function(stage) {
+                stage.random = _.random(1,4);
+            });
+            return exStage;
+        });
         new Dialog(this, {
             size: "large",
             buttons: false,
-            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.data}),
+            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.sampleData}),
         }).open();
     },
     /**

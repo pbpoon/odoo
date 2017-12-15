@@ -10,47 +10,51 @@ var QWeb = core.qweb;
 var _t = core._t;
 
 KanbanStageRegistry.add('project',{
+helpStages: [
+{
+    placeholder: 'ToDo',
+    records: 3
+},{
+    placeholder: 'In Progress',
+    records: 2
+},{
+    placeholder: 'Done',
+    records: 4
+},],
+exampleStages: [{
     title: 'Software Development',
-    stages: ['Backlog','Specifications','Development','Tests','Delivered'],
-    foot_note: 'Once a task is specified, set it • (replace by green bullet icon) in the Specifications column, so that developers know they can pull it. If you work in sprints, use ★ to mark tasks of the current sprint.',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'Backlog'},{name:'Specifications'},{name:'Development'},{name:'Tests'},{name:'Delivered'}],
+    footnote: 'Once a task is specified, set it • (replace by green bullet icon) in the Specifications column, so that developers know they can pull it. If you work in sprints, use ★ to mark tasks of the current sprint.',
+},{
     title: 'AGILE',
-    stages: ['Backlog','Analysis','Development','Testing','Done'],
-    foot_note: 'Waiting for the next stage : use green/red bullet',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'Backlog'},{name:'Analysis'},{name:'Development'},{name:'Testing'},{name:'Done'}],
+    footnote: 'Waiting for the next stage : use green/red bullet',
+},{
     title: 'Digital Marketing',
-    stages: ['Ideas','Researching','Writing','Editing', 'Done'],
-    foot_note: 'Everyone can propose ideas, and the Editor mark the best ones as • (replace by green bullet icon). Attach all documents or links to the task directly, to have all information about a research centralized.',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'Ideas'},{name:'Researching'},{name:'Writing'},{name:'Editing'},{name:'Done'}],
+    footnote: 'Everyone can propose ideas, and the Editor mark the best ones as • (replace by green bullet icon). Attach all documents or links to the task directly, to have all information about a research centralized.',
+},{
     title: 'Customer Feedback',
-    stages: ['New','In development','Done','Refused'],
-    foot_note: 'Customers propose feedbacks by email; Odoo creates tasks automatically, and you can communicate on the task directly. Your managers decide which feedback is accepted ( • ) and which feedback is moved to the Refused column.',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'New'},{name:'In development'},{name:'Done'},{name:'Refused'}],
+    footnote: 'Customers propose feedbacks by email; Odoo creates tasks automatically, and you can communicate on the task directly. Your managers decide which feedback is accepted ( • ) and which feedback is moved to the Refused column.',
+},{
     title: 'Getting Things Done (GTD)',
-    stages: ['Inbox','Today','This Week','This Month','Long Term'],
-    foot_note: 'Fill your Inbox easily with the email gateway. Periodically review your Inbox and schedule tasks by moving them to others columns. Every day, you review the "This Week" column to move important tasks Today. Every Monday, you review the This Month column.',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'Inbox'},{name:'Today'},{name:'This Week'},{name:'This Month'},{name:'Long Term'}],
+    footnote: 'Fill your Inbox easily with the email gateway. Periodically review your Inbox and schedule tasks by moving them to others columns. Every day, you review the "This Week" column to move important tasks Today. Every Monday, you review the This Month column.',
+},{
     title: 'T-shirt Printing',
-    stages: ['New Orders','Logo Design','To Print','Done'],
-    foot_note: 'Communicate with customers on the task using the email gateway. Attach logo designs to the task, so that information flow from designers to the workers who print the t-shirt. Organize priorities amongst orders  ★ using the icon.',
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'New Orders'},{name:'Logo Design'},{name:'To Print'},{name:'Done'}],
+    footnote: 'Communicate with customers on the task using the email gateway. Attach logo designs to the task, so that information flow from designers to the workers who print the t-shirt. Organize priorities amongst orders  ★ using the icon.',
+},{
     title: 'Consulting',
-    stages: ['New Projects','Resources Allocation','In Progress','Done'],
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'New Projects'},{name:'Resources Allocation'},{name:'In Progress'},{name:'Done'}],
+},{
     title: 'Research Project',
-    stages: ['Brainstorm','Research','Draft','Final Document'],
-});
-KanbanStageRegistry.add('project',{
+    stages: [{name:'Brainstorm'},{name:'Research'},{name:'Draft'},{name:'Final Document'}],
+},{
     title: 'Website Rededesign',
-    stages: ['Page Ideas','Copywriting','Design','Live'],
-});
+    stages: [{name:'Page Ideas'},{name:'Copywriting'},{name:'Design'},{name:'Live'}],
+}]});
 
 
 KanbanRecord.include({
