@@ -61,6 +61,11 @@ KanbanRenderer.include({
             self._enableSwipe();
         });
     },
+    /**
+     * Scroll to the position
+     *
+     * @param {position} ScrollTop postion
+     */
     scrollTo: function (position) {
         var $column = this.widgets[this.activeColumnIndex].$el;
         $column.scrollTop(position);

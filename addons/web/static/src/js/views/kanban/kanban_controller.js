@@ -422,7 +422,7 @@ var KanbanController = BasicController.extend({
     },
 
      /**
-     * Find the top scroll position of active kanban group in mobile
+     * Find the scroll position of active kanban group in mobile
      *
      * @param {OdooEvent} ev
      */
