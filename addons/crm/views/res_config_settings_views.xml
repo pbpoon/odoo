@@ -33,7 +33,7 @@
                                 <label string="Manual Assignation of Leads"/>
                                 <div class="text-muted">
                                     Generate leads from incoming emails and assign them
-                                    to a sales channel manually.
+                                    to a sales channel manually
                                 </div>
                                 <div class="content-group" attrs="{'invisible': [('generate_lead_from_alias','=',False)]}">
                                     <div class="mt16">
@@ -61,7 +61,7 @@
                             <div class="o_setting_right_pane">
                                 <label for="module_crm_phone_validation"/>
                                 <div class="text-muted" id="module_crm_phone_validation">
-                                    Validate and normalize phone numbers.
+                                    Validate and normalize phone numbers
                                 </div>
                             </div>
                         </div>

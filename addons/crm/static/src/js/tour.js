@@ -23,7 +23,7 @@ tour.register('crm_tour', {
 }, {
     trigger: ".modal-footer button:first",
     extra_trigger: '.o_opportunity_kanban',
-    content: _t("Create an opportunity"),
+    content: _t("Create the opportunity."),
     position: "bottom"
 }, {
     trigger: ".o_opportunity_kanban .o_kanban_group:first-child .o_kanban_record:last-child",
@@ -51,7 +51,7 @@ tour.register('crm_tour', {
 }, {
     trigger: ".o_kanban_record",
     extra_trigger: ".o_opportunity_kanban",
-    content: _t("Click on an opportunity to zoom to it."),
+    content: _t("Click on the opportunity to zoom in."),
     position: "bottom",
     run: function (actions) {
         actions.auto(".o_kanban_record .oe_kanban_action[data-type=edit]");
