@@ -12,7 +12,7 @@
         />
 
         <report
-            string="BOM Cost Structure"
+            string="BoM Structure &amp; Cost "
             id="action_report_bom_price"
             model="mrp.bom"
             name="mrp.mrp_bom_cost_report"

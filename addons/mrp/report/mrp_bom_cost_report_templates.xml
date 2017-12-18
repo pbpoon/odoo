@@ -7,13 +7,18 @@
                     <div class="page">
                         <t t-set="currency" t-value="line['currency']"/>
                         <h1>BoM Structure &amp; Cost</h1>
-                        <a class="mt8 mb16 reports_m2o_web_action" href="#" t-att-res-id="line['id']" res-model="product.product">
-                            <h3 t-esc="line['name']"/>
-                        </a>
-                        <b>
-                            <t t-esc="line['product_uom_qty']"/>
-                            <t t-esc="line['product_uom'].name"/>
-                        </b>
+                        <h4 class="mb64">
+                            <a class="reports_m2o_web_action pull-left" href="#" t-att-res-id="line['id']" res-model="product.product">
+                                <t t-esc="line['name']"/>
+                            </a>
+                            <span class="pull-right">
+                                Quantity:
+                                <strong>
+                                    <t t-esc="line['product_uom_qty']"/>
+                                    <t t-esc="line['product_uom'].name"/>
+                                </strong>
+                            </span>
+                        </h4>
                         <table>
                             <tbody>
                                 <tr t-foreach="line['attributes']" t-as="attrib">
@@ -38,7 +43,7 @@
                                         t-att-data-id="bom_line['id']"
                                         t-att-data-parent-id="bom_line['parent_id']"
                                         t-attf-class="#{'tr_expandable' if bom_line['has_child'] else ''}#{' hidden' if bom_line['level'] and print_mode == 'html' else ''}"
-                                        t-attf-style="#{'cursor:pointer' if bom_line['has_child'] else ''}">
+                                        t-attf-style="#{'cursor:pointer' if bom_line['has_child'] else ''}#{';font-size:90%' if bom_line['level'] else ''}">
                                         <td colspan="3">
                                             <span style="color: white;" t-esc="'... '*(bom_line['level'])"/>
                                             <t t-if="bom_line['has_child'] and print_mode == 'html'">
