@@ -16,6 +16,8 @@ options.registry.product_catalog = options.Class.extend({
      * @override
      */
     start: function () {
+        var self = this;
+        this.productCatalogData = _.pick(this.$target.data(), 'catalog_type', 'product_selection', 'product_ids', 'sort_by', 'x', 'y', 'category_id');
         this._setGrid();
         this._bindGridEvents();
         this._renderProducts();
@@ -32,7 +34,7 @@ options.registry.product_catalog = options.Class.extend({
      * @see this.selectClass for parameters
      */
     catalogType: function (previewMode, value) {
-        this.$target.attr('data-catalog-type', value);
+        this.productCatalogData.catalog_type = value;
         this._renderProducts();
     },
     /**
@@ -42,10 +44,15 @@ options.registry.product_catalog = options.Class.extend({
         this._setGrid();
         this._renderProducts();
     },
-    sortby: function (previewMode, value, $li) {
+    /**
+     * Sort products.
+     *
+     * @see this.selectClass for parameters
+     */
+    sortby: function (previewMode, value) {
         var self = this;
         if (value !== 'reorder_products') {
-            this.$target.attr('data-sortby', value);
+            this.productCatalogData.sort_by = value;
             this._renderProducts();
         }
         if (value === 'reorder_products') {
@@ -54,12 +61,13 @@ options.registry.product_catalog = options.Class.extend({
                 $content: $(QWeb.render('website_sale.reorderProducts', {'products': this.productCatalog.products})),
                 buttons: [
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
-                        self.$target.attr('data-sortby', value);
-                        var productIds = _.map($dialog.$content.find('ul.reorder_products > li'), function (el) {
+                        self.productCatalogData.sort_by = value;
+                        var productids = _.map($dialog.$content.find('ul.reorder_products > li'), function (el) {
                             return $(el).attr('data-menu-id');
                         });
-                        self.$target.attr('data-productIds',productIds);
-                        self.$target.attr('data-sortby', value);
+                        self.$el.find('li[data-sortby]').removeClass('active')
+                            .filter('li[data-sortby="reorder_products"]').addClass('active');
+                        self.productCatalogData.product_ids = productids.join();
                         self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
@@ -77,19 +85,16 @@ options.registry.product_catalog = options.Class.extend({
      * @see this.selectClass for parameters
      */
     productSelection: function (previewMode, value, $li) {
-        this.$el.find('[data-product-selection]').removeClass('active');
-        $li.toggleClass('active',this.$target.attr('data-product-selection') === value);
         switch (value) {
             case 'all':
-                this.$target.attr('data-product-selection', value);
-                this.$target.attr('data-product-domain', []);
+                this.productCatalogData.product_selection = value;
                 this._renderProducts();
                 break;
             case 'category':
                 this._categorySelection();
                 break;
             case 'manual':
-                this.manualSelection();
+                this._manualSelection();
                 break;
         }
 
@@ -124,13 +129,13 @@ options.registry.product_catalog = options.Class.extend({
             for (var xi = 0; xi < x; xi++) {
                 td.push('td:eq(' + xi + ')');
             }
-            var $select_td = $select_tr.find(td.join(','));
+            var $selectTd = $select_tr.find(td.join(','));
             $table.find('td').removeClass('select');
-            $select_td.addClass('select');
+            $selectTd.addClass('select');
         });
     },
     /**
-     * Select products catagory wise.
+     * Select products category wise.
      *
      * @private
      */
@@ -143,18 +148,20 @@ options.registry.product_catalog = options.Class.extend({
         }).then(function (result) {
             var dialog = new Dialog(null, {
                 title: _t('Select Product Category'),
-                $content: $(QWeb.render('website_sale.catagorySelection')),
+                $content: $(QWeb.render('website_sale.categorySelection')),
                 buttons: [
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
-                        var categoryID = dialog.$content.find('[name="selection"]').val();
-                        self.$target.attr('data-catagory-id', categoryID);
-                        self.$target.attr('data-product-selection', 'category');
+                        var categoryid = dialog.$content.find('[name="selection"]').val();
+                        self.productCatalogData.category_id = categoryid;
+                        self.productCatalogData.product_selection = 'category';
+                        self.$el.find('li[data-product-selection]').removeClass('active')
+                            .filter('li[data-product-selection="category"]').addClass('active');
                         self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
                 ]
             });
-            dialog.$content.find('[name="selection"]').val(self.$target.attr('data-catagory-id'));
+            dialog.$content.find('[name="selection"]').val(self.productCatalogData.category_id);
             dialog.$content.find('[name="selection"]').select2({
                 width: '70%',
                 data: _.map(result, function (r) {
@@ -179,7 +186,7 @@ options.registry.product_catalog = options.Class.extend({
      *
      * @private
      */
-    manualSelection: function () {
+    _manualSelection: function () {
         var self = this;
         rpc.query({
             model: 'product.template',
@@ -192,8 +199,10 @@ options.registry.product_catalog = options.Class.extend({
                 $content: $(QWeb.render('website_sale.manualSelection')),
                 buttons: [
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
-                        self.$target.attr('data-productIds', dialog.$content.find('[name="selection"]').val());
-                        self.$target.attr('data-product-selection', 'manual');
+                        self.productCatalogData.product_ids = dialog.$content.find('[name="selection"]').val();
+                        self.productCatalogData.product_selection = 'manual';
+                        self.$el.find('li[data-product-selection]').removeClass('active')
+                            .filter('li[data-product-selection="manual"]').addClass('active');
                         self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
@@ -218,14 +227,14 @@ options.registry.product_catalog = options.Class.extend({
      */
     _setActive: function () {
         this._super.apply(this, arguments);
-        var mode = this.$target.attr('data-catalog-type');
+        var mode = this.productCatalogData.catalog_type;
+        this.$el.find('li[data-product-selection]').removeClass('active')
+            .filter('li[data-product-selection=' + this.productCatalogData.product_selection + ']').addClass('active');
         this.$el.find('[data-grid-size]:first').parent().parent().toggle(mode === 'grid');
         this.$el.find('li[data-catalog-type]').removeClass('active')
-            .filter('li[data-catalog-type=' + this.$target.attr('data-catalog-type') + ']').addClass('active');
+            .filter('li[data-catalog-type=' + this.productCatalogData.catalog_type + ']').addClass('active');
         this.$el.find('li[data-sortby]').removeClass('active')
-            .filter('li[data-sortby=' + this.$target.attr('data-sortby') + ']').addClass('active');
-        this.$el.find('li[data-product-selection]').removeClass('active')
-            .filter('li[data-product-selection=' + this.$target.attr('data-product-selection') + ']').addClass('active');
+            .filter('li[data-sortby=' + this.productCatalogData.sort_by + ']').addClass('active');
     },
 
     /**
@@ -236,11 +245,11 @@ options.registry.product_catalog = options.Class.extend({
     _setGrid: function () {
         var $td = this.$el.find('.select:last');
         if ($td.length) {
-            this.$target.attr('data-x', $td.index() + 1);
-            this.$target.attr('data-y', $td.parent().index() + 1);
+            this.productCatalogData.x = $td.index() + 1;
+            this.productCatalogData.y = $td.parent().index() + 1;
         }
-        var x = this.$target.attr('data-x');
-        var y = this.$target.attr('data-y');
+        var x = this.productCatalogData.x;
+        var y = this.productCatalogData.y;
         var $grid = this.$el.find('ul[name="size"]');
         var $selected = $grid.find('tr:eq(0) td:lt(' + x + ')');
         if (y >= 2) {
@@ -262,11 +271,16 @@ options.registry.product_catalog = options.Class.extend({
      */
     _renderProducts: function () {
         var self = this;
-        this.productCatalog = new productCatalog.ProductCatalog(this.$target);
+        _.each(this.productCatalogData, function (value, key) {
+            self.$target.attr('data-' + key, value);
+            self.$target.data(key, value);
+        });
+        var options = _.pick(this.productCatalogData, 'catalog_type', 'product_selection', 'product_ids', 'sort_by', 'x', 'y', 'category_id');
+        this.productCatalog = new productCatalog.ProductCatalog(options);
         this.$target.find('.product_grid').remove();
         this.productCatalog.appendTo(this.$target.find('.container')).then(function () {
             if (self.$target.attr('data-sortby') !== 'reorder_products') {
-                self.$target.attr('data-productIds', self.productCatalog._getProductIds());
+                self.$target.attr('data-productids', self.productCatalog._getProductIds());
             }
             self.trigger_up('cover_update');
         });

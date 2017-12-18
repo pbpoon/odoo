@@ -52,7 +52,7 @@
 
 <!-- Snippets -->
 <template id="s_product_catalog" name="Product Catalog">
-    <section class="s_product_catalog" data-catalog-type="horizontal" data-x="3" data-y="1" data-sortby="name_asc" data-product-selection="all">
+    <section class="s_product_catalog" data-catalog_type="horizontal" data-x="3" data-y="1" data-sort_by="name_asc" data-product_selection="all">
         <div class="container">
             <div class="o_catalog_header">
                 <h1 class="text-center">Our New Products</h1>

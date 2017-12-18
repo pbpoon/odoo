@@ -52,8 +52,8 @@
     }
 }
 
-.product-item {
-    .col-item .button-container {
+.o_product_item {
+    .o_product_wrapper .o_button_container {
         .add_to_compare {
             display: none;
         }
@@ -62,11 +62,19 @@
 .s_product_catalog {
     &.products_add_to_compare {
         .container .product_grid {
-            .button-container {
-                display: flex;
+            .o_button_container {
+                .o-flex-display();
             }
             .add_to_compare {
                 display: inline-block;
+                padding-top: 10px;
+                border-right: 1px solid @gray-lighter;
+                .action-button-hover(@brand-primary);
+                // TO-DO
+                &:after {
+                    top: 10px;
+                    position: relative;
+                }
             }
         }
     }

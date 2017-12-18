@@ -2,11 +2,12 @@ odoo.define('website_sale.product_catalog', function (require) {
 'use strict';
 
 var base = require('web_editor.base');
+var config = require('web.config');
 var core = require('web.core');
 var rpc = require('web.rpc');
-var Widget = require('web.Widget');
-var config = require('web.config');
 var utils = require('web.utils');
+var Widget = require('web.Widget');
+
 var QWeb = core.qweb;
 var ProductCatalog = Widget.extend({
     template: 'website_sale.product_catalog',
@@ -15,17 +16,16 @@ var ProductCatalog = Widget.extend({
         '/website_rating/static/src/xml/website_mail.xml'
     ],
     /**
-     * Initialize all options which are need to render widget.
-     * @constructor
+     * Initialize all options which are needed to render widget.
      * @override
-     * @param {jQuery} $target
+     * @param {Object} options
      */
-    init: function ($target) {
+    init: function (options) {
         this._super.apply(this, arguments);
-        this.$target = $target;
-        this.catalogType = this.$target.attr('data-catalog-type');
+        this.options = options;
         this.is_rating = false;
-        this.size = this.catalogType === 'grid' ? 12/this.$target.attr('data-x') : 12/(config.device.size_class + 1);
+        this.config = config;
+        this.size = this.options.catalog_type === 'grid' ? 12/this.options.x : 12/(this.config.device.size_class + 1);
         this.carouselId = _.uniqueId('product-carousel_');
     },
     /**
@@ -39,12 +39,12 @@ var ProductCatalog = Widget.extend({
         var def = rpc.query({
             route: '/get_product_catalog_details',
             params: {
-                'domain': this._getDomain(),
-                'sortby': this._getSortby(),
-                'limit': this._getLimit(),
+                domain: this._getDomain(),
+                sortby: this._getSortby(),
+                limit: this._getLimit(),
             }
         }).then(function (result) {
-            if (self.$target.attr('data-sortby') === 'reorder_products') {
+            if (self.options.sort_by === 'reorder_products') {
                 self._reOrderingProducts(result);
             }
             self.products = result.products;
@@ -61,7 +61,7 @@ var ProductCatalog = Widget.extend({
      * @returns {Deferred}
      */
     start: function () {
-        this.$target.toggleClass('o_empty_catalog',!this.products.length);
+        this.$el.closest('.s_product_catalog').toggleClass('o_empty_catalog', !this.products.length);
         if (this.is_rating) {
             this._renderRating();
         }
@@ -110,7 +110,7 @@ var ProductCatalog = Widget.extend({
      * @returns {Array} Contains product ids.
      */
     _getProductIds: function () {
-        return _.map(this.$target.find('.product-item'), function (el) {
+        return _.map(this.$('.o_product_item'), function (el) {
             return $(el).data('product-id');
         });
     },
@@ -127,38 +127,55 @@ var ProductCatalog = Widget.extend({
         });
         return _.toArray(lists);
     },
+    /**
+     * Returns domain as per current configuration.
+     *
+     * @private
+     * @returns {Array} domain
+     */
     _getDomain: function () {
         var domain = [];
-        var selection = this.$target.attr('data-product-selection');
+        var selection = this.options.product_selection;
         switch (selection) {
             case 'all':
                 domain = [];
                 break;
             case 'category':
-                domain = ['public_categ_ids', 'child_of', [parseInt(this.$target.attr('data-catagory-id'))]];
+                domain = ['public_categ_ids', 'child_of', [parseInt(this.options.category_id)]];
                 break;
             case 'manual':
-                var productIds = this.$target.attr('data-productIds').split(',').map(Number);
-                domain = ['id', 'in', productIds];
+                var productids = this.options.product_ids.split(',').map(Number);
+                domain = ['id', 'in', productids];
                 break;
         }
         return domain;
     },
+    /**
+     * Returns object that contains status by which products are sorted.
+     *
+     * @private
+     * @returns {Object}
+     */
     _getSortby: function () {
         var sortBy = {
-            'price_asc': {name: 'list_price', asc: true},
-            'price_desc': {name: 'list_price', asc: false},
-            'name_asc': {name: 'name', asc: true},
-            'name_desc': {name: 'name', asc: false},
-            'newest_to_oldest': {name: 'create_date', asc: true},
-            'oldest_to_newest': {name: 'create_date', asc: false},
-            'reorder_products':{}
+            price_asc: {name: 'list_price', asc: true},
+            price_desc: {name: 'list_price', asc: false},
+            name_asc: {name: 'name', asc: true},
+            name_desc: {name: 'name', asc: false},
+            newest_to_oldest: {name: 'create_date', asc: true},
+            oldest_to_newest: {name: 'create_date', asc: false},
+            reorder_products:{}
         };
-        return utils.into(sortBy, this.$target.attr('data-sortby'));
+        return utils.into(sortBy, this.options.sort_by);
     },
+    /**
+     * Number of products to be display.
+     *
+     * @private
+     * @returns {integer}
+     */
     _getLimit: function () {
-        // data-carousel is not available in snippet [TO-DO]
-        return this.catalogType === 'grid' ? this.$target.attr('data-x') * this.$target.attr('data-y') :  this.$target.attr('data-carousel');
+        return this.options.catalog_type === 'grid' ? this.options.x * this.options.y : 16;
     },
 
     /**
@@ -168,7 +185,7 @@ var ProductCatalog = Widget.extend({
      */
     _renderRating: function () {
         var self = this;
-        this.$target.find('.product-item').each(function () {
+        this.$('.o_product_item').each(function () {
             var productDetails = _.findWhere(self.products, {id: $(this).data('product-id')});
             if (productDetails.product_variant_count >= 1) {
                 $(QWeb.render('website_rating.rating_stars_static', {val: productDetails.rating.avg})).appendTo($(this).find('.rating'));
@@ -182,7 +199,7 @@ var ProductCatalog = Widget.extend({
      * @param {Object} contain products detail
      */
     _reOrderingProducts: function (products) {
-        var reorderIDs = this.$target.attr('data-productIds').split(',').map(Number);
+        var reorderIDs = this.options.product_ids.split(',').map(Number);
         products['products'] = _.sortBy(products.products, function (product) {
             return _.indexOf(reorderIDs, product.id);
         });
@@ -194,7 +211,8 @@ var ProductCatalog = Widget.extend({
 base.ready().then(function () {
     if ($('.s_product_catalog').length) {
         $('.s_product_catalog').each(function () {
-            var productCatalog = new ProductCatalog($(this));
+            var options = _.pick($(this).data(), 'catalog_type', 'product_selection', 'product_ids', 'sort_by', 'x', 'y', 'category_id');
+            var productCatalog = new ProductCatalog(options);
             $(this).find('.product_grid').remove();
             productCatalog.appendTo($(this).find('.container'));
         });
