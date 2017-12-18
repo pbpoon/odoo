@@ -32,6 +32,7 @@ var emoji_substitutions = {};
 var emoji_unicodes = {};
 var needaction_counter = 0;
 var starred_counter = 0;
+var history_counter = 0;
 var mention_partner_suggestions = [];
 var canned_responses = [];
 var commands = [];
@@ -74,7 +75,6 @@ function notify_incoming_message (msg, options) {
 function add_message (data, options) {
     options = options || {};
     var msg = _.findWhere(messages, { id: data.id });
-
     if (!msg) {
         msg = chat_manager.make_message(data);
         // Keep the array ordered by id when inserting the new message
@@ -171,6 +171,7 @@ function make_message (data) {
     Object.defineProperties(msg, {
         is_starred: property_descr("channel_starred"),
         is_needaction: property_descr("channel_inbox"),
+        is_history: property_descr("channel_history"),
     });
 
     if (_.contains(data.needaction_partner_ids, session.partner_id)) {
@@ -179,8 +180,12 @@ function make_message (data) {
     if (_.contains(data.starred_partner_ids, session.partner_id)) {
         msg.is_starred = true;
     }
+    if (!msg.is_needaction && !msg.is_starred) {
+        msg.is_history = true;
+    }
+
     if (msg.model === 'mail.channel') {
-        var real_channels = _.without(msg.channel_ids, 'channel_inbox', 'channel_starred');
+        var real_channels = _.without(msg.channel_ids, 'channel_inbox', 'channel_starred', 'channel_history');
         var origin = real_channels.length === 1 ? real_channels[0] : undefined;
         var channel = origin && chat_manager.get_channel(origin);
         if (channel) {
@@ -661,6 +666,12 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             name: _lt("Starred"),
             type: "static"
         });
+
+        add_channel({
+            id: "channel_history",
+            name: _lt("History"),
+            type: "static"
+        }, { display_needactions: false });
     },
 
     _onMailClientAction: function (result) {
@@ -669,6 +680,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         });
         needaction_counter = result.needaction_inbox_counter;
         starred_counter = result.starred_counter;
+        history_counter = result.history_counter;
         commands = _.map(result.commands, function (command) {
             return _.extend({ id: command.name }, command);
         });
@@ -696,7 +708,8 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         options = options || {};
         var domain =
             (channel.id === "channel_inbox") ? [['needaction', '=', true]] :
-            (channel.id === "channel_starred") ? [['starred', '=', true]] :
+            (channel.id === "channel_starred") ? [['starred', '=', true]] : 
+            (channel.id === "channel_history") ? [] :
                                                 [['channel_ids', 'in', channel.id]];
         var cache = get_channel_cache(channel, options.domain);
 
@@ -835,10 +848,10 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     get_messages: function (options) {
         var channel;
-
         if ('channel_id' in options && options.load_more) {
             // get channel messages, force load_more
             channel = this.get_channel(options.channel_id);
+            var res = this._fetchFromChannel(channel, {domain: options.domain || {}, load_more: true});
             return this._fetchFromChannel(channel, {domain: options.domain || {}, load_more: true});
         }
         if ('channel_id' in options) {
@@ -987,6 +1000,9 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     get_starred_counter: function () {
         return starred_counter;
+    },
+    get_history_counter: function () {
+        return history_counter;
     },
     get_chat_unread_counter: function () {
         return chat_unread_counter;

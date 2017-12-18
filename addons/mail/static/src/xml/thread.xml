@@ -113,6 +113,10 @@
             <div class="o_thread_title">No starred message</div>
             <div> You can mark any message as 'starred', and it shows up in this channel.</div>
         </t>
+        <t t-if="options.channel_id==='channel_history'">
+            <div class="o_thread_title">No history message</div>
+            <div> Your history is clear.</div>
+        </t>
     </div>
 
     <t t-name="mail.ChatThread.Content">

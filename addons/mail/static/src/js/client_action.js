@@ -234,6 +234,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
     _fetchAndRenderThread: function () {
         var self = this;
         return chat_manager.get_messages({channel_id: this.channel.id, domain: this.domain}).then(function (result) {
+            debugger;
             self.thread.render(result, self._getThreadRenderingOptions(result));
             self._updateButtonStatus(result.length === 0);
         });
@@ -569,6 +570,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
         chat_manager.bus.on('unsubscribe_from_channel', this, this._onChannelLeft);
         chat_manager.bus.on('update_needaction', this, this.throttledUpdateChannels);
         chat_manager.bus.on('update_starred', this, this.throttledUpdateChannels);
+        chat_manager.bus.on('update_history', this, this.throttledUpdateChannels);
         chat_manager.bus.on('update_channel_unread_counter', this, this.throttledUpdateChannels);
         chat_manager.bus.on('update_dm_presence', this, this.throttledUpdateChannels);
         chat_manager.bus.on('activity_updated', this, this.throttledUpdateChannels);
@@ -766,7 +768,8 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
         var self = this;
         var current_channel_id = this.channel.id;
         if ((current_channel_id === "channel_starred" && !message.is_starred) ||
-            (current_channel_id === "channel_inbox" && !message.is_needaction)) {
+            (current_channel_id === "channel_inbox" && !message.is_needaction) || 
+            (current_channel_id === "channel_history" && !message.is_history)) {
             chat_manager.get_messages({channel_id: this.channel.id, domain: this.domain}).then(function (messages) {
                 var options = self._getThreadRenderingOptions(messages);
                 self.thread.remove_message_and_render(message.id, messages, options).then(function () {

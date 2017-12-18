@@ -29,6 +29,12 @@
                 <t t-set="counter" t-value="starred_counter"/>
                 <t t-call="mail.chat.SidebarNeedaction"/>
             </div>
+            <div t-attf-class="o_mail_chat_title_main o_mail_chat_title_history o_mail_chat_channel_item #{(active_channel_id === 'channel_history') ? 'o_active': ''}"
+                 data-channel-id="channel_history">
+                <span class="o_channel_name"><i class="fa fa-history mr8"/>History</span>
+                <t t-set="counter" t-value="history_counter"/>
+                <t t-call="mail.chat.SidebarNeedaction"/>
+            </div>
             <hr class="mb8"/>
 
             <t t-set="channel_type" t-value="'public'"/>
