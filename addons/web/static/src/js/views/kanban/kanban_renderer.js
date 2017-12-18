@@ -152,6 +152,22 @@ var KanbanRenderer = BasicRenderer.extend({
         return newColumn.insertAfter(column.$el).then(column.destroy.bind(column));
     },
     /**
+     * Computes conversion rate and update tooltip of all columns with conversion rate.
+     */
+    updateConversionTooltip: function() {
+        var self = this;
+        if (this.columnOptions.conversion_rate_tooltip) {
+            var totalRecords = _.reduce(this.state.data, function(total, data){ return total + data.count; }, 0);
+            var previousColumnRecords = 0;
+            _.map(this.state.data, function(group) {
+                var column = _.findWhere(self.widgets, {db_id: group.id});
+                var rate = ((totalRecords-previousColumnRecords) / totalRecords * 100).toFixed(2) || 0;
+                column.updateConversionTooltip(rate)
+                previousColumnRecords += group.count;
+            });
+        }
+    },
+    /**
      * Updates a given record with its new state.
      *
      * @param {Object} recordState
@@ -235,10 +251,16 @@ var KanbanRenderer = BasicRenderer.extend({
             }
         });
 
+        // Add conversion rate tooltip on all columns
+        if (this.columnOptions.conversion_rate_tooltip) {
+            this.updateConversionTooltip();
+        }
+
         // remove previous sorting
         if(this.$el.sortable('instance') !== undefined) {
             this.$el.sortable('destroy');
         }
+
         if (this.groupedByM2O) {
             // Enable column sorting
             this.$el.sortable({
@@ -347,11 +369,13 @@ var KanbanRenderer = BasicRenderer.extend({
         this.groupedByM2O = groupByFieldAttrs && (groupByFieldAttrs.type === 'many2one');
         var grouped_by_field = this.groupedByM2O && groupByFieldAttrs.relation;
         var groupByTooltip = groupByFieldInfo && groupByFieldInfo.options.group_by_tooltip;
+        var conversionRateTooltip = groupByFieldInfo && groupByFieldInfo.options.conversion_rate_tooltip;
         this.columnOptions = _.extend(this.columnOptions, {
             draggable: draggable,
             group_by_tooltip: groupByTooltip,
             grouped_by_m2o: this.groupedByM2O,
             relation: grouped_by_field,
+            conversion_rate_tooltip: conversionRateTooltip,
         });
         this.createColumnEnabled = this.groupedByM2O && this.columnOptions.group_creatable;
     },
