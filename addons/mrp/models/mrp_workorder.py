@@ -293,6 +293,21 @@ class MrpWorkorder(models.Model):
         if (self.production_id.product_id.tracking != 'none') and not self.final_lot_id and self.move_raw_ids:
             raise UserError(_('You should provide a lot/serial number for the final product'))
 
+        # Check if the current serial number has already been used.
+        if self.production_id.product_id.tracking == 'serial':
+            # In case if the workorder is not the first, check if it uses a serial/lot used in a previous wo.
+            workorders_needing_a_previous_lot = self.production_id.workorder_ids.mapped('next_work_order_id')
+            if self in workorders_needing_a_previous_lot:
+                if self.final_lot_id not in self.env['stock.production.lot'].search([('use_next_on_work_order_id', '=', self.id)]):
+                    raise UserError(_('You have to use a serial number or lot used in a previous work order.'))
+
+            lot_in_next_wo = self.next_work_order_id and self.env['stock.production.lot'].\
+                search([('use_next_on_work_order_id', 'in', (self.production_id.workorder_ids - self).ids), ('id', '=', self.final_lot_id.id)])
+            lot_in_finished_ml = not self.next_work_order_id and self.production_id.move_finished_ids.move_line_ids.\
+                filtered(lambda ml: ml.product_id == self.production_id.product_id and ml.state not in ('done', 'cancel') and ml.lot_id == self.final_lot_id)
+            if lot_in_next_wo or lot_in_finished_ml:
+                raise UserError(_('You can not provide twice the same serial number for the same product.'))
+
         # Update quantities done on each raw material line
         # For each untracked component without any 'temporary' move lines,
         # (the new workorder tablet view allows registering consumed quantities for untracked components)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-import unittest
 from odoo.tests import common
+from odoo.exceptions import UserError
 
 
 class TestWorkOrderProcess(common.TransactionCase):
@@ -557,5 +557,9 @@ class TestWorkOrderProcess(common.TransactionCase):
             self.assertEqual(workorder.final_lot_id, serial_b)
             workorder.record_production()
             self.assertEqual(workorder.final_lot_id, serial_c)
+            workorder.final_lot_id = serial_a
+            with self.assertRaises(UserError):
+                workorder.record_production()
+            workorder.final_lot_id = serial_c
             workorder.record_production()
             self.assertEqual(workorder.state, 'done')

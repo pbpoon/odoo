@@ -3504,6 +3504,12 @@ msgid "You cannot consume the same serial number twice. Please correct the seria
 msgstr ""
 
 #. module: mrp
+#: code:addons/mrp/models/mrp_workorder.py:309
+#, python-format
+msgid "You can not provide twice the same serial number for the same product."
+msgstr ""
+
+#. module: mrp
 #: code:addons/mrp/wizard/change_production_qty.py:44
 #, python-format
 msgid "You have already processed %d. Please input a quantity higher than %d "
@@ -3512,6 +3518,12 @@ msgstr ""
 #. module: mrp
 #: model:ir.ui.view,arch_db:mrp.mrp_production_form_view
 msgid "You have consumed less material than what was planned. Are you sure you want to close this MO?"
+msgstr ""
+
+#. module: mrp
+#: code:addons/mrp/models/mrp_workorder.py:302
+#, python-format
+msgid "You have to use a serial number or lot used in a previous work order."
 msgstr ""
 
 #. module: mrp
