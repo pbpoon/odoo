@@ -984,6 +984,7 @@ class Collector(Mapping):
         return len(self._map)
 
 
+@pycompat.implements_to_string
 class StackMap(MutableMapping):
     """ A stack of mappings behaving as a single mapping, and used to implement
         nested scopes. The lookups search the stack from top to bottom, and
@@ -1014,6 +1015,9 @@ class StackMap(MutableMapping):
 
     def __len__(self):
         return sum(1 for key in self)
+
+    def __str__(self):
+        return u"<StackMap %s>" % self._maps
 
     def pushmap(self, m=None):
         self._maps.append({} if m is None else m)
