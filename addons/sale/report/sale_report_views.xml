@@ -24,33 +24,6 @@
          </field>
     </record>
 
-    <!-- Custom reports (aka filters) -->
-    <record id="filter_sale_report_sales_funnel" model="ir.filters">
-        <field name="name">Sales Funnel</field>
-        <field name="model_id">sale.report</field>
-        <field name="domain">['&amp;', ('date','&lt;=', time.strftime('%%Y-12-31')), '&amp;', ('date','&gt;=',time.strftime('%%Y-01-01')), ('state','not in',('cancel',))]</field>
-        <field name="user_id" eval="False"/>
-        <field name="context">{'group_by': ['state'], 'measures': ['price_subtotal']}</field>
-    </record>
-    <record id="filter_sale_report_salespersons" model="ir.filters">
-        <field name="name">By Salespersons</field>
-        <field name="model_id">sale.report</field>
-        <field name="user_id" eval="False"/>
-        <field name="context">{'group_by': ['date:month', 'user_id']}</field>
-    </record>
-    <record id="filter_sale_report_salesteam" model="ir.filters">
-        <field name="name">By Salesteam</field>
-        <field name="model_id">sale.report</field>
-        <field name="user_id" eval="False"/>
-        <field name="context">{'group_by': ['date:month', 'team_id']}</field>
-    </record>
-    <record id="filter_isale_report_product" model="ir.filters">
-        <field name="name">By Product</field>
-        <field name="model_id">sale.report</field>
-        <field name="user_id" eval="False"/>
-        <field name="context">{'group_by': ['date:month', 'product_id']}</field>
-    </record>
-
     <record id="view_order_product_search" model="ir.ui.view">
         <field name="name">sale.report.search</field>
         <field name="model">sale.report</field>
@@ -60,6 +33,9 @@
                 <filter string="This Year" name="year" invisible="1" domain="[('date','&lt;=', time.strftime('%%Y-12-31')),('date','&gt;=',time.strftime('%%Y-01-01'))]"/>
                 <filter name="Quotations" string="Quotations" domain="[('state','in', ('draft', 'sent'))]"/>
                 <filter name="Sales" string="Sales" domain="[('state','not in',('draft', 'cancel', 'sent'))]"/>
+                <filter string="Confirmed This Year" name="confirmed_current_year" domain="[('confirmation_date','&gt;=',time.strftime('%%Y-01-01')),('confirmation_date','&lt;=',time.strftime('%%Y-12-31'))]"/>
+                <filter string="Confirmed This Month" name="confirmed_current_month" domain="[('confirmation_date','&gt;=',time.strftime('%%Y-%m-01'))]"/>
+                <filter string="Confirmed Last Month" name="confirmed_last_month" domain="[('confirmation_date','&gt;=',(context_today()-relativedelta(months=1)).strftime('%%Y-%%m-01')),('confirmation_date','&lt;',context_today().strftime('%%Y-%%m-01'))]"/>
                 <separator/>
                 <field name="partner_id"/>
                 <field name="product_id"/>
@@ -71,10 +47,11 @@
                 <group expand="1" string="Group By">
                     <filter string="Salesperson" name="User" context="{'group_by':'user_id'}"/>
                     <filter string="Sales Channel" name="sales_channel" context="{'group_by':'team_id'}"/>
-                    <filter string="Partner's Country" name="country_id" context="{'group_by':'country_id'}"/>
+                    <filter string="Customer's Country" name="country_id" context="{'group_by':'country_id'}"/>
                     <filter string="Customer" name="Customer" context="{'group_by':'partner_id'}"/>
+                    <filter string="Product" name="Product" context="{'group_by':'product_id'}"/>
                     <filter string="Product Category" name="Category" context="{'group_by':'categ_id'}"/>
-                    <filter name="status" string="Status" context="{'group_by':'state'}"/>
+                    <filter name="status" string="Order status" context="{'group_by':'state'}"/>
                     <filter string="Company" name="company" groups="base.group_multi_company" context="{'group_by':'company_id'}"/>
                     <separator/>
                     <filter string="Order Month" name="order_month" context="{'group_by':'date:month'}" help="Ordered date of the sales order"/>
