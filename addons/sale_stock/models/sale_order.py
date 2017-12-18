@@ -106,7 +106,6 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     @api.depends('move_ids.state', 'move_ids.scrapped', 'move_ids.product_uom_qty', 'move_ids.product_uom')
-    # TODO JEM: should we add move_ids.location_dest_id.usage and move_ids.to_refund in dependencies ? TODO SLE ?
     def _compute_qty_delivered(self):
         super(SaleOrderLine, self)._compute_qty_delivered()
 

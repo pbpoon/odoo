@@ -5,18 +5,10 @@ from odoo import api, fields, models
 from odoo.tools import float_compare
 
 
-# TODO JEM: move me in mrp ? if sle is ok ...
-class ProductProduct(models.Model):
-    _inherit = "product.product"
-
-    bom_ids = fields.One2many('mrp.bom', 'product_id', string='BOMs')
-
-
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     @api.multi
-    @api.depends('product_id.bom_ids')  # NOTE JEM: I think we don't need this trigger, can stock team confirm ? TODO SLE ?
     def _compute_qty_delivered(self):
         super(SaleOrderLine, self)._compute_qty_delivered()
 
