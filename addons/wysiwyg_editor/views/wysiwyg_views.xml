@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!-- Top menu item -->
+
+        <menuitem id="wysiwyg_root"
+            name="WYSIWYG Editor"/>
+
+        <menuitem id="wysiwyg_menu"
+            name="WYSIWYG"
+            action="wysiwyg_action"
+            parent="wysiwyg_root"/>
+
+        <record id="view_wysiwyg_editor_tree" model="ir.ui.view">
+            <field name="name">wysiwyg.editor.tree</field>
+            <field name="model">wysiwyg.editor</field>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <tree string="WYSIWYG Editor">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_wysiwyg_editor_form" model="ir.ui.view">
+            <field name="name">wysiwyg.editor.form</field>
+            <field name="model">wysiwyg.editor</field>
+            <field name="arch" type="xml">
+                <form string="WYSIWYG Form">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="html_field" type="html" widget="my_html"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+       <record id="wysiwyg_action" model="ir.actions.act_window">
+            <field name="name">WYSIWYG Editor</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wysiwyg.editor</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+</odoo>

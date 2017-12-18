@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_common" inherit_id="web.assets_common" name="WYSIWYG">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/wysiwyg_editor/static/src/js/wysiwyg_editor.js" />
+        </xpath>
+        <xpath expr="//link[last()]" position="after">
+            <link rel="stylesheet" href="/wysiwyg_editor/static/src/less/my_html_editor.less"/>
+        </xpath>
+    </template>
+</odoo>
+
