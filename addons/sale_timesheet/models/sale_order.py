@@ -190,32 +190,63 @@ class SaleOrderLine(models.Model):
             planned_hours = self.product_uom_qty
         return planned_hours
 
-    def _timesheet_find_project(self):
-        self.ensure_one()
+    def _timesheet_create_project(self):
+        """ Create a project """
+        result = {}
         Project = self.env['project.project']
-        project = self.product_id.with_context(force_company=self.company_id.id).project_id
-        if not project:
-            # find the project corresponding to the analytic account of the sales order
-            account = self.order_id.analytic_account_id
-            if not account:
-                self.order_id._create_analytic_account(prefix=self.product_id.default_code or None)
-                account = self.order_id.analytic_account_id
-            project = Project.search([('analytic_account_id', '=', account.id)], limit=1)
-            if not project:
-                project_name = '%s (%s)' % (account.name, self.order_partner_id.ref) if self.order_partner_id.ref else account.name
-                project = Project.create({
-                    'name': project_name,
-                    'allow_timesheets': self.product_id.service_type == 'timesheet',
-                    'analytic_account_id': account.id,
-                })
+        for line in self:
+            project = None
+            account = line.order_id.analytic_account_id
+
+            # values for project to create
+            project_name = '%s (%s)' % (account.name, line.order_partner_id.ref) if line.order_partner_id.ref else account.name
+            project_values = {
+                'name': project_name,
+                'allow_timesheets': line.product_id.service_type == 'timesheet',
+                'analytic_account_id': account.id,
+            }
+
+            # get the project from the product configuration
+            if line.product_id.service_tracking == 'task_global_project':
+                project = line.product_id.with_context(force_company=line.company_id.id).project_id
+            elif line.product_id.service_tracking in ['task_new_project', 'project_only']:
                 # set the SO line origin if product should create project
-                if not project.sale_line_id and self.product_id.service_tracking in ['task_new_project', 'project_only']:
-                    project.write({'sale_line_id': self.id})
-        return project
+                project_values['sale_line_id'] = line.id
+                # create from a project template
+                if line.product_id.project_template_id:
+                    project = line.product_id.project_template_id.copy(project_values)
+
+            # if no project, create one for the SO
+            if not project:
+                project = Project.create(project_values)
+
+            result[line.id] = project
+        return result
+
+    def _timesheet_find_project(self):
+        result = {}
+        # ensure all SO have an analytic account
+        for line in self:
+            account = line.order_id.analytic_account_id
+            if not account:
+                line.order_id._create_analytic_account(prefix=line.product_id.default_code or None)
+
+        projects = self.env['project.project'].search([('analytic_account_id', 'in', self.mapped('order_id.analytic_account_id').ids)])
+        account_project_map = {project.analytic_account_id.id: project for project in projects}
+
+        line_without_project = self.env['sale.order.line']
+        for line in self:
+            if line.order_id.analytic_account_id.id not in account_project_map:
+                line_without_project |= line
+            else:
+                result[line.id] = account_project_map.get(line.order_id.analytic_account_id.id)
+        result.update(line_without_project._timesheet_create_project())
+
+        return result
 
     def _timesheet_create_task_prepare_values(self):
         self.ensure_one()
-        project = self._timesheet_find_project()
+        project = self._timesheet_find_project()[self.id]
         planned_hours = self._convert_qty_company_hours()
         return {
             'name': '%s:%s' % (self.order_id.name or '', self.name.split('\n')[0] or self.product_id.name),

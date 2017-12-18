@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
@@ -25,6 +26,9 @@ class ProductTemplate(models.Model):
     project_id = fields.Many2one(
         'project.project', 'Project', company_dependent=True, domain=[('sale_line_id', '=', False)],
         help='Select a non billable project on which tasks can be created. This setting must be set for each company.')
+    project_template_id = fields.Many2one(
+        'project.project', 'Template Project', company_dependent=True, domain=[('sale_line_id', '=', False)],
+        help='Select a non billable project to be the skeleton of the new created project when selling the current product. Its stages will be duplicated, but its tasks.')
 
     @api.depends('invoice_policy', 'service_type')
     def _compute_service_policy(self):
@@ -49,9 +53,24 @@ class ProductTemplate(models.Model):
                 product.invoice_policy = 'delivery'
                 product.service_type = 'manual' if policy == 'delivered_manual' else 'timesheet'
 
+    @api.constrains('service_tracking', 'project_id', 'project_template_id')
+    def _check_project_and_template(self):
+        for product in self:
+            if product.service_tracking == 'no' and product.project_id and product.project_template_id:
+                raise ValidationError(_('The product %s should not have a project nor a project template since it will not generate project.') % (product.name,))
+            elif product.service_tracking == 'task_global_project' and product.project_template_id:
+                raise ValidationError(_('The product %s should not have a project template since it will generate a task in a global project.') % (product.name,))
+            elif product.service_tracking in ['task_new_project', 'project_only'] and product.project_id:
+                raise ValidationError(_('The product %s should not have a global project since it will generate a project.') % (product.name,))
+
     @api.onchange('service_tracking')
     def _onchange_service_tracking(self):
-        if self.service_tracking != 'task_global_project':
+        if self.service_tracking == 'no':
+            self.project_id = False
+            self.project_template_id = False
+        elif self.service_tracking == 'task_global_project':
+            self.project_template_id = False
+        elif self.service_tracking in ['task_new_project', 'project_only']:
             self.project_id = False
 
     @api.onchange('type')
