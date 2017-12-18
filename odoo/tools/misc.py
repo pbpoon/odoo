@@ -994,7 +994,7 @@ class StackMap(MutableMapping):
     __slots__ = ['_maps']
 
     def __init__(self, m=None):
-        self._maps = [{} if m is None else m]
+        self._maps = [] if m is None else [m]
 
     def __getitem__(self, key):
         for mapping in reversed(self._maps):
