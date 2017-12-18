@@ -19,9 +19,4 @@
             </t>
         </span>
     </t>
-    <!-- Kannban Guid Help dialog's content -->
-    <div t-name="project.KananGuideDialog">
-        <input type="text" class="o_input o_mail_chat_partner_invite_input" id="mail_search_partners"/>
-    </div>
-
 </templates>

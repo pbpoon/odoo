@@ -30,8 +30,6 @@ var KanbanColumn = Widget.extend({
         'click .o_kanban_quick_add': '_onAddQuickCreate',
         'click .o_kanban_load_more': '_onLoadMore',
         'click .o_kanban_toggle_fold': '_onToggleFold',
-        'click .exampleDialog': '_openDialogTrigger'
-
     },
     /**
      * @override
@@ -60,12 +58,8 @@ var KanbanColumn = Widget.extend({
         this.relation = options.relation;
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
+        this.isGuiedStepEnable = options.stageHelp && this.data.count == 0;
 
-        this.isGuiedStepEnable = false;
-        if (options.stageHelp && this.data.count == 0) {
-            this.isGuiedStepEnable = true;
-            this.recordNumbers = _.random(1,4);
-        }
         if (options.hasProgressBar) {
             this.barOptions = {
                 columnID: this.db_id,
@@ -257,7 +251,6 @@ var KanbanColumn = Widget.extend({
      * @private
      */
     _onCancelQuickCreate: function () {
-        console.log('HERE>...........');
         this._cancelQuickCreate();
     },
     /**
@@ -344,8 +337,6 @@ var KanbanColumn = Widget.extend({
         this.trigger_up('kanban_column_archive_records', {archive: false});
     },
 });
-
-
 
 return KanbanColumn;
 

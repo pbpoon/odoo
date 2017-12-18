@@ -7,7 +7,7 @@ odoo.define('web.kanban_quick_create', function (require) {
  */
 
 var Widget = require('web.Widget');
-var KanbanStageRegistry = require('web.KanbanStageRegistry');
+var Registry = require('web.KanbanView_registry');
 
 
 var AbstractQuickCreate = Widget.extend({
@@ -229,7 +229,7 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
     events: _.extend({}, AbstractQuickCreate.prototype.events, {
         'click .o_column_header': 'toggleFold',
         'click input': '_onInputClicked',
-        'click .exampleDialog': '_openDialogTrigger',
+        'mousedown .exampleDialog': '_openDialogTrigger',
         'focusout': '_onFocusout',
     }),
     /**
@@ -238,12 +238,12 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
     init: function (parent, stageTag, state) {
         this._super.apply(this, arguments);
         this.folded = true;
+        this.state = state;
         this.isGuiedStepEnable = stageTag && state.count == 0;
         if (this.isGuiedStepEnable) {
-            this.stepData = KanbanStageRegistry.get(stageTag);
+            this.stepData = Registry.get(stageTag);
             if (this.stepData.helpStages.length > state.data.length) {
-                this.placeholder = this.stepData.helpStages[state.data.length].placeholder;
-                this.recordNumbers = _.random(1,4);
+                this.placeholder = this.stepData.helpStages[state.data.length];
             } else {
                 this.isGuiedStepEnable = false;
             }
@@ -256,6 +256,9 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
         this.$header = this.$('.o_column_header');
         this.$quick_create = this.$('.o_kanban_quick_create');
         this.$input = this.$('input');
+        if (this.isGuiedStepEnable && this.state.data.length == 0) {
+            this.toggleFold();
+        }
         return this._super.apply(this, arguments);
     },
 

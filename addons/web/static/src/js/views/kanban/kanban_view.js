@@ -1,3 +1,11 @@
+odoo.define('web.KanbanView_registry', function (require) {
+"use strict";
+
+var Registry = require('web.Registry');
+
+return new Registry();
+});
+
 odoo.define('web.KanbanView', function (require) {
 "use strict";
 

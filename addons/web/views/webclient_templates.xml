@@ -210,7 +210,6 @@
         <script type="text/javascript" src="/web/static/src/js/views/graph/graph_controller.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/graph/graph_renderer.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/graph/graph_view.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/kanban/kanban_stage_registry.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/kanban/kanban_column.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/kanban/kanban_quick_create.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/kanban/kanban_column_progressbar.js"></script>

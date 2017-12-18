@@ -13,8 +13,7 @@ var core = require('web.core');
 var view_dialogs = require('web.view_dialogs');
 var Dialog = require('web.Dialog');
 var QWeb = core.qweb;
-var KanbanStageRegistry = require('web.KanbanStageRegistry');
-
+var Registry = require('web.KanbanView_registry');
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -291,14 +290,9 @@ var KanbanController = BasicController.extend({
             });
     },
     _openExampleDialog: function (event) {
-        this.sampleData = KanbanStageRegistry.get(this.stageTag);
-        _.mapObject(this.sampleData.exampleStages, function(exStage) {
-            _.each(exStage.stages, function(stage) {
-                stage.randomNumer = _.random(1,4);
-            });
-            return exStage;
-        });
+        this.sampleData = Registry.get(this.stageTag);
         new Dialog(this, {
+            title: "Kanban Examples",
             size: "large",
             buttons: false,
             $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.sampleData}),
