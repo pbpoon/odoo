@@ -104,13 +104,15 @@ class AccountAnalyticLine(models.Model):
             if sale_order.state != 'sale':
                 raise UserError(_('The Sales Order %s linked to the Analytic Account must be validated before registering expenses.') % sale_order.name)
 
+            so_line = None
             price = analytic_line._sale_get_invoice_price(sale_order)
-            so_line = self.env['sale.order.line'].search([
-                ('order_id', '=', sale_order.id),
-                ('price_unit', '=', price),
-                ('product_id', '=', self.product_id.id),
-                ('is_expense', '=', True),
-            ], limit=1)
+            if analytic_line.product_id.expense_policy == 'sales_price':
+                so_line = self.env['sale.order.line'].search([
+                    ('order_id', '=', sale_order.id),
+                    ('price_unit', '=', price),
+                    ('product_id', '=', self.product_id.id),
+                    ('is_expense', '=', True),
+                ], limit=1)
 
             if not so_line:
                 # generate a new SO line
