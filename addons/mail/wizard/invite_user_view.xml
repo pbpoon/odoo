@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_invite_user_view_form" model="ir.ui.view">
+        <field name="name">mail.invite.user.wizard</field>
+        <field name="model">mail.invite.user</field>
+        <field name="arch" type="xml">
+            <form string="Invite New Users">
+                <group>
+                    <field name="email" placeholder="Enter e-mail addresses(one per line)"/>
+                </group>
+                <footer>
+                    <button string="Invite" name="invite_new_user" type="object" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_invite_user_action" model="ir.actions.act_window">
+        <field name="name">Invite New User</field>
+        <field name="res_model">mail.invite.user</field>
+        <field name="src_model">mail.invite.user</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
