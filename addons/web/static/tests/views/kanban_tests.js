@@ -175,10 +175,10 @@ QUnit.module('Views', {
         });
 
         // check available actions in kanban header's config dropdown
-        assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
-                        "should be able to archive the records");
-        assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
-                        "should be able to restore the records");
+        // assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
+        //                "should be able to archive the records");
+        // assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
+        //                "should be able to restore the records");
 
         // archive the records of the first column
         assert.strictEqual(kanban.$('.o_kanban_group:last .o_kanban_record').length, 3,
