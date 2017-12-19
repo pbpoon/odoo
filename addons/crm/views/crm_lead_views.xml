@@ -708,7 +708,7 @@
         <!--
             MASS MAILING
         -->
-        <act_window name="Lead/Opportunity Mass Mail"
+        <act_window name="Send an email"
                 res_model="mail.compose.message"
                 src_model="crm.lead"
                 view_mode="form"
