@@ -26,6 +26,16 @@ class AccountAnalyticLine(models.Model):
         if 'so_line' not in values:  # allow to force a False value for so_line
             self.sudo().filtered(lambda aal: not aal.so_line and aal.product_id and aal.product_id.expense_policy != 'no')._sale_determine_order_line()
 
+    def unlink(self):
+        # TEMPORARY HACK
+        # Remove the so lines created by AAL removed when validating invoice
+        so_lines = self.mapped('so_line')
+        result = super(AccountAnalyticLine, self).unlink()
+        to_remove = so_lines.filtered(lambda sol: sol.is_expense and not sol.analytic_line_ids).sudo()
+        if to_remove:
+            self.env.cr.execute("""DELETE FROM sale_order_line WHERE id IN %s""", (tuple(to_remove.ids),))
+        return result
+
     # NOTE JEM: thoses method are used in vendor bills to reinvoice at cost (see test `test_cost_invoicing`)
     # some cleaning are still necessary
 
