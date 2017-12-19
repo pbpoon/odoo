@@ -1725,11 +1725,11 @@ QUnit.module('Views', {
 
         // var $first_column = kanban.$('.o_kanban_group:first()');
         // assert.strictEqual($first_column.find('.o_kanban_record').length, 2,
-            "there should be 2 partners in first column");
+        //    "there should be 2 partners in first column");
         // $first_column.find('.o_column_archive').click();
         // assert.ok(writeOnActive, "should write on the active field");
         // assert.strictEqual($first_column.find('.o_kanban_record').length, 0,
-            "there should not be partners anymore");
+        //    "there should not be partners anymore");
 
         kanban.destroy();
     });
