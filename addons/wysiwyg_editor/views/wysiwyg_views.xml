@@ -3,13 +3,6 @@
 
         <!-- Top menu item -->
 
-        <menuitem id="wysiwyg_root"
-            name="WYSIWYG Editor"/>
-
-        <menuitem id="wysiwyg_menu"
-            name="WYSIWYG"
-            action="wysiwyg_action"
-            parent="wysiwyg_root"/>
 
         <record id="view_wysiwyg_editor_tree" model="ir.ui.view">
             <field name="name">wysiwyg.editor.tree</field>
@@ -45,4 +38,11 @@
             <field name="view_mode">tree,form</field>
         </record>
         
+        <menuitem id="wysiwyg_root"
+            name="WYSIWYG Editor"/>
+
+        <menuitem id="wysiwyg_menu"
+            name="WYSIWYG"
+            action="wysiwyg_action"
+            parent="wysiwyg_root"/>
 </odoo>
