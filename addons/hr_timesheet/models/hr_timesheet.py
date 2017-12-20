@@ -29,14 +29,20 @@ class AccountAnalyticLine(models.Model):
         self.user_id = self.employee_id.user_id
 
     @api.model
-    def create(self, vals):
-        vals = self._timesheet_preprocess(vals)
-        return super(AccountAnalyticLine, self).create(vals)
+    def create(self, values):
+        values = self._timesheet_preprocess(values)
+        result = super(AccountAnalyticLine, self).create(values)
+        if result.project_id:  # applied only for timesheet
+            result._timesheet_postprocess(values)
+        return result
 
     @api.multi
-    def write(self, vals):
-        vals = self._timesheet_preprocess(vals)
-        return super(AccountAnalyticLine, self).write(vals)
+    def write(self, values):
+        values = self._timesheet_preprocess(values)
+        result = super(AccountAnalyticLine, self).write(values)
+        # applied only for timesheet
+        self.filtered(lambda t: t.project_id)._timesheet_postprocess(values)
+        return result
 
     def _timesheet_preprocess(self, vals):
         """ Deduce other field values from the one given.
@@ -68,3 +74,20 @@ class AccountAnalyticLine(models.Model):
             if partner_id:
                 vals['partner_id'] = partner_id
         return vals
+
+    @api.multi
+    def _timesheet_postprocess(self, values):
+        """ Hook to update record one by one according to the values of a `write` or a `create`. """
+        sudo_self = self.sudo()  # this creates only one env for all operation that required sudo()
+        # (re)compute the amount (depending on unit_amount, employee_id for the cost, and account_id for currency)
+        if any([field_name in values for field_name in ['unit_amount', 'employee_id', 'account_id']]):
+            for timesheet in sudo_self:
+                uom = timesheet.employee_id.company_id.project_time_mode_id
+                cost = timesheet.employee_id.timesheet_cost or 0.0
+                amount = -timesheet.unit_amount * cost
+                amount_converted = timesheet.employee_id.currency_id.compute(amount, timesheet.account_id.currency_id)
+                timesheet.write({
+                    'amount': amount_converted,
+                    'product_uom_id': uom.id,
+                })
+        return values

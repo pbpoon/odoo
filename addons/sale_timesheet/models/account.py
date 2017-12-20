@@ -16,14 +16,6 @@ class AccountAnalyticLine(models.Model):
     timesheet_invoice_id = fields.Many2one('account.invoice', string="Invoice", readonly=True, copy=False, help="Invoice created from the timesheet")
     timesheet_revenue = fields.Monetary("Revenue", default=0.0, readonly=True, copy=False)
 
-    @api.model
-    def create(self, values):
-        result = super(AccountAnalyticLine, self).create(values)
-        # applied only for timesheet
-        if result.project_id:
-            result._timesheet_postprocess(values)
-        return result
-
     @api.multi
     def write(self, values):
         # prevent to update invoiced timesheets if one line is of type delivery
@@ -31,8 +23,6 @@ class AccountAnalyticLine(models.Model):
             if any([field_name in values for field_name in ['unit_amount', 'employee_id', 'task_id', 'timesheet_revenue', 'so_line', 'amount', 'date']]):
                 raise UserError(_('You can not modify already invoiced timesheets (linked to a Sales order items invoiced on Time and material).'))
         result = super(AccountAnalyticLine, self).write(values)
-        # applied only for timesheet
-        self.filtered(lambda t: t.project_id)._timesheet_postprocess(values)
         return result
 
     @api.model
@@ -47,17 +37,7 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     def _timesheet_postprocess(self, values):
         sudo_self = self.sudo()  # this creates only one env for all operation that required sudo()
-        # (re)compute the amount (depending on unit_amount, employee_id for the cost, and account_id for currency)
-        if any([field_name in values for field_name in ['unit_amount', 'employee_id', 'account_id']]):
-            for timesheet in sudo_self:
-                uom = timesheet.employee_id.company_id.project_time_mode_id
-                cost = timesheet.employee_id.timesheet_cost or 0.0
-                amount = -timesheet.unit_amount * cost
-                amount_converted = timesheet.employee_id.currency_id.compute(amount, timesheet.account_id.currency_id)
-                timesheet.write({
-                    'amount': amount_converted,
-                    'product_uom_id': uom.id,
-                })
+        values = super(AccountAnalyticLine, self)._timesheet_postprocess(values)
         # (re)compute the theorical revenue
         if any([field_name in values for field_name in ['so_line', 'unit_amount', 'account_id']]):
             sudo_self._timesheet_compute_theorical_revenue()
