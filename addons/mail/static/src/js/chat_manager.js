@@ -901,8 +901,11 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             });
     },
     mark_as_read: function (message_ids) {
-        var ids = _.filter(message_ids, function (id) {
+            var ids = _.filter(message_ids, function (id) {
             var message = _.findWhere(messages, {id: id});
+            invalidate_caches(message.channel_ids);
+            message.is_history = true;
+            var messageToHistory = add_message(message, {channel_id: 'channel_history', silent: true, 'domain': "[]"});
             // If too many messages, not all are fetched, and some might not be found
             return !message || message.is_needaction;
         });
