@@ -28,19 +28,22 @@ class StockHistory(models.Model):
         res = super(StockHistory, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
         if 'inventory_value' in fields:
             date = self._context.get('history_date', fieldsDatetime.now())
-            stock_history = self.env['stock.history']
-            group_lines = {}
-            for line in res:
-                domain = line.get('__domain', domain)
-                group_lines.setdefault(str(domain), self.search(domain))
-                stock_history |= group_lines[str(domain)]
-
+            stock_history = self.env['stock.history'].search(domain)
             # get data of stock_history in one shot to speed things up (the view can be very slow)
             stock_history_data = {}
             if stock_history:
-                self._cr.execute("""SELECT id, product_id, price_unit_on_quant, company_id, quantity
-                                    FROM stock_history WHERE id in %s""", (tuple(stock_history.ids),))
-                stock_history_data = {line['id']: line for line in self._cr.dictfetchall()}
+                self._cr.execute("""SELECT id, product_id, price_unit_on_quant, company_id, quantity, %s
+                                    FROM stock_history WHERE id in %s""" % (groupby[0].encode('UTF-8'), tuple(stock_history.ids),))
+                # TODO not sure it's python 2 compatible
+                stock_history_data = {}
+                stock_histories_by_group = {}
+                for line in self._cr.dictfetchall():
+                    stock_history_data[line['id']] = line
+                    group_field = line[groupby[0]]
+                    if stock_histories_by_group.get(group_field, False):
+                        stock_histories_by_group[group_field].append(line['id'])
+                    else:
+                        stock_histories_by_group[group_field] = [(line['id'])]
 
             histories_dict = {}
             not_real_cost_method_products = self.env['product.product'].browse(
@@ -56,7 +59,7 @@ class StockHistory(models.Model):
 
             for line in res:
                 inv_value = 0.0
-                for stock_history in group_lines.get(str(line.get('__domain', domain))):
+                for stock_history in self.env['stock.history'].browse(stock_histories_by_group[line[groupby[0]][0]]):
                     history_data = stock_history_data[stock_history.id]
                     product_id = history_data['product_id']
                     if self.env['product.product'].browse(product_id).cost_method == 'real':
