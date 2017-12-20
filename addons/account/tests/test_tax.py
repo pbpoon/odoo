@@ -118,60 +118,61 @@ class TestTax(AccountTestUsers):
         self.division_tax.include_base_amount = True
         res_division = self.division_tax.compute_all(200.0)
         self._check_compute_all_results(
-            220,    # 'total_included'
-            200,    # 'total_excluded'
+            200,    # 'total_included'
+            180,    # 'total_excluded'
             [
                 # base , amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (200.0, 20.0),    # |  4  |    10/ |   t  |     t
+                (180.0, 20.0),    # |  4  |    10/ |   t  |     t
                 # ---------------------------------------------------
             ],
             res_division
         )
         self.percent_tax.price_include = False
         self.percent_tax.include_base_amount = False
-        res_percent = self.percent_tax.compute_all(200.0)
+        res_percent = self.percent_tax.compute_all(100.0)
         self._check_compute_all_results(
-            220,    # 'total_included'
-            200,    # 'total_excluded'
+            110,    # 'total_included'
+            100,    # 'total_excluded'
             [
                 # base , amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (200.0, 20.0),    # |  3  |    10% |      |
+                (100.0, 10.0),    # |  3  |    10% |      |
                 # ---------------------------------------------------
             ],
             res_percent
         )
         self.division_tax.price_include = False
         self.division_tax.include_base_amount = False
-        res_division = self.division_tax.compute_all(200.0)
+        res_division = self.division_tax.compute_all(180.0)
         self._check_compute_all_results(
-            222.22,  # 'total_included'
-            200,     # 'total_excluded'
+            200,    # 'total_included'
+            180,    # 'total_excluded'
             [
-                # base , amount     | seq | amount | incl | incl_base
+                # base, amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (200.0, 22.22),   # |  4  |    10/ |      |
+                (180.0, 20.0),   # |  4  |    10/ |      |
                 # ---------------------------------------------------
             ],
             res_division
         )
         self.percent_tax.price_include = True
         self.percent_tax.include_base_amount = True
-        res_percent = self.percent_tax.compute_all(200.0)
+        res_percent = self.percent_tax.compute_all(110.0)
         self._check_compute_all_results(
-            200,     # 'total_included'
-            181.82,  # 'total_excluded'
+            110,    # 'total_included'
+            100,    # 'total_excluded'
             [
-                # base , amount     | seq | amount | incl | incl_base
+                # base, amount     | seq | amount | incl | incl_base
                 # ---------------------------------------------------
-                (181.82, 18.18),  # |  3  |    10% |   t  |     t
+                (100.0, 10.0),   # |  3  |    10% |   t  |     t
                 # ---------------------------------------------------
             ],
             res_percent
         )
         self.percent_tax_bis.price_include = True
         self.percent_tax_bis.include_base_amount = True
+        self.percent_tax_bis.amount = 21
         res_percent = self.percent_tax_bis.compute_all(7.0)
         self._check_compute_all_results(
             7.0,   # 'total_included'
