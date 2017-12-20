@@ -19,7 +19,6 @@ class TestTaxPython(TestTax):
     def test_tax_python_basic(self):
         res = self.python_tax.compute_all(130.0)
         self._check_compute_all_results(
-            130.0,  # 'base'
             136.96, # 'total_included'
             130.0,  # 'total_excluded'
             [
@@ -35,7 +34,6 @@ class TestTaxPython(TestTax):
         self.python_tax.price_include = True
         res = self.python_tax.compute_all(130.0)
         self._check_compute_all_results(
-            123.04, # 'base'
             130,    # 'total_included'
             123.04, # 'total_excluded'
             [
@@ -49,7 +47,6 @@ class TestTaxPython(TestTax):
 
         res = (self.python_tax + self.python_tax).compute_all(130.0)
         self._check_compute_all_results(
-            116.07, # 'base'
             130,    # 'total_included'
             116.07, # 'total_excluded'
             [
