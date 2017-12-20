@@ -509,4 +509,4 @@ class MailComposer(models.TransientModel):
 
     @api.model
     def render_template(self, template, model, res_ids, post_process=False):
-        return self.env['mail.template'].render_template(template, model, res_ids, post_process=post_process)
+        return self.env['mail.template'].render_template(template, model, res_ids, post_process=post_process, template_type=self.template_id.template_type or 'jinja')
