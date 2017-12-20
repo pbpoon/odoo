@@ -784,13 +784,6 @@ class AccountTax(models.Model):
         total_excluded = recompute_base(base, incl_fixed_amount, incl_percent_amount, incl_division_amount)
 
         # 5) Iterate the taxes in the sequence order to compute missing tax amounts.
-        def compute_amount(tax):
-            # Compute the amount of the tax but don't deal with the price_include because we're always
-            # passing the tax excluded base.
-            amount = tax.with_context(force_price_exclude=True)._compute_amount(
-                base, price_unit, quantity, product, partner)
-            return amount
-
         # Start the computation of accumulated amounts at the total_excluded value.
         base = total_included = total_excluded
 
@@ -804,7 +797,8 @@ class AccountTax(models.Model):
                 tax_amount = total_included_checkpoints[i] - (base + cumulated_tax_included_amount)
                 cumulated_tax_included_amount = 0
             else:
-                tax_amount = compute_amount(tax)
+                tax_amount = tax.with_context(force_price_exclude=True)._compute_amount(
+                    base, price_unit, quantity, product, partner)
 
             # Round the tax_amount
             if not round_tax:
