@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+       
+        <record id="targetint" model="res.partner">
+            <field name="name">Target Integration Ltd</field>
+            <field name="is_company">1</field>
+            <field name="street">Unit 7, Tallaght Business Centre</field>
+            <field name="zip">D24 RY95</field>
+            <field name="city">Dublin</field>
+            <field name="country_id" ref="base.ie"/>
+            <field name="phone">+353 1 886 5684</field>
+            <field name="fax">+353 1 886 5684</field>
+            <field name="website">http://www.targetintegration.ie</field>
+            <field name="email">info@targetintegration.com</field>
+        </record>
+
+        <record id="res_partner_address_1" model="res.partner">
+            <field name="name">Rohit Thakral</field>
+            <field name="parent_id" ref="targetint"/>
+            <field name="email">info@targetintegration.com</field>
+            <field name="active">1</field>
+            <field name="type">contact</field>
+            <field name="street">Unit 7, Tallaght Business Centrer</field>
+            <field name="zip">D24 RY95</field>
+            <field name="city">Dublin</field>
+            <field name="country_id" ref="base.ie"/>
+        </record>
+
+</odoo>

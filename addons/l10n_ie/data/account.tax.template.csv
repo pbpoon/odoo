@@ -1,0 +1,16 @@
+id,description,chart_template_id:id,type_tax_use,name,amount_type,amount,account_id:id,refund_account_id:id,children_tax_ids:id,tag_ids:id
+ST0,ST0,l10n_ie,sale,Zero rated sales (IE),percent,0,2200,2200,,tag_st0
+ST1,ST1,l10n_ie,sale,Standard rate sales (13.5%) (IE),percent,13.5,2200,2200,,tag_st1
+ST2,ST2,l10n_ie,sale,Exempt sales (IE),percent,0,2200,2200,,tag_st2
+PT0,PT0,l10n_ie,purchase,Zero rated purchases (IE),percent,0,2201,2201,,tag_pt0
+PT1,PT1,l10n_ie,purchase,Standard rate purchases (13.5%) (IE),percent,13.5,2201,2201,,tag_pt1
+PT2,PT2,l10n_ie,purchase,Exempt purchases (IE),percent,0,2201,2201,,tag_pt2
+PT8M,PT8M,l10n_ie,none,Standard rated purchases from EU (IE),percent,17.5,2201,2201,,tag_pt8m
+PT8R,PT8R,l10n_ie,none,Reverse EU Purchase VAT (IE),percent,-17.5,2201,2201,,tag_pt8r
+PT8,PT8,l10n_ie,purchase,Standard rated purchases from EU (IE),group,,2201,2201,"PT8M,PT8R",tag_pt8
+PT5,PT5,l10n_ie,purchase,Lower rate purchases (5%) (IE),percent,9,2201,2201,,tag_pt5
+ST4,ST4,l10n_ie,sale,Sales to customers in EU (IE),percent,0,2200,2200,,tag_st4
+PT7,PT7,l10n_ie,purchase,Zero rated purchases from EU (IE),percent,0,2201,2201,,tag_pt7
+ST11,ST11,l10n_ie,sale,Standard rate sales (23%) (IE),percent,23,2200,2200,,tag_st11
+PT11,PT11,l10n_ie,purchase,Standard rate purchases (23%) (IE),percent,23,2201,2201,,tag_pt11
+ST5,ST5,l10n_ie,sale,ST5 (9%) (IE),percent,9,2202,2202,,tag_st5
