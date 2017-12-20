@@ -28,4 +28,5 @@
         'data/account_account_type_data.xml',
         'data/account_tax_group_data.xml',
     ],
+    'post_init_hook': '_auto_install_l10n_cn',
 }
