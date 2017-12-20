@@ -58,7 +58,6 @@ class Inventory(models.Model):
     product_id = fields.Many2one(
         'product.product', 'Inventoried Product',
         readonly=True,
-        domain=[('type', '=', 'product')],
         states={'draft': [('readonly', False)]},
         help="Specify Product to focus your inventory on a particular Product.")
     package_id = fields.Many2one(
@@ -157,6 +156,22 @@ class Inventory(models.Model):
     def action_reset_product_qty(self):
         self.mapped('line_ids').write({'product_qty': 0})
         return True
+
+    def action_validate(self):
+        track_line_ids = self.line_ids.filtered(lambda l: l.product_id.tracking in ['lot', 'serial'] and not l.prod_lot_id)
+        if track_line_ids:
+            track_products = track_line_ids.mapped('product_id.product_tmpl_id.name')
+            return {
+                 'name': _('Stock Track Confirmation'),
+                 'type': 'ir.actions.act_window',
+                 'view_type': 'form',
+                 'view_mode': 'form',
+                 'res_model': 'stock.track.confirmation',
+                 'context': {'default_track_products': ', '.join(track_products), 'default_inventory_id': self.id},
+                 'target': 'new',
+                }
+        else:
+            self.action_done()
 
     def action_done(self):
         negative = next((line for line in self.mapped('line_ids') if line.product_qty < 0 and line.product_qty != line.theoretical_qty), False)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_stock_track_confirmation" model="ir.ui.view">
+        <field name="name">stock.track.confirmation.view.form</field>
+        <field name="model">stock.track.confirmation</field>
+        <field name="arch" type="xml">
+            <form string="Lots or serial numbers were not provided to tracked products">
+                <p>
+                    The product <strong><field name="track_products" readonly="1" class="oe_inline ml2 mr2"/></strong> is tracked. Are you sure you don't want to define a serial or lot number for this product ?
+                </p>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Discard" special="cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
