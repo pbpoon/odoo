@@ -64,15 +64,19 @@ KanbanRenderer.include({
     /**
      * Scroll to the position
      *
-     * @param {position} ScrollTop postion
+     * @param {position} Scroll postion
      */
     scrollTo: function (position) {
-        var $column = this.widgets[this.activeColumnIndex].$el;
-        $column.scrollTop(position);
+        if (this.widgets.length) {
+            var $column = this.widgets[this.activeColumnIndex].$el;
+            $column.scrollTop(position);
+        }
     },
     findScrollPosition: function () {
-        var $column = this.widgets[this.activeColumnIndex].$el
-        return {top: $column.scrollTop(), left: $column.scrollLeft()};
+        if (this.widgets.length) {
+            var $column = this.widgets[this.activeColumnIndex].$el
+            return {top: $column.scrollTop(), left: $column.scrollLeft()};
+        }
     },
 
     //--------------------------------------------------------------------------
