@@ -3,7 +3,6 @@ odoo.define('web.mixins', function (require) {
 
 var Class = require('web.Class');
 var utils = require('web.utils');
-var AbstractService = require('web.AbstractService');
 
 /**
  * Mixin to structure objects' life-cycles folowing a parent-children
@@ -409,16 +408,33 @@ var PropertiesMixin = _.extend({}, EventDispatcherMixin, {
     }
 });
 
-var ServiceProvider = {
+return {
+    ParentedMixin: ParentedMixin,
+    EventDispatcherMixin: EventDispatcherMixin,
+    PropertiesMixin: PropertiesMixin,
+};
+
+});
+
+odoo.define('web.ServiceProviderMixin', function (require) {
+"use strict";
+
+var AbstractService = require('web.AbstractService');
+
+var ServiceProviderMixin = {
     services: {},
     init: function () {
+        // to properly instantiate services with this as parent, this mixin
+        // assumes that it is used along the EventDispatcherMixin, and that
+        // EventtDispatchedMixin's init is called first
         var self = this;
         _.each(AbstractService.prototype.Services, function (Service) {
-            var service = new Service();
+            var service = new Service(self);
             self.services[service.name] = service;
         });
-        this.custom_events = _.clone(this.custom_events);
-        this.custom_events.call_service = this._call_service.bind(this);
+        // as EventDispatcherMixin's init is alreadu called, this handler has to
+        // be bound manually
+        this.on('call_service', this, this._call_service.bind(this));
     },
     _call_service: function (event) {
         var service = this.services[event.data.service];
@@ -428,12 +444,7 @@ var ServiceProvider = {
     },
 };
 
-return {
-    ParentedMixin: ParentedMixin,
-    EventDispatcherMixin: EventDispatcherMixin,
-    PropertiesMixin: PropertiesMixin,
-    ServiceProvider: ServiceProvider,
-};
+return ServiceProviderMixin;
 
 });
 

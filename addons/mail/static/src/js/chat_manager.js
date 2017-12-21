@@ -12,6 +12,7 @@ var web_client = require('web.web_client');
 var Class = require('web.Class');
 var Mixins = require('web.mixins');
 var ServicesMixin = require('web.ServicesMixin');
+var ServiceProviderMixin = require('web.ServiceProviderMixin');
 
 var _t = core._t;
 var _lt = core._lt;
@@ -1260,10 +1261,10 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
 });
 
-var CallService = Class.extend(Mixins.EventDispatcherMixin, Mixins.ServiceProvider, {
+var CallService = Class.extend(Mixins.EventDispatcherMixin, ServiceProviderMixin, {
     init: function () {
-        Mixins.ServiceProvider.init.call(this);
         Mixins.EventDispatcherMixin.init.call(this);
+        ServiceProviderMixin.init.call(this);
     },
 });
 var chat_manager = new ChatManager(new CallService());
