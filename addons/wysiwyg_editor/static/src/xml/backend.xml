@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
 
-    <t t-name="wysiwyg_editor.MyHtmlEditor">
+    <t t-name="MyHtmlEditor">
         <div class="edit_toolbar">
             <a href="#" data-command='undo'><i class='fa fa-undo'></i></a>
               <a href="#" data-command='redo'><i class='fa fa-repeat'></i></a>
@@ -35,8 +35,7 @@
               <a href="#" data-command='superscript'><i class='fa fa-superscript'></i></a>
         </div>
         <div id='my_editor' contenteditable='true'>
-              <h1>A WYSIWYG Editor.</h1>
-              <p>Try making some changes here. Add your own text or maybe an image.</p>
+              <p>Write here...</p>
         </div>
     </t>
 </templates>
