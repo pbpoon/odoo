@@ -1055,7 +1055,8 @@ class SaleOrderLine(models.Model):
     @api.multi
     def unlink(self):
         if self.filtered(lambda x: x.state in ('sale', 'done')):
-            raise UserError(_('You can not remove an order line once the sales order is confirmed.\nYou should rather set the quantity to 0.'))
+            if self.is_downpayment is False:
+                raise UserError(_('You can not remove an order line once the sales order is confirmed.\nYou should rather set the quantity to 0.'))
         return super(SaleOrderLine, self).unlink()
 
     @api.multi

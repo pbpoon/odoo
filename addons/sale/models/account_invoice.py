@@ -35,6 +35,12 @@ class AccountInvoice(models.Model):
         if fiscal_position:
             self.fiscal_position_id = fiscal_position
 
+    @api.multi
+    def unlink(self):
+        if len(self.invoice_line_ids) == 1 and self.invoice_line_ids.sale_line_ids.is_downpayment is True:
+            self.invoice_line_ids.sale_line_ids.unlink()
+        return super(AccountInvoice, self).unlink()
+
     @api.onchange('partner_id', 'company_id')
     def _onchange_delivery_address(self):
         addr = self.partner_id.address_get(['delivery'])
