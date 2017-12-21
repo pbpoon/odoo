@@ -181,7 +181,7 @@
             <field name="params" eval="&quot;{
                 'default_active_id': 'channel_inbox'
             }&quot;"/>
-            <field name="context" eval="{'share_icon': True, 'action_id': ref('mail.mail_invite_user_action')}"/>
+            <field name="context">{'share_icon': True, 'share_action': 'mail.mail_invite_user_action'}</field>
         </record>
 
     <menuitem
