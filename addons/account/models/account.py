@@ -643,12 +643,16 @@ class AccountTax(models.Model):
                 return math.copysign(quantity, base_amount) * self.amount
             else:
                 return quantity * self.amount
+        # base * (1 + tax_amount) = new_base
         if self.amount_type == 'percent' and not price_include:
             return base_amount * self.amount / 100
+        # <=> new_base = base / (1 + tax_amount)
         if self.amount_type == 'percent' and price_include:
             return base_amount - (base_amount / (1 + self.amount / 100))
+        # base / (1 - tax_amount) = new_base
         if self.amount_type == 'division' and not price_include:
             return base_amount / (1 - self.amount / 100) - base_amount
+        # <=> new_base * (1 - tax_amount) = base
         if self.amount_type == 'division' and price_include:
             return base_amount - (base_amount * (self.amount / 100))
 
