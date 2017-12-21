@@ -32,7 +32,6 @@ var emoji_substitutions = {};
 var emoji_unicodes = {};
 var needaction_counter = 0;
 var starred_counter = 0;
-var history_counter = 0;
 var mention_partner_suggestions = [];
 var canned_responses = [];
 var commands = [];
@@ -75,6 +74,7 @@ function notify_incoming_message (msg, options) {
 function add_message (data, options) {
     options = options || {};
     var msg = _.findWhere(messages, { id: data.id });
+
     if (!msg) {
         msg = chat_manager.make_message(data);
         // Keep the array ordered by id when inserting the new message
@@ -680,7 +680,6 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         });
         needaction_counter = result.needaction_inbox_counter;
         starred_counter = result.starred_counter;
-        history_counter = result.history_counter;
         commands = _.map(result.commands, function (command) {
             return _.extend({ id: command.name }, command);
         });
@@ -851,7 +850,6 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         if ('channel_id' in options && options.load_more) {
             // get channel messages, force load_more
             channel = this.get_channel(options.channel_id);
-            var res = this._fetchFromChannel(channel, {domain: options.domain || {}, load_more: true});
             return this._fetchFromChannel(channel, {domain: options.domain || {}, load_more: true});
         }
         if ('channel_id' in options) {
@@ -901,7 +899,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             });
     },
     mark_as_read: function (message_ids) {
-            var ids = _.filter(message_ids, function (id) {
+        var ids = _.filter(message_ids, function (id) {
             var message = _.findWhere(messages, {id: id});
             invalidate_caches(message.channel_ids);
             message.is_history = true;
@@ -920,6 +918,12 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         }
     },
     mark_all_as_read: function (channel, domain) {
+        _.each(channel.cache["[]"].messages, function(message) {
+            invalidate_caches(message.channel_ids);
+            message.is_history = true;
+            var messageToHistory = add_message(message, {channel_id: 'channel_history', silent: true, 'domain': "[]"});
+        });
+
         if ((channel.id === "channel_inbox" && needaction_counter) || (channel && channel.needaction_counter)) {
             return this._rpc({
                     model: 'mail.message',
@@ -1003,9 +1007,6 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     get_starred_counter: function () {
         return starred_counter;
-    },
-    get_history_counter: function () {
-        return history_counter;
     },
     get_chat_unread_counter: function () {
         return chat_unread_counter;
