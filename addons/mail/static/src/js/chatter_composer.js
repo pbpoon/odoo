@@ -1,7 +1,6 @@
 odoo.define('mail.ChatterComposer', function (require) {
 "use strict";
 
-// var chatManager = require('mail.chatManager');
 var composer = require('mail.composer');
 var utils = require('mail.utils');
 
@@ -58,7 +57,7 @@ var ChatterComposer = composer.BasicComposer.extend({
 
             // Partner_ids
             if (!self.options.is_log) {
-                var checked_suggested_partners = self.get_checked_suggested_partners();
+                var checked_suggested_partners = self.get_checked_suggested_partners.bind(self)();
                 self.check_suggested_partners(checked_suggested_partners).done(function (partner_ids) {
                     message.partner_ids = (message.partner_ids || []).concat(partner_ids);
                     // update context

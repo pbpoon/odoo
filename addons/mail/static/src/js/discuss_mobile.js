@@ -6,7 +6,6 @@ var chatManager = require('mail.chatManager');
 
 var config = require('web.config');
 var core = require('web.core');
-var session = require('web.session');
 
 var QWeb = core.qweb;
 
@@ -106,7 +105,7 @@ Discuss.include({
      */
     _setChannel: function (channel) {
         if (channel.type !== 'static') {
-            chatManager.detach_channel(channel);
+            chatManager.detachChannel(channel);
         } else {
             this._super.apply(this, arguments);
         }
@@ -170,8 +169,8 @@ Discuss.include({
         if (inInbox) {
             def = this._fetchAndRenderThread();
         } else {
-            var channels = _.where(chatManager.get_channels(), {type: type});
-            def = chatManager.get_channels_preview(channels);
+            var channels = _.where(chatManager.getChannels(), {type: type});
+            def = chatManager.getChannelsPreview(channels);
         }
         return $.when(def).then(function (channelsPreview) {
             // update content
@@ -179,19 +178,15 @@ Discuss.include({
                 if (!previouslyInInbox) {
                     self.$('.o_mail_chat_tab_pane').remove();
                     self.$mainContent.append(self.thread.$el);
-                    self.$mainContent.append(self.extended_composer.$el);
+                    self.$mainContent.append(self.extendedComposer.$el);
                 }
-                self._restoreChannelState();
+                self._restoreChannelState.bind(self)();
             } else {
                 self.thread.$el.detach();
-                self.extended_composer.$el.detach();
+                self.extendedComposer.$el.detach();
                 var $content = $(QWeb.render("mail.chat.MobileTabPane", {
                     channels: channelsPreview,
-                    get_message_body_preview: chatManager.get_message_body_preview,
-                    moment: moment,
-                    partner_id: session.partner_id,
                     type: type,
-                    widget: self,
                 }));
                 self._prepareAddChannelInput($content.find('.o_mail_add_channel input'), type);
                 self.$mainContent.html($content);
@@ -204,7 +199,7 @@ Discuss.include({
             self.$buttons.find('.o_mail_chat_button_unstar_all').toggleClass('o_hidden', type !== 'channel_starred');
             self.$('.o_enable_searchview').toggleClass('o_hidden', !inInbox);
             if (!inInbox && self.searchviewDisplayed) {
-                self._toggleSearchView(); // close the searchview when leaving Inbox
+                self._toggleSearchView.bind(self)(); // close the searchview when leaving Inbox
             }
 
             // update Inbox page buttons
@@ -252,7 +247,7 @@ Discuss.include({
      * @param {MouseEvent}
      */
     _onMobileInboxButtonClicked: function (event) {
-        this._setChannel(chatManager.get_channel($(event.currentTarget).data('type')));
+        this._setChannel(chatManager.getChannel($(event.currentTarget).data('type')));
         this._updateContent(this.channel.id);
     },
     /**
@@ -264,7 +259,7 @@ Discuss.include({
     _onMobileTabClicked: function (event) {
         var type = $(event.currentTarget).data('type');
         if (type === 'channel_inbox') {
-            this._setChannel(chatManager.get_channel('channel_inbox'));
+            this._setChannel(chatManager.getChannel('channel_inbox'));
         }
         this._updateContent(type);
     },
@@ -276,7 +271,7 @@ Discuss.include({
      */
     _onMobileChannelClicked: function (event) {
         var channelId = $(event.currentTarget).data("channel_id");
-        chatManager.detach_channel(chatManager.get_channel(channelId));
+        chatManager.detachChannel(chatManager.getChannel(channelId));
     },
 });
 

@@ -47,7 +47,7 @@ var ThreadField = AbstractField.extend(chat_mixin, {
             // unwrap the thread to remove an unnecessary level on div
             self.setElement(self.thread.$el);
 
-            var bus = self._getBus();
+            var bus = self._getBus.bind(self)();
             bus.on('new_message', self, self._onNewMessage);
             bus.on('update_message', self, self._onUpdateMessage);
         });
@@ -102,7 +102,7 @@ var ThreadField = AbstractField.extend(chat_mixin, {
      * @returns {Deferred}
      */
     _onLoadMoreMessages: function () {
-        this._fetchAndRenderThread(this.msgIDs, {force_fetch: true});
+        this._fetchAndRenderThread(this.msgIDs, {forceFetch: true});
     },
     _onNewMessage: function (message) {
         if (message.model === this.model && message.res_id === this.res_id) {

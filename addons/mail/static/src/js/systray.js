@@ -3,7 +3,7 @@ odoo.define('mail.systray', function (require) {
 
 var config = require('web.config');
 var core = require('web.core');
-var framework = require('web.framework');
+// var framework = require('web.framework');
 var session = require('web.session');
 var SystrayMenu = require('web.SystrayMenu');
 var Widget = require('web.Widget');
@@ -38,14 +38,14 @@ var MessagingMenu = Widget.extend({
         this.filter = false;
         chatManager.bus.on("update_needaction", this, this.update_counter);
         chatManager.bus.on("update_channel_unread_counter", this, this.update_counter);
-        chatManager.is_ready.then(this.update_counter.bind(this));
+        chatManager.isReady.then(this.update_counter.bind(this));
         return this._super();
     },
     is_open: function () {
         return this.$el.hasClass('open');
     },
     update_counter: function () {
-        var counter =  chatManager.get_needaction_counter() + chatManager.get_unread_conversation_counter();
+        var counter =  chatManager.getNeedactionCounter() + chatManager.getUnreadConversationCounter();
         this.$('.o_notification_counter').text(counter);
         this.$el.toggleClass('o_no_notification', !counter);
         if (this.is_open()) {
@@ -58,8 +58,8 @@ var MessagingMenu = Widget.extend({
         // Display spinner while waiting for channels preview
         this.$channels_preview.html(QWeb.render('Spinner'));
 
-        chatManager.is_ready.then(function () {
-            var channels = _.filter(chatManager.get_channels(), function (channel) {
+        chatManager.isReady.then(function () {
+            var channels = _.filter(chatManager.getChannels(), function (channel) {
                 if (self.filter === 'chat') {
                     return channel.is_chat;
                 } else if (self.filter === 'channels') {
@@ -68,7 +68,7 @@ var MessagingMenu = Widget.extend({
                     return channel.type !== 'static';
                 }
             });
-            chatManager.get_messages({channel_id: 'channel_inbox'}).then(function(result) {
+            chatManager.getMessages({channelID: 'channel_inbox'}).then(function (result) {
                 var res = [];
                 _.each(result, function (message) {
                     message.unread_counter = 1;
@@ -83,7 +83,7 @@ var MessagingMenu = Widget.extend({
                 if (self.filter === 'channel_inbox' || !self.filter) {
                     channels = _.union(channels, res);
                 }
-                chatManager.get_channels_preview(channels).then(self._render_channels_preview.bind(self));
+                chatManager.getChannelsPreview(channels).then(self._render_channels_preview.bind(self));
             });
         });
     },
@@ -134,13 +134,13 @@ var MessagingMenu = Widget.extend({
                 this.do_action('mail.mail_channel_action_client_chat', {clear_breadcrumbs: true})
                     .then(function () {
                         self.trigger_up('hide_home_menu'); // we cannot 'go back to previous page' otherwise
-                        core.bus.trigger('change_menu_section', chatManager.get_discuss_menu_id());
+                        core.bus.trigger('change_menu_section', chatManager.getDiscussMenuID());
                     });
             }
         } else {
-            var channel = chatManager.get_channel(channelID);
+            var channel = chatManager.getChannel(channelID);
             if (channel) {
-                chatManager.open_channel(channel);
+                chatManager.openChannel(channel);
             }
         }
     },
@@ -158,7 +158,7 @@ var ActivityMenu = Widget.extend({
     start: function () {
         this.$activities_preview = this.$('.o_mail_navbar_dropdown_channels');
         chatManager.bus.on("activity_updated", this, this._updateCounter);
-        chatManager.is_ready.then(this._updateCounter.bind(this));
+        chatManager.isReady.then(this._updateCounter.bind(this));
         this._updateActivityPreview();
         return this._super();
     },
@@ -169,7 +169,7 @@ var ActivityMenu = Widget.extend({
      * Make RPC and get current user's activity details
      * @private
      */
-    _getActivityData: function(){
+    _getActivityData: function () {
         var self = this;
 
         return self._rpc({
@@ -177,7 +177,7 @@ var ActivityMenu = Widget.extend({
             method: 'activity_user_count',
         }).then(function (data) {
             self.activities = data;
-            self.activityCounter = _.reduce(data, function(total_count, p_data){ return total_count + p_data.total_count; }, 0);
+            self.activityCounter = _.reduce(data, function (total_count, p_data) { return total_count + p_data.total_count; }, 0);
             self.$('.o_notification_counter').text(self.activityCounter);
             self.$el.toggleClass('o_no_notification', !self.activityCounter);
         });

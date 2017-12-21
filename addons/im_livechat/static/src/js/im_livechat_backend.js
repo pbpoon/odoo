@@ -21,7 +21,7 @@ core.action_registry.get('mail.chat.instant_messaging').include({
 
 chatManager.bus.on('new_message', null, function (msg) {
     _.each(msg.channel_ids, function (channel_id) {
-        var channel = chatManager.get_channel(channel_id);
+        var channel = chatManager.getChannel(channel_id);
         if (channel) {
             channel.last_message_date = msg.date; // update the last message's date of the channel
         }

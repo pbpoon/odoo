@@ -58,19 +58,19 @@ function open_chat (session, options) {
         };
         chat_session.window.on("close_chat_session", null, function () {
             close_chat(chat_session);
-            chatManager.close_chat_session(chat_session.id);
+            chatManager.closeChatSession(chat_session.id);
         });
         chat_session.window.on("toggle_star_status", null, function (message_id) {
-            chatManager.toggle_star_status(message_id);
+            chatManager.toggleStarStatus(message_id);
         });
 
         chat_session.window.on("fold_channel", null, function (channel_id, folded) {
-            chatManager.fold_channel(channel_id, folded);
+            chatManager.foldChannel(channel_id, folded);
         });
 
         chat_session.window.on("post_message", null, function (message, channel_id) {
             chatManager
-                .post_message(message, {channel_id: channel_id})
+                .postMessage(message, {channelID: channel_id})
                 .then(function () {
                     chat_session.window.thread.scroll_to();
                 });
@@ -81,8 +81,8 @@ function open_chat (session, options) {
         chat_session.window.on("redirect_to_channel", null, function (channel_id) {
             var session = _.findWhere(chat_sessions, {id: channel_id});
             if (!session) {
-                chatManager.join_channel(channel_id).then(function (channel) {
-                    chatManager.detach_channel(channel);
+                chatManager.joinChannel(channel_id).then(function (channel) {
+                    chatManager.detachChannel(channel);
                 });
             } else {
                 session.window.toggle_fold(false);
@@ -103,24 +103,24 @@ function open_chat (session, options) {
         chat_session.window.appendTo($('body'))
             .then(function () {
                 reposition_windows({remove_new_chat: remove_new_chat});
-                return chatManager.get_messages({channel_id: chat_session.id});
+                return chatManager.getMessages({channelID: chat_session.id});
             }).then(function (messages) {
                 chat_session.window.render(messages);
                 chat_session.window.thread.scroll_to();
                 setTimeout(function () {
                     chat_session.window.thread.$el.on("scroll", null, _.debounce(function () {
                         if (!chat_session.keep_unread && chat_session.window.thread.is_at_bottom()) {
-                            chatManager.mark_channel_as_seen(session);
+                            chatManager.markChannelAsSeen(session);
                         }
                     }, 100));
                 }, 0); // setTimeout to prevent to execute handler on first scroll_to, which is asynchronous
                 if (options.passively) {
                     // mark first unread messages as seen when focusing the window, then on scroll to bottom as usual
                     chat_session.window.$('.o_mail_thread, .o_chat_composer').one('click', function () {
-                        chatManager.mark_channel_as_seen(session);
+                        chatManager.markChannelAsSeen(session);
                     });
                 } else if (!display_state.chat_windows_hidden && !session.is_folded) {
-                    chatManager.mark_channel_as_seen(session);
+                    chatManager.markChannelAsSeen(session);
                 }
             });
     } else if (!options.passively) {
@@ -141,13 +141,13 @@ function open_chat_without_session () {
         new_chat_session.window.on("close_chat_session", null, close_new_chat);
         new_chat_session.window.on('open_dm_session', null, function (partner_id) {
             new_chat_session.partner_id = partner_id;
-            var dm = chatManager.get_dm_from_partner_id(partner_id);
+            var dm = chatManager.getDmFromPartnerID(partner_id);
             if (!dm) {
-                chatManager.open_and_detach_dm(partner_id);
+                chatManager.openAndDetachDm(partner_id);
             } else {
                 var dm_session = _.findWhere(chat_sessions, {id: dm.id});
                 if (!dm_session) {
-                    chatManager.detach_channel(dm);
+                    chatManager.detachChannel(dm);
                 } else {
                     close_chat(dm_session);
                     dm.is_folded = false;
@@ -291,9 +291,9 @@ function update_sessions (message, scrollBottom) {
             var message_visible = !display_state.chat_windows_hidden && !session.window.folded &&
                                   !session.window.is_hidden && session.window.thread.is_at_bottom();
             if (message_visible && !session.keep_unread) {
-                chatManager.mark_channel_as_seen(chatManager.get_channel(session.id));
+                chatManager.markChannelAsSeen(chatManager.getChannel(session.id));
             }
-            chatManager.get_messages({channel_id: session.id}).then(function (messages) {
+            chatManager.getMessages({channelID: session.id}).then(function (messages) {
                 session.window.render(messages);
                 if (scrollBottom && message_visible) {
                     session.window.thread.scroll_to();
@@ -365,8 +365,8 @@ core.bus.on('web_client_ready', null, function () {
         });
     });
 
-    chatManager.is_ready.then(function() {
-        _.each(chatManager.get_channels(), function (channel) {
+    chatManager.isReady.then(function() {
+        _.each(chatManager.getChannels(), function (channel) {
             if (channel.is_detached) {
                 open_chat(channel);
             }
@@ -376,7 +376,7 @@ core.bus.on('web_client_ready', null, function () {
     chatManager.bus.on('detach_channel', null, function (channel) {
         var chat_session = _.findWhere(chat_sessions, {id: channel.id});
         if (!chat_session || chat_session.window.folded) {
-            chatManager.detach_channel(channel);
+            chatManager.detachChannel(channel);
         } else if (chat_session.window.is_hidden) {
             make_session_visible(chat_session);
         } else {

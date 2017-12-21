@@ -46,7 +46,8 @@ var ChatMixin = {
             options: options,
             callback: function(messages) { result = messages;}
         });
-        return result ? result : $.when();
+        // return result ? result : $.when();
+        return $.when(result);
     },
     _joinChannel: function(channel_id) {
         var result;
@@ -88,23 +89,23 @@ var chatManager = require('mail.chatManager');
 var web_client = require('web.web_client');
 
 web_client.on('get_emojis', web_client, function(event) {
-    event.data.callback(chatManager.get_emojis());
+    event.data.callback(chatManager.getEmojis());
 });
 
 web_client.on('get_canned_responses', web_client, function(event) {
-    event.data.callback(chatManager.get_canned_responses());
+    event.data.callback(chatManager.getCannedResponses());
 });
 
 web_client.on('chat_manager_ready', web_client, function(event) {
-    event.data.callback(chatManager.is_ready);
+    event.data.callback(chatManager.isReady);
 });
 
 web_client.on('get_messages', web_client, function(event) {
-    event.data.callback(chatManager.get_messages(event.data.options));
+    event.data.callback(chatManager.getMessages(event.data.options));
 });
 
 web_client.on('post_message', web_client, function(event) {
-    event.data.callback(chatManager.post_message(event.data.message, event.data.options));
+    event.data.callback(chatManager.postMessage(event.data.message, event.data.options));
 });
 
 web_client.on('get_bus', web_client, function(event) {
@@ -112,19 +113,19 @@ web_client.on('get_bus', web_client, function(event) {
 });
 
 web_client.on('remove_chatter_messages', web_client, function(event) {
-    chatManager.remove_chatter_messages(event.data.model);
+    chatManager.removeChatterMessages(event.data.model);
 });
 
 web_client.on('toggle_star_status', web_client, function(event) {
-    chatManager.toggle_star_status(event.data.message_id);
+    chatManager.toggleStarStatus(event.data.message_id);
 });
 
 web_client.on('join_channel', web_client, function(event) {
-    event.data.callback(chatManager.join_channel(event.data.channel_id));
+    event.data.callback(chatManager.joinChannel(event.data.channel_id));
 });
 
 web_client.on('get_mention_partner_suggestions', web_client, function(event) {
-    event.data.callback(chatManager.get_mention_partner_suggestions(event.data.channel_id));
+    event.data.callback(chatManager.getMentionPartnerSuggestions(event.data.channel_id));
 });
 
 });
