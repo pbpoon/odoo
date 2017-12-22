@@ -20,7 +20,7 @@ class ResConfigSettings(models.TransientModel):
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
         get_param = self.env['ir.config_parameter'].sudo().get_param
-        auth_signup_template_user_id = literal_eval(get_param('auth_signup.template_user_id', default='False'))
+        auth_signup_template_user_id = literal_eval(get_param('base.template_portal_user_id', default='False'))
         if auth_signup_template_user_id and not self.env['res.users'].sudo().browse(auth_signup_template_user_id).exists():
             auth_signup_template_user_id = False
         # the value of the parameter is a nonempty string
@@ -38,11 +38,11 @@ class ResConfigSettings(models.TransientModel):
         # we store the repr of the values, since the value of the parameter is a required string
         set_param('auth_signup.reset_password', repr(self.auth_signup_reset_password))
         set_param('auth_signup.allow_uninvited', repr(self.auth_signup_uninvited == 'b2c'))
-        set_param('auth_signup.template_user_id', repr(self.auth_signup_template_user_id.id))
+        set_param('base.template_portal_user_id', repr(self.auth_signup_template_user_id.id))
 
     @api.multi
     def open_template_user(self):
         action = self.env.ref('base.action_res_users').read()[0]
-        action['res_id'] = literal_eval(self.env['ir.config_parameter'].sudo().get_param('auth_signup.template_user_id', 'False'))
+        action['res_id'] = literal_eval(self.env['ir.config_parameter'].sudo().get_param('base.template_portal_user_id', 'False'))
         action['views'] = [[self.env.ref('base.view_users_form').id, 'form']]
         return action
