@@ -297,7 +297,7 @@ class Field(MetaField('DummyField', (object,), {})):
         'index': False,                 # whether the field is indexed in database
         'manual': False,                # whether the field is a custom field
         'copy': True,                   # whether the field is copied over by BaseModel.copy()
-        'depends': (),                  # collection of field dependencies
+        'depends': None,                # collection of field dependencies
         'recursive': False,             # whether self depends on itself
         'compute': None,                # compute(recs) computes field on recs
         'compute_sudo': False,          # whether field should be recomputed as admin
@@ -487,16 +487,23 @@ class Field(MetaField('DummyField', (object,), {})):
 
     def _setup_regular_base(self, model):
         """ Setup the attributes of a non-related field. """
-        def make_depends(deps):
-            return tuple(deps(model) if callable(deps) else deps)
+        if self.depends is not None:
+            self.depends = tuple(self.depends)
+            return
+
+        def get_depends(func):
+            deps = getattr(func, '_depends', ())
+            return deps(model) if callable(deps) else deps
 
         if isinstance(self.compute, pycompat.string_types):
             # if the compute method has been overridden, concatenate all their _depends
-            self.depends = ()
-            for method in resolve_mro(model, self.compute, callable):
-                self.depends += make_depends(getattr(method, '_depends', ()))
+            self.depends = tuple(
+                dep
+                for method in resolve_mro(model, self.compute, callable)
+                for dep in get_depends(method)
+            )
         else:
-            self.depends = make_depends(getattr(self.compute, '_depends', ()))
+            self.depends = tuple(get_depends(self.compute))
 
     def _setup_regular_full(self, model):
         """ Setup the inverse field(s) of ``self``. """
@@ -526,7 +533,7 @@ class Field(MetaField('DummyField', (object,), {})):
             raise TypeError("Type of related field %s is inconsistent with %s" % (self, field))
 
         # determine dependencies, compute, inverse, and search
-        self.depends = ('.'.join(self.related),)
+        self.depends = ('.'.join(self.related),) if self.depends is None else tuple(self.depends)
         self.compute = self._compute_related
         if not (self.readonly or field.readonly):
             self.inverse = self._inverse_related
@@ -684,6 +691,13 @@ class Field(MetaField('DummyField', (object,), {})):
 
         # add indirect dependencies from the dependencies found above
         for model, field, path in list(result):
+            while field.inherited:
+                path = path + [field.related[0]]
+                field = field.related_field
+                model = model0.env[field.model_name]
+                result.append((model, field, path))
+
+        for model, field, path in list(result):
             for inv_field in model._field_inverses[field]:
                 inv_model = model0.env[inv_field.model_name]
                 inv_path = None if path is None else path + [field.name]
@@ -694,6 +708,8 @@ class Field(MetaField('DummyField', (object,), {})):
     def setup_triggers(self, model):
         """ Add the necessary triggers to invalidate/recompute ``self``. """
         for model, field, path in self.resolve_deps(model):
+            if self.store and not (field.store or field.inherited or field.company_dependent):
+                _logger.warning("Field %s depends on non-stored field %s", self, field)
             if field is not self:
                 path_str = None if path is None else ('.'.join(path) or 'id')
                 model._field_triggers.add(field, (self, path_str))
