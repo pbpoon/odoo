@@ -76,16 +76,18 @@ class ResUsers(models.Model):
 
     @api.model
     def _signup_create_user(self, values):
-        """ create a new user from the template user """
-        get_param = self.env['ir.config_parameter'].sudo().get_param
-        template_user_id = literal_eval(get_param('base.template_portal_user_id', 'False'))
-        template_user = self.browse(template_user_id)
-        assert template_user.exists(), 'Signup: invalid template user'
+        """ signup a new user using the template user """
 
         # check that uninvited users may sign up
         if 'partner_id' not in values:
-            if not literal_eval(get_param('auth_signup.allow_uninvited', 'False')):
+            if not literal_eval(self.env['ir.config_parameter'].sudo().get_param('auth_signup.allow_uninvited', 'False')):
                 raise SignupError(_('Signup is not allowed for uninvited users'))
+        return self._create_user_from_template(values)
+
+    def _create_user_from_template(self, values):
+        template_user_id = literal_eval(self.env['ir.config_parameter'].sudo().get_param('base.template_portal_user_id', 'False'))
+        template_user = self.browse(template_user_id)
+        assert template_user.exists(), 'Signup: invalid template user'
 
         assert values.get('login'), "Signup: no login given for new user"
         assert values.get('partner_id') or values.get('name'), "Signup: no name or partner given for new user"
