@@ -124,26 +124,24 @@
 </t>
 
 <!-- Kanban Guied Step templates -->
-<t t-name="KanbanColumn.KananGuideDialog" class="stage_help_modal">
-    <div class='container stage_help_modal'>
-        <div class="col-md-2 stage_navigation">
+<div t-name="KanbanColumn.KananGuideDialog" class="o-modal-guided-help">
+    <div class='o-guided-help-wrapper'>
+        <div class="o-guided-help-nav">
             <ul class="nav nav-pills nav-stacked">
-                <t t-set="stage_ids" t-value="_.range(data.exampleStages.length)"/>
-                <t t-set="counter" t-value="0"/>
                 <t t-foreach="data.exampleStages" t-as="stage">
-                    <li t-attf-class="#{stage_ids[counter] == 0 and 'active' or ''}"><a data-toggle="tab" t-att-href="'#stage_'+stage_ids[counter]"><t t-esc="stage.title"/></a></li>
-                    <t t-set="counter" t-value="counter+1"/>
+                    <li t-att-class="stage_index == 0 and 'active' or None">
+                        <a data-toggle="tab" t-attf-href="#stage_#{stage_index}"> <t t-esc="stage.title"/> </a>
+                    </li>
                 </t>
             </ul>
         </div>
-        <div class="col-md-8 stage_container">
+        <div class="o-guided-help-body ml16 mr16">
             <div class="tab-content">
-                <t t-set="counter" t-value="0"/>
                 <t t-foreach="data.exampleStages" t-as="stage">
-                    <div t-att-id="'stage_'+stage_ids[counter]" t-attf-class="#{stage_ids[counter] == 0 and 'tab-pane fade in active' or 'tab-pane fade'}">
-                        <div class="row">
+                    <div t-attf-id="stage_#{stage_index}" t-attf-class="tab-pane fade #{stage_index == 0 and 'active in' or ''}">
+                        <div class="o-guided-help-kanban">
                             <t t-foreach="stage.stages" t-as="cloumn">
-                                <div class="col-md-3 cloumn_container">
+                                <div class="o-guided-help-col">
                                     <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
                                     <t t-foreach="_.random(2,5)">
                                         <t t-call="KanbanColumn.RecordGhost"/>
@@ -151,30 +149,22 @@
                                 </div>
                             </t>
                         </div>
-                        <p class="footnote"><t t-esc="stage.footnote"/></p>
+                        <p class="footnote mt16 text-center"><t t-esc="stage.footnote"/></p>
                     </div>
-                    <t t-set="counter" t-value="counter+1"/>
                 </t>
             </div>
         </div>
     </div>
-</t>
+</div>
 
 <t t-name="KanbanColumn.RecordGhost">
-    <div class="record_ghost">
-        <div class="oe_kanban_content">
-            <span class="o_kanban_record_top"/>
-            <div class="o_kanban_record_bottom">
-                <div class="small_option_group">
-                    <span class="small_option"/>
-                    <span class="small_option"/>
-                    <span class="small_option"/>
-                    <span class="small_option"/>
-                </div>
-                <div class="oe_kanban_bottom_right">
-                    <img width="24" height="24" src="/base/static/img/avatar.png" title="User"/>
-                </div>
-            </div>
+    <div class="o-guided-help-record">
+        <div class="o-guided-help-title"></div>
+        <div>
+            <span class="o-guided-help-tag"/>
+            <span class="o-guided-help-tag"/>
+            <span class="o-guided-help-tag"/>
+            <img class="pull-right mt8" width="20" height="20" src="/base/static/img/avatar.png" title="User"/>
         </div>
     </div>
 </t>

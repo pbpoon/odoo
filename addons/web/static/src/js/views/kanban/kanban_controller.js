@@ -291,12 +291,17 @@ var KanbanController = BasicController.extend({
     },
     _openExampleDialog: function (event) {
         this.sampleData = Registry.get(this.stageTag);
-        new Dialog(this, {
+        var dialog = new Dialog(this, {
             title: "Kanban Examples",
             size: "large",
             buttons: false,
             $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.sampleData}),
         }).open();
+
+        // Hide the footer
+        dialog.opened(function () {
+            dialog.$footer.remove();
+        });
     },
     /**
      * Loads the record of a given column (used in mobile, as the columns are
