@@ -35,7 +35,7 @@
               <a href="#" data-command='superscript'><i class='fa fa-superscript'></i></a>
         </div>
         <div id='my_editor' contenteditable='true'>
-              <p>Write here...</p>
+              Write here...
         </div>
     </t>
 </templates>
