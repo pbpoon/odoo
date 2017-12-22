@@ -1,7 +1,7 @@
 .o-modal-guided-help {
     padding: 0px;
     background: @odoo-color-silver;
-    .o-guided-help-wrapper{
+    .o-guided-help-wrapper {
         .o-flex-display();
 
         // Kanban guided help side nav
@@ -18,7 +18,7 @@
                     border-left: 3px solid transparent;
                     color: inherit;
                 }
-                &.active{
+                &.active {
                     margin-right: -1px;
                     a {
                         color: @headings-color;
@@ -33,22 +33,22 @@
         // Kanban guided help body
         .o-guided-help-body {
             .o-flex(1, 1, 80%);
-            .o-guided-help-kanban{
+            .o-guided-help-kanban {
                 overflow-x: auto;
                 white-space: nowrap;
                 position: relative;
                 min-height: 300px;
-                .o-guided-help-col{
+                .o-guided-help-col {
                     margin:10px;
                     display: inline-block;
                     width: 20%;
                     vertical-align: top;
-
                     .o-guided-help-record {
                         border: thin solid @gray-lighter-dark;
                         min-height: 50px;
                         background: #FFF;
                         padding: 5px;
+                        margin-top: -1px;
                         .o-guided-help-title {
                             background: @gray-lighter-dark;
                             height: 12px;
@@ -65,4 +65,11 @@
             }
         }
     }
+}
+
+div:not(.o_column_folded) > .record_blank {
+	background: @gray-lighter-dark;
+	width: 225px;
+	height: 75px;
+	margin: 10px 0px;
 }

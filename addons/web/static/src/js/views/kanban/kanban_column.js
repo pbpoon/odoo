@@ -9,6 +9,7 @@ var KanbanRecord = require('web.KanbanRecord');
 var view_dialogs = require('web.view_dialogs');
 var Widget = require('web.Widget');
 var KanbanColumnProgressBar = require('web.KanbanColumnProgressBar');
+var Registry = require('web.KanbanView_registry');
 
 var _t = core._t;
 var QWeb = core.qweb;
@@ -58,13 +59,17 @@ var KanbanColumn = Widget.extend({
         this.relation = options.relation;
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
-        this.isGuiedStepEnable = options.stageHelp && this.data.count == 0;
+        this.isGuidedStepEnable = options.stageHelp && options.isGuidedStepEnable && this.data.count == 0;
 
         if (options.hasProgressBar) {
             this.barOptions = {
                 columnID: this.db_id,
                 progressBarStates: options.progressBarStates,
             };
+        }
+        if (this.isGuidedStepEnable) {
+            this.stepData = Registry.get(options.stageHelp);
+            this.recordNumbers = 3;
         }
 
         this.record_options = _.clone(recordOptions);
@@ -208,6 +213,9 @@ var KanbanColumn = Widget.extend({
                 record.appendTo(this.$el);
             }
         }
+        if (!this.isGuidedStepEnable) {
+            $('.record_blank').addClass('o_hidden');
+        }
     },
     /**
      * Destroys the QuickCreate widget.
@@ -311,6 +319,9 @@ var KanbanColumn = Widget.extend({
     _onToggleFold: function (event) {
         event.preventDefault();
         this.trigger_up('column_toggle_fold');
+        if (this.isGuidedStepEnable) {
+            this.$el.find('.record_blank').toggleClass('o_hidden');
+        }
     },
     /**
      * @private

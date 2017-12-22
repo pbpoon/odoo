@@ -85,6 +85,7 @@ var KanbanRenderer = BasicRenderer.extend({
     className: 'o_kanban_view',
     custom_events: _.extend({}, BasicRenderer.prototype.custom_events || {}, {
         'set_progress_bar_state': '_onSetProgressBarState',
+        'set_guided_step_state': '_onSetGuidedStepState'
     }),
 
     /**
@@ -107,11 +108,11 @@ var KanbanRenderer = BasicRenderer.extend({
         this.columnOptions = _.extend({}, params.column_options, { 
             qweb: this.qweb,
             stageHelp: this.stageTag,
+            isGuidedStepEnable: this.state.count == 0 ? true:false,
         });
         if (this.columnOptions.hasProgressBar) {
             this.columnOptions.progressBarStates = {};
         }
-
         this._setState(state);
     },
 
@@ -229,7 +230,7 @@ var KanbanRenderer = BasicRenderer.extend({
 
         // Render columns
         _.each(this.state.data, function (group) {
-            var column = new KanbanColumn(self, group, self.columnOptions, self.recordOptions);
+            var column = new KanbanColumn(self, group, self.columnOptions, self.recordOptions, self.state);
             if (!group.value) {
                 column.prependTo(fragment); // display the 'Undefined' group first
                 self.widgets.unshift(column);
@@ -258,6 +259,7 @@ var KanbanRenderer = BasicRenderer.extend({
                     self.trigger_up('resequence_columns', {ids: ids});
                 },
             });
+
             // Enable column quickcreate
             if (this.createColumnEnabled) {
                 this.quickCreate = new ColumnQuickCreate(this, this.stageTag, this.state);

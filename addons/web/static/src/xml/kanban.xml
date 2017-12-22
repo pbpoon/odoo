@@ -34,6 +34,11 @@
         <div t-if="widget.remaining > 0" class="o_kanban_load_more">
             <t t-call="KanbanView.LoadMore"/>
         </div>
+        <t t-if="widget.isGuidedStepEnable">
+            <t t-foreach="widget.recordNumbers">
+                <t t-call="KanbanColumn.BlankRecord" />
+            </t>
+        </t>
     </div>
 </t>
 
@@ -49,7 +54,7 @@
         </div>
         <div class="o_kanban_quick_create">
             <div class="input-group">
-            <t t-if="widget.isGuiedStepEnable">
+            <t t-if="widget.isGuidedStepEnable">
               <input type="text" class="form-control o_input" t-att-placeholder="widget.placeholder"/>
             </t>
             <t t-else="">
@@ -59,9 +64,14 @@
                 <button class="btn btn-sm btn-primary o_kanban_add" type="button">Add Column</button>
               </span>
             </div>
-            <t t-if="widget.isGuiedStepEnable">
+            <t t-if="widget.stageTag">
                 <span class="btn-link exampleDialog">See Examples</span>
                 <span class="pull-right text-muted">or Esc to cancel</span>
+            </t>
+            <t t-if="widget.isGuidedStepEnable">
+                <t t-foreach="widget.recordNumbers">
+                    <t t-call="KanbanColumn.BlankRecord"/>
+                </t>
             </t>
         </div>
     </div>
@@ -172,4 +182,5 @@
 <t t-name="KanbanColumn.BlankRecord">
     <div class="record_blank"/>
 </t>
+
 </template>

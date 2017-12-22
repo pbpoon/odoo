@@ -6,7 +6,16 @@ var _t = core._t;
 var Registry = require('web.KanbanView_registry');
 
 Registry.add('project',{
-helpStages: [_t('ToDo'), _t('In Progress'), _t('Done')],
+helpStages: [{
+    placeholder:_t('ToDo'),
+    records: 3
+},{
+    placeholder:_t('In Progress'),
+    records: 3
+},{
+    placeholder:_t('Done'),
+    records: 3
+}],
 exampleStages: [{
     title: _t('Software Development'),
     stages: [_t('Backlog'), _t('Specifications'), _t('Development'), _t('Tests'), _t('Delivered')],

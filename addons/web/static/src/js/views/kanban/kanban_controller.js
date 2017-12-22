@@ -47,6 +47,8 @@ var KanbanController = BasicController.extend({
 
         this.createColumnEnabled = this._isCreateColumnEnabled();
         this.stageTag = params.stageHelpTag;
+
+        window.addEventListener('keydown', this._onkeyDown);
     },
 
     //--------------------------------------------------------------------------
@@ -142,6 +144,9 @@ var KanbanController = BasicController.extend({
             this.$buttons.find('.o-kanban-button-new')
                 .toggleClass('btn-primary', !createMuted)
                 .toggleClass('btn-default', createMuted);
+            if (this.stageTag) {
+                this.$buttons.find('.o-kanban-button-new').toggleClass('o_hidden', createMuted);
+            }
         }
     },
 
@@ -288,6 +293,16 @@ var KanbanController = BasicController.extend({
                     self.reload();
                 }
             });
+    },
+    /**
+     * @private
+     * @param {OdooEvent} event
+     * Hide Guided Step on ESC key.
+     */
+    _onkeyDown: function (event) {
+        if (event.which === 27) {
+            $('.record_blank').addClass('o_hidden');
+        }
     },
     _openExampleDialog: function (event) {
         this.sampleData = Registry.get(this.stageTag);

@@ -9,7 +9,6 @@ odoo.define('web.kanban_quick_create', function (require) {
 var Widget = require('web.Widget');
 var Registry = require('web.KanbanView_registry');
 
-
 var AbstractQuickCreate = Widget.extend({
     events: {
         'click .o_kanban_add': '_onAddClicked',
@@ -227,7 +226,7 @@ var RecordQuickCreate = AbstractQuickCreate.extend({
 var ColumnQuickCreate = AbstractQuickCreate.extend({
     template: 'KanbanView.ColumnQuickCreate',
     events: _.extend({}, AbstractQuickCreate.prototype.events, {
-        'click .o_column_header': 'toggleFold',
+        'click': 'toggleFold',
         'click input': '_onInputClicked',
         'mousedown .exampleDialog': '_openDialogTrigger',
         'focusout': '_onFocusout',
@@ -239,13 +238,15 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
         this._super.apply(this, arguments);
         this.folded = true;
         this.state = state;
-        this.isGuiedStepEnable = stageTag && state.count == 0;
-        if (this.isGuiedStepEnable) {
+        this.stageTag = stageTag;
+        this.isGuidedStepEnable = this.stageTag;
+        if (this.isGuidedStepEnable) {
             this.stepData = Registry.get(stageTag);
             if (this.stepData.helpStages.length > state.data.length) {
-                this.placeholder = this.stepData.helpStages[state.data.length];
+                this.placeholder = this.stepData.helpStages[state.data.length].placeholder;
+                this.recordNumbers = this.stepData.helpStages[state.data.length].records;
             } else {
-                this.isGuiedStepEnable = false;
+                this.isGuidedStepEnable = false;
             }
         }
     },
@@ -256,7 +257,7 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
         this.$header = this.$('.o_column_header');
         this.$quick_create = this.$('.o_kanban_quick_create');
         this.$input = this.$('input');
-        if (this.isGuiedStepEnable && this.state.data.length == 0) {
+        if (this.isGuidedStepEnable && this.state.data.length == 0) {
             this.toggleFold();
         }
         return this._super.apply(this, arguments);
