@@ -15,15 +15,15 @@ class SaleTimesheetController(http.Controller):
         """ Get the HTML of the project plan for projects matching the given domain
             :param domain: a domain for project.project
         """
-        values = self._prepare_plan_values(domain)
+        projects = request.env['project.project'].search(domain)
+        values = self._prepare_plan_values(projects)
         view = request.env.ref('sale_timesheet.timesheet_plan')
         return {
             'html_content': view.render(values)
         }
 
-    def _prepare_plan_values(self, domain):
+    def _prepare_plan_values(self, projects):
 
-        projects = request.env['project.project'].search(domain)
         currency = request.env.user.company_id.currency_id
         hour_rounding = request.env.ref('product.product_uom_hour').rounding
         billable_types = ['non_billable', 'non_billable_project', 'billable_time', 'billable_fixed']
@@ -31,7 +31,6 @@ class SaleTimesheetController(http.Controller):
         values = {
             'projects': projects,
             'currency': currency,
-            'domain': domain,
             'timesheet_domain': [('project_id', 'in', projects.ids)],
             'stat_buttons': self._plan_get_stat_button(projects),
         }
@@ -76,11 +75,22 @@ class SaleTimesheetController(http.Controller):
         #
         # Time Repartition (per employee per billable types)
         #
+        employees = projects.mapped('tasks.user_id.employee_ids')
         repartition_domain = [('project_id', 'in', projects.ids), ('employee_id', '!=', False), ('timesheet_invoice_type', '!=', False)]  # force billable type
         repartition_data = request.env['account.analytic.line'].read_group(repartition_domain, ['employee_id', 'timesheet_invoice_type', 'unit_amount'], ['employee_id', 'timesheet_invoice_type'], lazy=False)
 
         # set repartition per type per employee
         repartition_employee = {}
+        for employee in employees:
+            repartition_employee[employee.id] = dict(
+                employee_id=employee.id,
+                employee_name=employee.name,
+                non_billable_project=0.0,
+                non_billable=0.0,
+                billable_time=0.0,
+                billable_fixed=0.0,
+                total=0.0,
+            )
         for data in repartition_data:
             employee_id = data['employee_id'][0]
             repartition_employee.setdefault(employee_id, dict(
@@ -109,14 +119,14 @@ class SaleTimesheetController(http.Controller):
         stat_buttons.append({
             'name': _('Timesheets'),
             'res_model': 'account.analytic.line',
-            'domain': [('project_id', 'in', ('project_id', 'in', projects.ids))],
+            'domain': [('project_id', 'in', projects.ids)],
             'icon': 'fa fa-calendar',
         })
         stat_buttons.append({
             'name': _('Tasks'),
             'count': sum(projects.mapped('task_count')),
             'res_model': 'project.task',
-            'domain': [('project_id', 'in', ('project_id', 'in', projects.ids))],
+            'domain': [('project_id', 'in', projects.ids)],
             'icon': 'fa fa-tasks',
         })
         return stat_buttons
