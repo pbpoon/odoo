@@ -358,6 +358,7 @@ function get_channel_cache (channel, domain) {
 
 function invalidate_caches(channel_ids) {
     _.each(channel_ids, function (channel_id) {
+        debugger;
         var channel = chat_manager.get_channel(channel_id);
         if (channel) {
             channel.cache = { '[]': channel.cache['[]']};
@@ -903,7 +904,9 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             var message = _.findWhere(messages, {id: id});
             invalidate_caches(message.channel_ids);
             message.is_history = true;
-            var messageToHistory = add_message(message, {channel_id: 'channel_history', silent: true, 'domain': "[]"});
+            add_to_cache(message, []);
+            var channelHistory = chat_manager.get_channel('channel_history');
+            channelHistory.cache = _.pick(channelHistory.cache, "[]");
             // If too many messages, not all are fetched, and some might not be found
             return !message || message.is_needaction;
         });
@@ -921,9 +924,12 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         _.each(channel.cache["[]"].messages, function(message) {
             invalidate_caches(message.channel_ids);
             message.is_history = true;
-            var messageToHistory = add_message(message, {channel_id: 'channel_history', silent: true, 'domain': "[]"});
+            add_to_cache(message, []);
+            var channelHistory = chat_manager.get_channel('channel_history');
+            console.log(channelHistory);
+            channelHistory.cache = _.pick(channelHistory.cache, "[]");
         });
-
+        chat_manager.bus.trigger('update_history');
         if ((channel.id === "channel_inbox" && needaction_counter) || (channel && channel.needaction_counter)) {
             return this._rpc({
                     model: 'mail.message',
