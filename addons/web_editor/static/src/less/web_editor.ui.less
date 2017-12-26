@@ -616,11 +616,27 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
                 &.w:after, &.e:after {
                     content: "\f07e";
                 }
+
                 &.s:after, &.n:after {
                     content: "\f07d";
                 }
 
-                &.w {
+                &.oe_add_column:after, &.oe_remove_column:after {
+                    cursor: pointer;
+                    width: @o-handle-btn-size + 9;
+                    height: @o-handle-btn-size + 9;
+                    line-height: @o-handle-btn-size + 7;
+                }
+                &.oe_remove_column:after {
+                    font-size: 2em;
+                    content: "\f056" !important;
+                }
+                &.oe_add_column:after {
+                    font-size: 2em;
+                    content: "\f055" !important;
+                }
+
+                &.w, &.oe_remove_column {
                     border-width: @odoo-handle-border-width;
                     border-right-width: 0;
                     cursor: e-resize;
@@ -635,7 +651,7 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
                         margin-left: -@o-handle-btn-size/2;
                     }
                 }
-                &.e {
+                &.e, &.oe_add_column {
                     border-right-width: @odoo-handle-border-width;
                     cursor: w-resize;
                     width: @odoo-handle-edge-size;

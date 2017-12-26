@@ -5,7 +5,9 @@
             <div class="oe_handles">
                 <div class="oe_handle n readonly"/>
                 <div class="oe_handle e readonly"/>
+                <div class="oe_handle oe_add_column readonly"/>
                 <div class="oe_handle w readonly"/>
+                <div class="oe_handle oe_remove_column readonly"/>
                 <div class="oe_handle s readonly"/>
                 <div class="oe_handle size readonly">
                     <div class="oe_handle_button auto_size">Auto size</div>

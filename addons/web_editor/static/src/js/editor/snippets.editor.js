@@ -24,6 +24,8 @@ var SnippetEditor = Widget.extend({
         'click .oe_snippet_parent': '_onParentButtonClick',
         'click .oe_snippet_clone': '_onCloneClick',
         'click .oe_snippet_remove': '_onRemoveClick',
+        'click .oe_add_column': '_onAddColumnClick',
+        'click .oe_remove_column': '_onRemoveColumnClick',
     },
     custom_events: {
         cover_update: '_onCoverUpdate',
@@ -48,11 +50,13 @@ var SnippetEditor = Widget.extend({
     start: function () {
         var self = this;
         var defs = [this._super.apply(this, arguments)];
-
         // Hide parent button if no parent
         var $parent = globalSelector.closest(this.$target.parent());
         if (!$parent.length) {
             this.$('.oe_snippet_parent').remove();
+            if (this.$target.find('.container > .row').hasClass('s_manage_column')) {
+                this.$('.oe_add_column, .oe_remove_column').removeClass('readonly');
+            }
         }
 
         // Initialize the associated options (see snippets.options.js)
@@ -305,7 +309,6 @@ var SnippetEditor = Widget.extend({
                 });
             }
         }
-
         // clean editor if they are image or table in deleted content
         $('.note-control-selection').hide();
         $('.o_table_handler').remove();
@@ -318,6 +321,62 @@ var SnippetEditor = Widget.extend({
     // Handlers
     //--------------------------------------------------------------------------
 
+    _onAddColumnClick: function (ev) {
+        var parent = this.$target.find('.container > .row');
+        var children = parent.children();
+        var $clone = $(children.last()).clone(false);
+        var maxItem = parent.data().max || 6;
+
+        this.trigger_up('request_history_undo_record', {$target: this.$target});
+
+        if (children.length < 6) {
+            $(children.last()).after($clone);
+
+            children = parent.children();
+            if (children.length === 5) {
+                this._replaceClass(children, 2)
+                children.first().addClass('col-md-offset-1');
+            } else {
+                this._replaceClass(children, 12/children.length);
+            }
+        }
+        this._onCoverUpdate();
+    },
+
+    _onRemoveColumnClick: function (ev) {
+        var self = this;
+        var parent = this.$target.find('.container > .row');
+        var children = parent.children();
+        var minItem = parent.data().min || 1;
+
+        this.trigger_up('request_history_undo_record', {$target: this.$target});
+
+        if (children.length > 1 && children.length <= 6) {
+            children.last().remove();
+            children.splice(-1);
+            if (children.length === 5) {
+                this._replaceClass(children, 2)
+                children.first().addClass('col-md-offset-1');
+            } else {
+                this._replaceClass(children, 12/children.length);
+            }
+            this.trigger_up('snippet_removed');
+            this._onCoverUpdate();
+        }
+    },
+
+    _replaceClass: function (children, length) {
+        _.each(children, function (child) {
+            var className = $(child).attr('class');
+            var col = className.match(/col-md-([0-9-]+)/i);
+            col = col ? col[0] : '';
+            var offset = className.match(/col-md-offset-([0-9-]+)/i);
+            offset = offset ? offset[0] : '';
+            $(child).removeClass(col + ' ' + offset);
+            $(child).addClass('col-md-' + length);
+        })
+    },
+
     /**
      * Called when the 'clone' button is clicked.
      *
@@ -327,7 +386,6 @@ var SnippetEditor = Widget.extend({
     _onCloneClick: function (ev) {
         ev.preventDefault();
         var $clone = this.$target.clone(false);
-
         this.trigger_up('request_history_undo_record', {$target: this.$target});
 
         this.$target.after($clone);
