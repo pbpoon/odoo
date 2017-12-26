@@ -17,7 +17,8 @@ var BomReportAction = ReportAction.extend({
             });
         this._super(parent, action, option);
     },
-    openM2ORecord: function (){
+    openM2ORecord: function (ev){
+        ev.stopPropagation();
         var action = {
             'type': 'ir.actions.act_window',
             'view_type': 'form',
