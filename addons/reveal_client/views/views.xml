@@ -1,0 +1,131 @@
+<odoo>
+  <record model="ir.ui.view" id="lead_acquisition_rule_form">
+    <field name="name">lead.acquisition.rule.form</field>
+    <field name="model">crm.lead.rule</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+          <div class="oe_button_box" name="button_box">
+              <button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button" icon="fa-archive">
+                <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+              </button>
+          </div>
+          <div class="oe_title">
+              <h1 class="o_row">
+                  <field name="name"/>
+              </h1>
+          </div>
+          <group>
+            <group>
+              <field name="country_ids" widget="many2many_tags"/>
+              <field name="url"/>
+            </group>
+          </group>
+          <notebook>
+            <page name="company_data_page" string="Company Filter">
+              <group>
+                <group>
+                  <field name="company_size_min"/>
+                  <field name="company_size_max"/>
+                </group>
+                <group>
+                  <field name="industry_tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                </group>
+              </group>
+              <div class="oe_clear"/>
+            </page>
+            <page name="people_data_page" string="People Filter">
+              <group>
+                <field name="preferred_role"/>
+                <field name="other_role" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="seniority"/>
+              </group>
+              <div class="oe_clear"/>
+            </page>
+            <page name="lead_opportunity_data_page" string="Lead / Opportunity">
+              <group>
+                <group>
+                  <field name="lead_type" groups="crm.group_use_lead"/>
+                  <field name="lead_for"/>
+                  <field name="team_id"/>
+                  <field name="user_id"/>                
+                </group>
+                <group>
+                  <field name="stage_id"/>
+                  <field name="tag_ids" widget="many2many_tags"/>
+                  <field name="priority" widget="priority"/>
+                </group>
+              </group>
+              <field name="lead_ids"/>
+              <div class="oe_clear"/>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record model="ir.ui.view" id="lead_acquisition_rule_list">
+    <field name="name">lead.acquisition.rule.list</field>
+    <field name="model">crm.lead.rule</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="name"/>
+        <field name="lead_type"/>
+      </tree>
+    </field>
+  </record>
+
+  <record model="ir.ui.view" id="ip_visittime_rule_list">
+    <field name="name">ip.visittime.rule.list</field>
+    <field name="model">reveal.ip.visittime</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="create_date" string="Visited On"/>
+        <field name="ip_id"/>
+      </tree>
+    </field>
+  </record>
+
+  <record model="ir.ui.view" id="ip_history_list">
+    <field name="name">ip.history.list</field>
+    <field name="model">reveal.ip.history</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="ip"/>
+      </tree>
+    </field>
+  </record>
+
+  <record model="ir.actions.act_window" id="lead_acquisition_rule">
+    <field name="name">Acquisition Rules</field>
+    <field name="res_model">crm.lead.rule</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+
+  <record model="ir.actions.act_window" id="ip_history_data">
+    <field name="name">IP History</field>
+    <field name="res_model">reveal.ip.history</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+
+  <!-- This menu is display in CRM app when reveal_clent is installed-->
+  <menuitem
+      id="lead_generation_menu_crm"
+      name="Lead Generation"
+      parent="crm.crm_menu_config"
+      sequence="10"/>
+ 
+  <menuitem
+    action="lead_acquisition_rule"
+    id="menu_lead_acquisition_rule"
+    parent="lead_generation_menu_crm"
+    sequence="1"/>
+
+  <menuitem
+    action="ip_history_data"
+    id="menu_ip_history_data"
+    parent="lead_generation_menu_crm"
+    sequence="4"/>
+
+</odoo>
