@@ -32,7 +32,7 @@ var MyHtmlEditor = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
      * @private
      */
     _renderEdit: function () {
-        if (!this.$el.find('#my_editor').html().trim() === 'Write here...' || this.value) {
+        if (!this.$el.find('#my_editor').html() .trim() === 'Write here...' || this.value) {
             this.$el.find('#my_editor').html(this.value);
         }
         var colorPalette = ['000000', 'FF9966', '6699FF', '99FF66', 'CC0000', '00CC00', '0000CC', '333333', '0066FF', 'FFFFFF'];
@@ -48,7 +48,7 @@ var MyHtmlEditor = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
             e.preventDefault();
             e.stopPropagation();
             var command = $(this).data('command');
-            if (command == 'h1' || command == 'h2' || command == 'p') {
+            if (_.contains(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'], command) || command == 'p') {
                 document.execCommand('formatBlock', false, command);
             }
             if (command == 'forecolor' || command == 'backcolor') {

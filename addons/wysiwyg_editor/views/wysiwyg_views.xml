@@ -39,7 +39,8 @@
         </record>
         
         <menuitem id="wysiwyg_root"
-            name="WYSIWYG Editor"/>
+            name="WYSIWYG Editor"
+            web_icon="wysiwyg_editor,static/src/img/icon.png"/>
 
         <menuitem id="wysiwyg_menu"
             name="WYSIWYG"

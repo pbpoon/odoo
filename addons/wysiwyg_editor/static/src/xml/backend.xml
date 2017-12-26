@@ -3,38 +3,48 @@
 
     <t t-name="MyHtmlEditor">
         <div class="edit_toolbar">
+            <div class="note-style btn-group">
+                <div class="btn-group open" data-name="style">
+                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" title="" tabindex="-1" data-original-title="Style" aria-expanded="true"><i class="fa fa-magic"></i> <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a data-command="h1" href="#"><h1>Header 1</h1></a></li>
+                        <li><a data-command="h2" href="#"><h2>Header 2</h2></a></li>
+                        <li><a data-command="h3" href="#"><h3>Header 3</h3></a></li>
+                        <li><a data-command="h4" href="#"><h4>Header 4</h4></a></li>
+                        <li><a data-command="h5" href="#"><h5>Header 5</h5></a></li>
+                        <li><a data-command="h6" href="#"><h6>Header 6</h6></a></li>
+                    </ul>
+                </div>
+            </div>
             <a href="#" data-command='undo'><i class='fa fa-undo'></i></a>
-              <a href="#" data-command='redo'><i class='fa fa-repeat'></i></a>
-              <div class="fore-wrapper"><i class='fa fa-font' style='color:#C96;'></i>
-                <div class="fore-palette">
-                </div>
-              </div>
-              <div class="back-wrapper"><i class='fa fa-font' style='background:#C96;'></i>
-                <div class="back-palette">
-                </div>
-              </div>
-              <a href="#" data-command='bold'><i class='fa fa-bold'></i></a>
-              <a href="#" data-command='italic'><i class='fa fa-italic'></i></a>
-              <a href="#" data-command='underline'><i class='fa fa-underline'></i></a>
-              <a href="#" data-command='strikeThrough'><i class='fa fa-strikethrough'></i></a>
-              <a href="#" data-command='justifyLeft'><i class='fa fa-align-left'></i></a>
-              <a href="#" data-command='justifyCenter'><i class='fa fa-align-center'></i></a>
-              <a href="#" data-command='justifyRight'><i class='fa fa-align-right'></i></a>
-              <a href="#" data-command='justifyFull'><i class='fa fa-align-justify'></i></a>
-              <a href="#" data-command='indent'><i class='fa fa-indent'></i></a>
-              <a href="#" data-command='outdent'><i class='fa fa-outdent'></i></a>
-              <a href="#" data-command='insertUnorderedList'><i class='fa fa-list-ul'></i></a>
-              <a href="#" data-command='insertOrderedList'><i class='fa fa-list-ol'></i></a>
-              <a href="#" data-command='h1'>H1</a>
-              <a href="#" data-command='h2'>H2</a>
-              <a href="#" data-command='createlink'><i class='fa fa-link'></i></a>
-              <a href="#" data-command='unlink'><i class='fa fa-unlink'></i></a>
-              <a href="#" data-command='insertimage'><i class='fa fa-image'></i></a>
-              <a href="#" data-command='p'>P</a>
-              <a href="#" data-command='subscript'><i class='fa fa-subscript'></i></a>
-              <a href="#" data-command='superscript'><i class='fa fa-superscript'></i></a>
+            <a href="#" data-command='redo'><i class='fa fa-repeat'></i></a>
+            <div class="fore-wrapper"><i class='fa fa-font' style='color:#C96;'></i>
+                <div class="fore-palette"/>
+            </div>
+            <div class="back-wrapper"><i class='fa fa-font' style='background:#C96;'></i>
+                <div class="back-palette"/>
+            </div>
+            <a href="#" data-command='bold'><i class='fa fa-bold'></i></a>
+            <a href="#" data-command='italic'><i class='fa fa-italic'></i></a>
+            <a href="#" data-command='underline'><i class='fa fa-underline'></i></a>
+            <a href="#" data-command='strikeThrough'><i class='fa fa-strikethrough'></i></a>
+            <a href="#" data-command='justifyLeft'><i class='fa fa-align-left'></i></a>
+            <a href="#" data-command='justifyCenter'><i class='fa fa-align-center'></i></a>
+            <a href="#" data-command='justifyRight'><i class='fa fa-align-right'></i></a>
+            <a href="#" data-command='justifyFull'><i class='fa fa-align-justify'></i></a>
+            <a href="#" data-command='indent'><i class='fa fa-indent'></i></a>
+            <a href="#" data-command='outdent'><i class='fa fa-outdent'></i></a>
+            <a href="#" data-command='insertUnorderedList'><i class='fa fa-list-ul'></i></a>
+            <a href="#" data-command='insertOrderedList'><i class='fa fa-list-ol'></i></a>
+            <a href="#" data-command='createlink'><i class='fa fa-link'></i></a>
+            <a href="#" data-command='unlink'><i class='fa fa-unlink'></i></a>
+            <a href="#" data-command='insertimage'><i class='fa fa-image'></i></a>
+            <a href="#" data-command='p'>P</a>
+            <a href="#" data-command='subscript'><i class='fa fa-subscript'></i></a>
+            <a href="#" data-command='superscript'><i class='fa fa-superscript'></i></a>
         </div>
-        <div id='my_editor' contenteditable='true'>
+        <div id='my_editor' contenteditable='true' tabindex="5">
               Write here...
         </div>
     </t>
