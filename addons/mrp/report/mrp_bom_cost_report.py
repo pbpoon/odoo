@@ -73,6 +73,7 @@ class MrpBomCost(models.AbstractModel):
                 if lines:
                     product_line = {'bom': bom, 'name': product.display_name, 'lines': [], 'total': 0.0,
                                     'currency': self.env.user.company_id.currency_id,
+                                    'reference': bom.code,
                                     'product_uom_qty': bom.product_qty,
                                     'product_uom': bom.product_uom_id,
                                     'attributes': attributes, 'id': product.id}

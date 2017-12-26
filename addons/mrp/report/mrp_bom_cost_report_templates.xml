@@ -7,6 +7,11 @@
                     <div class="page">
                         <t t-set="currency" t-value="line['currency']"/>
                         <h1>BoM Structure &amp; Cost</h1>
+                        <span>
+                            <t t-if="line['reference']">
+                                Reference: <t t-esc="line['reference']"/>
+                            </t>
+                        </span>
                         <h4 class="mb64">
                             <a class="reports_m2o_web_action pull-left" href="#" t-att-res-id="line['id']" res-model="product.product">
                                 <t t-esc="line['name']"/>
