@@ -177,11 +177,13 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
             if has_demo:
                 # launch tests only in demo mode, allowing tests to use demo data.
                 if tools.config.options['test_enable']:
+                    # remove post_install tests
+                    tag_selection = tools.config.options['test_tags'] + ',-post_install'
                     # Yamel test
                     report.record_result(load_test(module_name, idref, mode))
                     # Python tests
                     env['ir.http']._clear_routing_map()     # force routing map to be rebuilt
-                    report.record_result(odoo.modules.module.run_unit_tests(module_name, cr.dbname))
+                    report.record_result(odoo.modules.module.run_unit_tests(module_name, cr.dbname, tag_selection=tag_selection))
                     # tests may have reset the environment
                     env = api.Environment(cr, SUPERUSER_ID, {})
                     module = env['ir.module.module'].browse(module_id)
