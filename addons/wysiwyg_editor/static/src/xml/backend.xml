@@ -5,7 +5,8 @@
         <div class="edit_toolbar">
             <div class="note-style btn-group">
                 <div class="btn-group open" data-name="style">
-                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" title="" tabindex="-1" data-original-title="Style" aria-expanded="true"><i class="fa fa-magic"></i> <span class="caret"></span>
+                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" title="" tabindex="-1" data-original-title="Style" aria-expanded="true">
+                        <i class="fa fa-magic"></i><span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
                         <li><a data-command="h1" href="#"><h1>Header 1</h1></a></li>
@@ -33,6 +34,21 @@
             <a href="#" data-command='justifyCenter'><i class='fa fa-align-center'></i></a>
             <a href="#" data-command='justifyRight'><i class='fa fa-align-right'></i></a>
             <a href="#" data-command='justifyFull'><i class='fa fa-align-justify'></i></a>
+            <div class="note-table btn-group">
+                <div class="btn-group open" data-name="table">
+                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" title="" tabindex="-1" data-original-title="Table" aria-expanded="true">
+                        <i class="fa fa-table"></i> <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu note-table">
+                        <div class="note-dimension-picker">
+                            <div class="note-dimension-picker-mousecatcher" data-event="insertTable" data-value="2x1" style="width: 10em; height: 10em;"/>
+                            <div class="note-dimension-picker-highlighted" style="width: 2em; height: 1em;"/>
+                            <div class="note-dimension-picker-unhighlighted"/>
+                        </div>
+                        <div class="note-dimension-display">1 x 1</div>
+                    </ul>
+                </div>
+            </div>
             <a href="#" data-command='indent'><i class='fa fa-indent'></i></a>
             <a href="#" data-command='outdent'><i class='fa fa-outdent'></i></a>
             <a href="#" data-command='insertUnorderedList'><i class='fa fa-list-ul'></i></a>

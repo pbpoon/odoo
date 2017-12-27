@@ -40,7 +40,7 @@
         
         <menuitem id="wysiwyg_root"
             name="WYSIWYG Editor"
-            web_icon="wysiwyg_editor,static/src/img/icon.png"/>
+            web_icon="wysiwyg_editor,static/description/icon.png"/>
 
         <menuitem id="wysiwyg_menu"
             name="WYSIWYG"

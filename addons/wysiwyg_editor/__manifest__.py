@@ -15,7 +15,8 @@ Simple WYSIWYG Edito
     'depends': ['web'],
     'data': [
         'views/wysiwyg_views.xml',
-        'views/wysiwyg_template_views.xml'
+        'views/wysiwyg_template_views.xml',
     ],
     'installable': True,
+    'application': True,
 }
