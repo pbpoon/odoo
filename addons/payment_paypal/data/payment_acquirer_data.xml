@@ -14,7 +14,6 @@
 <p>You will be redirected to the Paypal website after clicking on the payment button.</p>]]></field>
             <field name="paypal_api_username">dummy</field>
             <field name="paypal_api_password">dummy</field>
-            <field name="paypal_pdt_token">dummy</field>
         </record>
 
     </data>

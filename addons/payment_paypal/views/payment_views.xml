@@ -12,7 +12,7 @@
                         <field name="paypal_account_check" widget="radio" />
                         <field name="paypal_email_account"/>
                         <field name="paypal_seller_account" attrs="{'invisible': [('paypal_account_check', '=', 'newuser')]}"/>
-                        <field name="paypal_pdt_token" attrs="{'invisible': [('paypal_account_check', '=', 'newuser')]}"/>
+                        <field name="paypal_pdt_token" attrs="{'invisible': [('paypal_account_check', '=', 'newuser')], 'required': [('provider', '=', 'paypal'), ('paypal_account_check', '=', 'existinguser')]}"/>
                         <field name="paypal_use_ipn"/>
                         <field name="paypal_api_enabled" invisible="1"/>
                         <field name="paypal_api_username" invisible="1"/>
