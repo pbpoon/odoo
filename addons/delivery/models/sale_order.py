@@ -60,6 +60,9 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
         for so in self:
+            for line in so.order_line:
+                if line.is_delivery:
+                    line.invoice_status = 'no'
             so.invoice_shipping_on_delivery = all([not line.is_delivery for line in so.order_line])
         return res
 
