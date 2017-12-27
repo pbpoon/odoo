@@ -15,7 +15,8 @@ class ProductCategory(models.Model):
         string="Expense Account", oldname="property_account_expense_categ",
         domain=[('deprecated', '=', False)],
         help="The expense is accounted for when a vendor bill is validated, except in anglo-saxon accounting with perpetual inventory valuation in which case the expense (Cost of Goods Sold account) is recognized at the customer invoice validation.")
-
+    property_account_income_refund_categ_id = fields.Many2one('account.account', string='Income Refund Account',
+        help="If set, this account will be used iby default instead of the income account on the customer credit notes. If not set, the income account will be used")
 #----------------------------------------------------------
 # Products
 #----------------------------------------------------------
@@ -34,6 +35,8 @@ class ProductTemplate(models.Model):
         string="Expense Account", oldname="property_account_expense",
         domain=[('deprecated', '=', False)],
         help="The expense is accounted for when a vendor bill is validated, except in anglo-saxon accounting with perpetual inventory valuation in which case the expense (Cost of Goods Sold account) is recognized at the customer invoice validation. If the field is empty, it uses the one defined in the product category.")
+    property_account_income_refund_id = fields.Many2one('account.account', string='Income Refund Account',
+        help="If set, this account will be used iby default instead of the income account on the customer credit notes. If not set, the income account will be used")
 
     @api.multi
     def write(self, vals):
