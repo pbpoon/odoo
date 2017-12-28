@@ -9,6 +9,7 @@ var quick_create = require('web.kanban_quick_create');
 var QWeb = require('web.QWeb');
 var session = require('web.session');
 var utils = require('web.utils');
+var Registry = require('web.KanbanView_registry');
 
 var ColumnQuickCreate = quick_create.ColumnQuickCreate;
 
@@ -85,7 +86,6 @@ var KanbanRenderer = BasicRenderer.extend({
     className: 'o_kanban_view',
     custom_events: _.extend({}, BasicRenderer.prototype.custom_events || {}, {
         'set_progress_bar_state': '_onSetProgressBarState',
-        'set_guided_step_state': '_onSetGuidedStepState'
     }),
 
     /**
@@ -99,7 +99,7 @@ var KanbanRenderer = BasicRenderer.extend({
         var templates = findInNode(this.arch, function (n) { return n.tag === 'templates';});
         transformQwebTemplate(templates, state.fields);
         this.qweb.add_template(utils.json_node_to_xml(templates));
-        this.stageTag = this.arch.attrs.stage_help_tag;
+        this.stageHelpTag = this.arch.attrs.stage_help_tag;
 
         this.recordOptions = _.extend({}, params.record_options, {
             qweb: this.qweb,
@@ -107,8 +107,9 @@ var KanbanRenderer = BasicRenderer.extend({
         });
         this.columnOptions = _.extend({}, params.column_options, { 
             qweb: this.qweb,
-            stageHelp: this.stageTag,
+            stageHelp: this.stageHelpTag,
             isGuidedStepEnable: this.state.count == 0 ? true:false,
+            stepData: this.stageHelpTag ? Registry.get(this.stageHelpTag) : ''
         });
         if (this.columnOptions.hasProgressBar) {
             this.columnOptions.progressBarStates = {};
@@ -229,8 +230,9 @@ var KanbanRenderer = BasicRenderer.extend({
         var self = this;
 
         // Render columns
-        _.each(this.state.data, function (group) {
-            var column = new KanbanColumn(self, group, self.columnOptions, self.recordOptions, self.state);
+        _.each(this.state.data, function (group, index) {
+            self.columnOptions = _.extend({}, self.columnOptions, {index: index});
+            var column = new KanbanColumn(self, group, self.columnOptions, self.recordOptions);
             if (!group.value) {
                 column.prependTo(fragment); // display the 'Undefined' group first
                 self.widgets.unshift(column);
@@ -262,7 +264,7 @@ var KanbanRenderer = BasicRenderer.extend({
 
             // Enable column quickcreate
             if (this.createColumnEnabled) {
-                this.quickCreate = new ColumnQuickCreate(this, this.stageTag, this.state);
+                this.quickCreate = new ColumnQuickCreate(this, this.stageHelpTag, this.state);
                 this.quickCreate.appendTo(fragment);
             }
         }

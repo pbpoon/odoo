@@ -11,10 +11,10 @@ helpStages: [{
     records: 3
 },{
     placeholder:_t('In Progress'),
-    records: 3
+    records: 4
 },{
     placeholder:_t('Done'),
-    records: 3
+    records: 2
 }],
 exampleStages: [{
     title: _t('Software Development'),

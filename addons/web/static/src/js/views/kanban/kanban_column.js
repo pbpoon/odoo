@@ -9,7 +9,6 @@ var KanbanRecord = require('web.KanbanRecord');
 var view_dialogs = require('web.view_dialogs');
 var Widget = require('web.Widget');
 var KanbanColumnProgressBar = require('web.KanbanColumnProgressBar');
-var Registry = require('web.KanbanView_registry');
 
 var _t = core._t;
 var QWeb = core.qweb;
@@ -60,16 +59,14 @@ var KanbanColumn = Widget.extend({
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
         this.isGuidedStepEnable = options.stageHelp && options.isGuidedStepEnable && this.data.count == 0;
+        this.stepData = options.stepData;
+        this.cloumnIndex = options.index;
 
         if (options.hasProgressBar) {
             this.barOptions = {
                 columnID: this.db_id,
                 progressBarStates: options.progressBarStates,
             };
-        }
-        if (this.isGuidedStepEnable) {
-            this.stepData = Registry.get(options.stageHelp);
-            this.recordNumbers = 3;
         }
 
         this.record_options = _.clone(recordOptions);

@@ -11,9 +11,6 @@ var BasicController = require('web.BasicController');
 var Context = require('web.Context');
 var core = require('web.core');
 var view_dialogs = require('web.view_dialogs');
-var Dialog = require('web.Dialog');
-var QWeb = core.qweb;
-var Registry = require('web.KanbanView_registry');
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -33,7 +30,6 @@ var KanbanController = BasicController.extend({
         kanban_load_more: '_onLoadMore',
         kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
-        open_example_Dialog: '_openExampleDialog',
     }),
     /**
      * @override
@@ -46,7 +42,7 @@ var KanbanController = BasicController.extend({
         this.hasButtons = params.hasButtons;
 
         this.createColumnEnabled = this._isCreateColumnEnabled();
-        this.stageTag = params.stageHelpTag;
+        this.stageHelpTag = params.stageHelpTag;
 
         window.addEventListener('keydown', this._onkeyDown);
     },
@@ -144,7 +140,7 @@ var KanbanController = BasicController.extend({
             this.$buttons.find('.o-kanban-button-new')
                 .toggleClass('btn-primary', !createMuted)
                 .toggleClass('btn-default', createMuted);
-            if (this.stageTag) {
+            if (this.stageHelpTag) {
                 this.$buttons.find('.o-kanban-button-new').toggleClass('o_hidden', createMuted);
             }
         }
@@ -303,20 +299,6 @@ var KanbanController = BasicController.extend({
         if (event.which === 27) {
             $('.record_blank').addClass('o_hidden');
         }
-    },
-    _openExampleDialog: function (event) {
-        this.sampleData = Registry.get(this.stageTag);
-        var dialog = new Dialog(this, {
-            title: "Kanban Examples",
-            size: "large",
-            buttons: false,
-            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.sampleData}),
-        }).open();
-
-        // Hide the footer
-        dialog.opened(function () {
-            dialog.$footer.remove();
-        });
     },
     /**
      * Loads the record of a given column (used in mobile, as the columns are

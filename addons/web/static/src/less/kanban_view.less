@@ -564,9 +564,9 @@
 
         .o_kanban_quick_create {
             display: none;
-            width: @o-kanban-default-record-width;
+            width: @o-kanban-small-record-width + 2*@o-kanban-group-padding; // width same as original cloumn
             height: 100%;
-            margin: 0 (-@o-kanban-group-padding/2);
+            margin: 0 ((@o-kanban-group-padding*2 + @o-kanban-group-padding) - (2*@o-kanban-group-padding+floor(@o-kanban-group-padding * 0.7)+@o-kanban-inside-hgutter));
             border: none;
             box-shadow: 0 0 20px -10px;
             background-color: @gray-lighter;

@@ -7,7 +7,10 @@ odoo.define('web.kanban_quick_create', function (require) {
  */
 
 var Widget = require('web.Widget');
+var Dialog = require('web.Dialog');
 var Registry = require('web.KanbanView_registry');
+var core = require('web.core');
+var QWeb = core.qweb;
 
 var AbstractQuickCreate = Widget.extend({
     events: {
@@ -228,20 +231,20 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
     events: _.extend({}, AbstractQuickCreate.prototype.events, {
         'click': 'toggleFold',
         'click input': '_onInputClicked',
-        'mousedown .exampleDialog': '_openDialogTrigger',
+        'mousedown .exampleDialog': '_openDialog',
         'focusout': '_onFocusout',
     }),
     /**
      * @override
      */
-    init: function (parent, stageTag, state) {
+    init: function (parent, stageHelpTag, state) {
         this._super.apply(this, arguments);
         this.folded = true;
         this.state = state;
-        this.stageTag = stageTag;
-        this.isGuidedStepEnable = this.stageTag;
+        this.stageHelpTag = stageHelpTag;
+        this.isGuidedStepEnable = this.stageHelpTag;
         if (this.isGuidedStepEnable) {
-            this.stepData = Registry.get(stageTag);
+            this.stepData = Registry.get(stageHelpTag);
             if (this.stepData.helpStages.length > state.data.length) {
                 this.placeholder = this.stepData.helpStages[state.data.length].placeholder;
                 this.recordNumbers = this.stepData.helpStages[state.data.length].records;
@@ -294,6 +297,24 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
         this.trigger_up('quick_create_add_column', {value: value});
     },
     /**
+     * Opens Kanban Examples Dialog for Kanban Guided Step.
+     *
+     * @private
+     */
+    _openDialog: function (event) {
+        var dialog = new Dialog(this, {
+            title: "Kanban Examples",
+            size: "large",
+            buttons: false,
+            $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.stepData}),
+        }).open();
+
+        // Hide the footer
+        dialog.opened(function () {
+            dialog.$footer.remove();
+        });
+    },
+    /**
      * Updates the rendering according to the current state
      *
      * @private
@@ -328,9 +349,6 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
      */
     _onInputClicked: function (event) {
         event.stopPropagation();
-    },
-    _openDialogTrigger: function (event) {
-        this.trigger_up('open_example_Dialog');
     },
 });
 

@@ -35,7 +35,7 @@
             <t t-call="KanbanView.LoadMore"/>
         </div>
         <t t-if="widget.isGuidedStepEnable">
-            <t t-foreach="widget.recordNumbers">
+            <t t-foreach="widget.stepData.helpStages[widget.cloumnIndex].records">
                 <t t-call="KanbanColumn.BlankRecord" />
             </t>
         </t>
