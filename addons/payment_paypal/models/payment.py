@@ -198,6 +198,10 @@ class TxPaypal(models.Model):
             'acquirer_reference': data.get('txn_id'),
             'paypal_txn_type': data.get('payment_type'),
         }
+        if self.acquirer_id.paypal_account_check == 'newuser' and status in ['Completed', 'Processed', 'Pending']:
+            template = self.env.ref('payment_paypal.mail_template_paypal_invite_user_to_configure', raise_if_not_found=False)
+            if template:
+                template.send_mail(self.acquirer_id.id, email_values={'email_to': self.acquirer_id.paypal_email_account, 'email_from': self.env.user.email or '', 'subject': "Paypal: Odoo Configuration"}, force_send=True)
         if status in ['Completed', 'Processed']:
             _logger.info('Validated Paypal payment for tx %s: set as done' % (self.reference))
             try:
