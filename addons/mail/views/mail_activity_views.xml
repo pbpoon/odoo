@@ -182,4 +182,98 @@
         </field>
     </record>
 
+    <record id="mail_activity_reminder_view_form" model="ir.ui.view">
+        <field name="name">mail.activity.view.form</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <form string="Reminders">
+                <sheet>
+                    <field name="reminder_open" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-check" type="object" name="action_reminder_close" string="Mark as Done" attrs="{'invisible' : [('reminder_open', '=', False)]}" />
+                        <button class="oe_stat_button" icon="fa-undo" type="object" name="action_reminder_open" string="Re-open" attrs="{'invisible' : [('reminder_open', '=', True)]}" />
+                    </div>
+                    <div class="oe_title">
+                        <label for="summary" class="oe_edit_only"/>
+                        <h1><field name="summary"/></h1>
+                    </div>
+                    <field name="note"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_activity_view_kanban" model="ir.ui.view">
+        <field name="name">mail.activity.view.kanban</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column">
+                <field name="summary"/>
+                <field name="note"/>
+                <field name="reminder_open"/>
+                <field name="res_id"/>
+                <field name="res_model"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
+                                <a class="dropdown-toggle btn" data-toggle="dropdown" href="#">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                    <li><a type="delete">Delete</a></li>
+                                </ul>
+                            </div>
+                            <div class="oe_kanban_content">
+                                <div>
+                                    <div t-attf-class="#{record.reminder_open.raw_value ? '' : 'o_text_line_through'}">
+                                        <strong><field name="summary"/></strong>
+                                        <p class="o_activity_reminder_kanban_content"><t t-esc="_.str.stripTags(record.note.raw_value)"/></p>
+                                    </div>
+                                    <span t-if="!record.res_id.raw_value and !record.res_model.raw_value">
+                                        <a name="action_reminder_close" type="object" t-if="record.reminder_open.raw_value" title="Mark as done"><i class="fa fa-check"/></a>
+                                        <a name="action_reminder_open" type="object" t-if="!record.reminder_open.raw_value" title="Re-open reminder"><i class="fa fa-undo"/></a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="mail_activity_reminder_view_search" model="ir.ui.view">
+        <field name="name">mail.activity.reminder.view.search</field>
+        <field name="model">mail.activity</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <search string="Activity">
+                <field name="reminder_open"/>
+                <separator/>
+                <filter string="Active Reminders" name="filter_open_reminders"
+                        domain="[('reminder_open', '=', True)]"/>
+                <filter string="Closed Reminders" name="filter_closed_reminders"
+                        domain="[('reminder_open', '=', False)]"/>
+                <separator/>
+            </search>
+        </field>
+    </record>
+
+     <record id="mail_activity_reminders_action" model="ir.actions.act_window">
+        <field name="name">Reminders</field>
+        <field name="res_model">mail.activity</field>
+        <field name="view_type">form</field>
+        <field name="search_view_id" ref="mail_activity_reminder_view_search"/>
+        <field name="view_ids"
+                   eval="[(5, 0, 0),
+                          (0, 0, {'view_mode': 'kanban', 'view_id': ref('mail_activity_view_kanban')}),
+                          (0, 0, {'view_mode': 'form', 'view_id': ref('mail_activity_reminder_view_form')})]"/>
+        <field name="view_id" ref="mail.mail_activity_view_kanban"/>
+        <field name="view_mode">kanban,form</field>
+        <field name="domain">[('user_id', '=', uid), ('res_id', '=', False), ('res_model', '=', False)]</field>
+        <field name="context" eval="{'search_default_filter_open_reminders': 1}"/>
+    </record>
 </odoo>

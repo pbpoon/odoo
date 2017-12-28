@@ -221,5 +221,21 @@ virginie@agrolait.fr</pre></field>
             <field name="date" eval="(DateTime.today() - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')"/>
         </record>
 
+        <!-- Mail Activity (Reminder) -->
+        <record id="reminder_1" model="mail.activity">
+            <field name="summary">Lunch with colleagues</field>
+            <field name="note"><![CDATA[<p>Lunch with colleagues this Sunday.</p>]]></field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="reminder_open" eval="True"/>
+        </record>
+
+        <record id="reminder_2" model="mail.activity">
+            <field name="summary">Read some documentation about Odoo before diving into the code</field>
+            <field name="note"><![CDATA[<p>* Odoo: a modern approach to integrated business management</p>
+<p>* Odoo for Retail and Industrial Management</p>]]></field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="reminder_open" eval="False"/>
+        </record>
+
     </data>
 </odoo>

@@ -132,7 +132,7 @@ class Users(models.Model):
                         END AS states
                     FROM mail_activity AS act
                     JOIN ir_model AS m ON act.res_model_id = m.id
-                    WHERE user_id = %s
+                    WHERE user_id = %s AND act.res_model IS NOT NULL AND act.res_id IS NOT NULL
                     GROUP BY m.name, states, act.res_model;
                     """
         self.env.cr.execute(query, [self.env.uid])
@@ -151,7 +151,12 @@ class Users(models.Model):
             if activity['states'] in ('today','overdue'):
                 user_activities[activity['model']]['total_count'] += activity['count']
 
-        return list(user_activities.values())
+        # Getting total reminder count
+        # related to user and type = 'reminder'
+        reminder_domain = [('user_id', '=', self.env.uid), ('res_id', '=', False), ('res_model', '=', False), ('reminder_open', '=', True)]
+        reminder_count = self.env["mail.activity"].search_count(reminder_domain)
+
+        return {'activities': list(user_activities.values()), 'reminder_count': reminder_count}
 
 
 class res_groups_mail_channel(models.Model):

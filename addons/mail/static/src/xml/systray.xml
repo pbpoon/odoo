@@ -53,6 +53,27 @@
     </t>
 
     <t t-name="mail.chat.ActivityMenuPreview">
+        <div class="o_mail_reminder_preview o_reminder_preview">
+            <div class="o_mail_channel_image o_mail_channel_app o_reminder_icon">
+                <span class="fa fa-thumb-tack fa-2x"/>
+            </div>
+            <div class="o_channel_info">
+                <div class="o_channel_title">
+                    <span class="o_channel_name">
+                        <t t-if="reminder_count">
+                            <strong>Reminders (<t t-esc="reminder_count"/>)</strong>
+                        </t>
+                        <t t-else="">
+                            <strong>No Reminders</strong>
+                        </t>
+                    </span>
+                </div>
+                <p>
+                    <t t-if="reminder_count">You have <t t-esc="reminder_count"/> reminders.</t>
+                    <t t-else="">Click to open archived reminders if any.</t>
+                </p>
+            </div>
+        </div>
         <t t-if="_.isEmpty(activities)">
             <li class="text-center o_no_activity">
                 <span>No activities planned.</span>
@@ -80,6 +101,23 @@
                 </div>
             </div>
         </t>
+        <div class="o_add_reminder">
+            <a href="#" class="btn btn-block text-center">ADD NEW REMINDER</a>
+        </div>
+        <div class="o_new_reminder o_mail_reminder_preview hidden">
+            <div class="o_mail_channel_image o_mail_channel_app o_reminder_icon">
+                <span class="fa fa-thumb-tack fa-2x"/>
+            </div>
+            <div class="o_channel_info">
+                <div class="o_channel_title">
+                    <span class="o_channel_name"><strong>Set a reminder</strong></span>
+                    <span class="ml16">
+                        <a href="#" class="o_new_reminder_save"><span class="fa fa-check"/></a>
+                    </span>
+                </div>
+                <p><input class="o_new_reminder_input" type="text" placeholder="Remember..." /></p>
+            </div>
+        </div>
     </t>
 
     <t t-name="mail.chat.ActivityMenu">

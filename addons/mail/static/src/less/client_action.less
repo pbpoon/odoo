@@ -359,7 +359,7 @@
 // Channel preview: shared between client action (mobile) and systray
 // ------------------------------------------------------------------
 
-.o_mail_channel_preview {
+.o_mail_channel_preview, .o_mail_reminder_preview {
     .o-flex-display();
     background-color: @gray-lighter;
     color: @odoo-main-text-color;
@@ -384,6 +384,15 @@
         }
         &.o_mail_channel_app > img {
             border-radius: 2px;
+        }
+        &.o_reminder_icon {
+            padding: 5px 10px;
+            border: 2px solid lighten(@odoo-main-text-color, 25%);;
+            border-radius: 50px;
+            .fa {
+                color: lighten(@odoo-main-text-color, 25%);
+                .o-transform(rotate(45deg));
+            }
         }
         .o_mail_user_status {
             .o-position-absolute(@bottom: 0px, @right: 0px);
@@ -432,6 +441,15 @@
     }
 }
 
+.o_new_reminder {
+    &.o_mail_reminder_preview {
+        background-color: white;
+        .o_new_reminder_input {
+            border: none;
+        }
+    }
+}
+
 @media (max-width: @screen-xs-max) {
     @o-mail-chatter-mobile-gap: 2%;
 
@@ -439,11 +457,14 @@
         border: none;
     }
 
-    .o_mail_channel_preview {
+    .o_mail_channel_preview, .o_mail_reminder_preview {
         padding: @o-mail-chatter-mobile-gap;
 
         .o_mail_channel_image:not(img) {
-            width: @o-mail-chatter-mobile-gap*6;
+            width: @o-mail-chatter-mobile-gap*7;
+            &.o_reminder_icon {
+                padding: 8px 14px;
+            }
         }
 
         .o_channel_info, .o_last_message_date {

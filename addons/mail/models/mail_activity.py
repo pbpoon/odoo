@@ -68,10 +68,10 @@ class MailActivity(models.Model):
         return res
 
     # owner
-    res_id = fields.Integer('Related Document ID', index=True, required=True)
+    res_id = fields.Integer('Related Document ID', index=True)
     res_model_id = fields.Many2one(
         'ir.model', 'Document Model',
-        index=True, ondelete='cascade', required=True)
+        index=True, ondelete='cascade')
     res_model = fields.Char(
         'Related Document Model',
         index=True, related='res_model_id.model', store=True, readonly=True)
@@ -104,6 +104,7 @@ class MailActivity(models.Model):
         'Next activities available',
         compute='_compute_has_recommended_activities',
         help='Technical field for UX purpose')
+    reminder_open = fields.Boolean("Open", help="Reminder is close or open", default=True)
 
     @api.multi
     @api.onchange('previous_activity_type_id')
@@ -114,7 +115,8 @@ class MailActivity(models.Model):
     @api.depends('res_model', 'res_id')
     def _compute_res_name(self):
         for activity in self:
-            activity.res_name = self.env[activity.res_model].browse(activity.res_id).name_get()[0][1]
+            if activity.res_model and activity.res_id:
+                activity.res_name = self.env[activity.res_model].browse(activity.res_id).name_get()[0][1]
 
     @api.depends('date_deadline')
     def _compute_state(self):
@@ -184,12 +186,14 @@ class MailActivity(models.Model):
         # continue as sudo because activities are somewhat protected
         activity = super(MailActivity, self.sudo()).create(values_w_defaults)
         activity_user = activity.sudo(self.env.user)
-        activity_user._check_access('create')
-        self.env[activity_user.res_model].browse(activity_user.res_id).message_subscribe(partner_ids=[activity_user.user_id.partner_id.id])
-        if activity.date_deadline <= fields.Date.today():
-            self.env['bus.bus'].sendone(
-                (self._cr.dbname, 'res.partner', activity.user_id.partner_id.id),
-                {'type': 'activity_updated', 'activity_created': True})
+
+        if activity.res_id and activity.res_model:
+            activity_user._check_access('create')
+            self.env[activity_user.res_model].browse(activity_user.res_id).message_subscribe(partner_ids=[activity_user.user_id.partner_id.id])
+            if activity.date_deadline <= fields.Date.today():
+                self.env['bus.bus'].sendone(
+                    (self._cr.dbname, 'res.partner', activity.user_id.partner_id.id),
+                    {'type': 'activity_updated', 'activity_created': True})
         return activity_user
 
     @api.multi
@@ -201,11 +205,12 @@ class MailActivity(models.Model):
 
         if values.get('user_id'):
             for activity in self:
-                self.env[activity.res_model].browse(activity.res_id).message_subscribe(partner_ids=[activity.user_id.partner_id.id])
-                if activity.date_deadline <= fields.Date.today():
-                    self.env['bus.bus'].sendone(
-                        (self._cr.dbname, 'res.partner', activity.user_id.partner_id.id),
-                        {'type': 'activity_updated', 'activity_created': True})
+                if activity.res_id and activity.res_model:
+                    self.env[activity.res_model].browse(activity.res_id).message_subscribe(partner_ids=[activity.user_id.partner_id.id])
+                    if activity.date_deadline <= fields.Date.today():
+                        self.env['bus.bus'].sendone(
+                            (self._cr.dbname, 'res.partner', activity.user_id.partner_id.id),
+                            {'type': 'activity_updated', 'activity_created': True})
             for activity in self:
                 if activity.date_deadline <= fields.Date.today():
                     for partner in pre_responsibles:
@@ -270,6 +275,24 @@ class MailActivity(models.Model):
     @api.multi
     def action_close_dialog(self):
         return {'type': 'ir.actions.act_window_close'}
+
+    @api.multi
+    def action_reminder_open(self):
+        self.write({'reminder_open': True})
+
+    @api.multi
+    def action_reminder_close(self):
+        self.write({'reminder_open': False})
+
+    @api.model
+    def activity_create_reminder(self, remember):
+        record = self.sudo().create({
+            'summary': remember,
+            'note': remember,
+            'reminder_open': True,
+            'user_id': self.env.uid
+        })
+        return record.id
 
 
 class MailActivityMixin(models.AbstractModel):

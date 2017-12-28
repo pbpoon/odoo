@@ -154,6 +154,11 @@ var ActivityMenu = Widget.extend({
     events: {
         "click": "_onActivityMenuClick",
         "click .o_mail_channel_preview": "_onActivityFilterClick",
+        'click .o_reminder_preview': '_onReminderPreviewClick',
+        'click .o_add_reminder': '_onAddReminderClick',
+        'click .o_new_reminder_save': '_onReminderSaveClick',
+        'keydown input.o_new_reminder_input': '_onReminderInputKeyDown',
+        'click .o_new_reminder': '_onNewReminderClick',
     },
     start: function () {
         this.$activities_preview = this.$('.o_mail_navbar_dropdown_channels');
@@ -176,8 +181,9 @@ var ActivityMenu = Widget.extend({
             model: 'res.users',
             method: 'activity_user_count',
         }).then(function (data) {
-            self.activities = data;
-            self.activityCounter = _.reduce(data, function(total_count, p_data){ return total_count + p_data.total_count; }, 0);
+            self.activities = data.activities;
+            self.reminder_count = data.reminder_count;
+            self.activityCounter = _.reduce(self.activities, function(total_count, p_data){ return total_count + p_data.total_count; }, 0);
             self.$('.o_notification_counter').text(self.activityCounter);
             self.$el.toggleClass('o_no_notification', !self.activityCounter);
         });
@@ -209,7 +215,8 @@ var ActivityMenu = Widget.extend({
         var self = this;
         self._getActivityData().then(function (){
             self.$activities_preview.html(QWeb.render('mail.chat.ActivityMenuPreview', {
-                activities : self.activities
+                activities : self.activities,
+                reminder_count: self.reminder_count
             }));
         });
     },
@@ -272,6 +279,73 @@ var ActivityMenu = Widget.extend({
             this._updateActivityPreview();
         }
     },
+    /**
+     * When add new reminder button clicked, toggling quick reminder create view inside
+     * Systray activity view
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onAddReminderClick: function (event) {
+        event.stopPropagation();
+        this.$(".o_add_reminder").toggleClass("hidden");
+        this.$(".o_new_reminder").toggleClass("hidden");
+        this.$(".o_new_reminder_input").focus();
+        this.$(".o_new_reminder_input").val("");
+    },
+    /**
+     * When focusing on input for new quick reminder systerm tray must be open.
+     * Preventing to close
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onNewReminderClick: function (event) {
+        event.stopPropagation();
+    },
+    /**
+     * Saving reminder (quick create) and updating activity preview
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onReminderSaveClick: function (event) {
+        var self = this;
+        var val = this.$(".o_new_reminder_input").val();
+        if (val != "") {
+            this.$(".o_add_reminder").removeClass("hidden");
+            this.$(".o_new_reminder").addClass("hidden");
+            this._rpc({
+                model: 'mail.activity',
+                method: 'activity_create_reminder',
+                args: [val]
+            }).then(function (result) {
+                self._updateActivityPreview();
+            });
+        }
+    },
+    /**
+     * Handling Enter key for quick create reminder.
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onReminderInputKeyDown: function (event) {
+        switch(event.which) {
+            case $.ui.keyCode.ENTER:
+                this._onReminderSaveClick(event);
+                break;
+        }
+    },
+    /**
+     * When reminder preview click, opening kanban view for user's reminder
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onReminderPreviewClick: function (event) {
+        this.do_action('mail.mail_activity_reminders_action', {});
+    }
 
 });
 
