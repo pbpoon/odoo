@@ -55,7 +55,7 @@ var ProtalShareDoc = Widget.extend({
             case 'view':
                 this._active_view = widget.active_view;
                 this.share_action = widget.env.context.share_action ? widget.env.context.share_action : 'portal.mail_share_document_action';
-                if (widget.env.context.share_icon && widget.active_view && widget.active_view.type === 'form') {
+                if (widget && widget.active_view && widget.active_view.fields_view && widget.active_view.fields_view.share_icon && widget.active_view.type === 'form') {
                     this.$el.removeClass('o_hidden');
                 } else {
                     this.$el.addClass('o_hidden');
