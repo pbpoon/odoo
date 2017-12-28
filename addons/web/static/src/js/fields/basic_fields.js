@@ -408,7 +408,6 @@ var CharCopyClipboard = FieldChar.extend(CopyClipboard, {
     init: function() {
         this._super.apply(this, arguments);
         this.string = this.nodeOptions.string || _t('Copy Text');
-        this.icon = 'fa-clipboard'
     },
 
     //--------------------------------------------------------------------------
@@ -977,7 +976,6 @@ var TextCopyClipboard = FieldText.extend(CopyClipboard, {
     init: function() {
         this._super.apply(this, arguments);
         this.string = this.nodeOptions.string || _t('Copy Text');
-        this.icon = 'fa-clipboard'
     },
 
     //--------------------------------------------------------------------------
