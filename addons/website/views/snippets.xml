@@ -951,18 +951,18 @@
         </li>
     </div>
 
-    <div data-js="parallax" data-selector=".parallax">
+    <div data-js="parallax" data-selector="section">
         <li class="dropdown-submenu">
-            <a tabindex="-1" href="#"><i class="fa fa-clock-o"/>Scroll Speed</a>
-            <ul class="dropdown-menu" name="parallax-scroll">
-                <li data-scroll="0"><a href="#">No-scroll</a></li>
+            <a tabindex="-1" href="#"><i class="fa fa-magic"/>Parallax</a>
+            <ul class="dropdown-menu" data-no-preview="true">
+                <li data-scroll="0" data-select-class=""><a href="#">None</a></li>
                 <li class="separator"/>
-                <li data-scroll="1"><a href="#">Fixed</a></li>
+                <li data-scroll="1" data-select-class="parallax s_parallax_is_fixed"><a href="#">Fixed</a></li>
                 <li class="separator"/>
-                <li data-scroll="0.6"><a href="#">Very Slow</a></li>
-                <li data-scroll="1.2"><a href="#">Slow</a></li>
-                <li data-scroll="1.6"><a href="#">Fast</a></li>
-                <li data-scroll="2"><a href="#">Very Fast</a></li>
+                <li data-scroll="0.6" data-select-class="parallax"><a href="#">Very Slow</a></li>
+                <li data-scroll="1.2" data-select-class="parallax"><a href="#">Slow</a></li>
+                <li data-scroll="1.6" data-select-class="parallax"><a href="#">Fast</a></li>
+                <li data-scroll="2" data-select-class="parallax"><a href="#">Very Fast</a></li>
             </ul>
         </li>
     </div>

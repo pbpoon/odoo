@@ -349,25 +349,37 @@ options.registry.parallax = options.Class.extend({
     /**
      * @override
      */
+    CLASSES: ['parallax'],
+
+    /**
+     * @override
+     */
     start: function () {
-        this._refresh_callback = this._refresh.bind(this);
-        this.$target.on('snippet-option-change snippet-option-preview', this._refresh_callback);
+        var self = this;
+        this.$target.on('snippet-option-change', function () {
+            self.onFocus();
+        });
         return this._super.apply(this, arguments);
     },
     /**
      * @override
      */
     onFocus: function () {
-        this.trigger_up('option_update', {
-            optionNames: ['background', 'background_position'],
-            name: 'target',
-            data: this.$target.find('> .s_parallax_bg'),
-        });
         // Refresh the parallax animation on focus; at least useful because
         // there may have been changes in the page that influenced the parallax
         // rendering (new snippets, ...).
         // TODO make this automatic.
         this._refreshAnimations();
+
+        // TODO make this automatic
+        var $bg = this.$target.children('.s_parallax_bg');
+        var parallaxPossible = this.$target.css('background-image') !== 'none'
+            || ($bg.length && $bg.css('background-image') !== 'none');
+        if (!parallaxPossible && $bg.length) {
+            this._clean();
+            this._setActive();
+        }
+        this.$el.toggleClass('hidden', !parallaxPossible);
     },
     /**
      * @override
@@ -386,7 +398,21 @@ options.registry.parallax = options.Class.extend({
      * @see this.selectClass for parameters
      */
     scroll: function (previewMode, value) {
-        this.$target.attr('data-scroll-background-ratio', value);
+        if (parseFloat(value) < 0.001) {
+            this._clean();
+        } else {
+            this.$target.attr('data-scroll-background-ratio', value);
+            if (!this.$target.children('.s_parallax_bg').length) {
+                var $bg = $('<span/>', {class: 's_parallax_bg'});
+                this.$target.prepend($bg);
+                this.trigger_up('option_update', {
+                    optionNames: ['background', 'background_position'],
+                    name: 'target',
+                    data: $bg,
+                });
+            }
+        }
+
         this._refreshAnimations();
     },
 
@@ -397,10 +423,24 @@ options.registry.parallax = options.Class.extend({
     /**
      * @override
      */
+    _clean: function () {
+        this._super.apply(this, arguments);
+        this.$target.removeAttr('data-scroll-background-ratio');
+        this.trigger_up('option_update', {
+            optionNames: ['background', 'background_position'],
+            name: 'target',
+            data: this.$target,
+        });
+        this.$target.children('.s_parallax_bg').remove();
+    },
+    /**
+     * @override
+     */
     _setActive: function () {
         this._super.apply(this, arguments);
+        var scroll = this.$target.attr('data-scroll-background-ratio') || 0;
         this.$el.find('[data-scroll]').removeClass('active')
-            .filter('[data-scroll="' + (this.$target.attr('data-scroll-background-ratio') || 0) + '"]').addClass('active');
+            .filter('[data-scroll="' + scroll + '"]').addClass('active');
     },
 });
 
