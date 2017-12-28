@@ -14,6 +14,11 @@ class ProductTemplate(models.Model):
             if template.product_variant_count == 1:
                 return template.product_variant_id.compute_price()
 
+    @api.multi
+    def _compute_price_from_bom(self):
+        # Yet to be implemented
+        pass
+
 
 class ProductProduct(models.Model):
     _name = 'product.product'

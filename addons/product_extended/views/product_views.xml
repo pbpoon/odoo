@@ -35,4 +35,15 @@
                 </div>
             </field>
         </record>
+
+        <record id="action_compute_price_bom" model="ir.actions.server">
+            <field name="name">Compute Price from BoM</field>
+            <field name="model_id" ref="sale.model_product_template"/>
+            <field name="binding_model_id" ref="product.model_product_template"/>
+            <field name="state">code</field>
+            <field name="code">
+            if records:
+                records._compute_price_from_bom()
+            </field>
+        </record>
 </odoo>
