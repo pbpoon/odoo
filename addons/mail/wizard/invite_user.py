@@ -16,7 +16,6 @@ class Invite(models.TransientModel):
     def invite_new_user(self):
         """Process new email addresses : create new users """
         invite_emails = [email for email in self.email.split('\n')]
-        is_valid_emails = all([tools.email_re.findall(email) for email in invite_emails])
-        if is_valid_emails:
-            return self.env['res.users'].web_dashboard_create_users(invite_emails)
-        raise ValidationError(_('Invalid Email! Please enter a valid email address.'))
+        if not all([tools.email_re.findall(email) for email in invite_emails]):
+            raise ValidationError(_('Invalid Email! Please enter a valid email address.'))
+        return self.env['res.users'].web_dashboard_create_users(invite_emails)
