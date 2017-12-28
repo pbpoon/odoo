@@ -2,7 +2,7 @@
 <odoo>
 <data noupdate="1">
 
-    <record id="hr_holidays_employee1_allocation_cl" model="leave.allocation">
+    <record id="hr_holidays_employee1_allocation_cl" model="hr.leave.allocation">
         <field name="name">Legal Leaves for Peter Parker</field>
         <field name="holiday_status_id" ref="holiday_status_cl"/>
         <field name="number_of_days_temp">20</field>
@@ -10,7 +10,7 @@
         <field name="state">confirm</field>
     </record>
 
-    <record id="hr_holidays_employee1_int_tour" model="leave.allocation">
+    <record id="hr_holidays_employee1_int_tour" model="hr.leave.allocation">
         <field name="name">International Tour</field>
         <field name="holiday_status_id" ref="holiday_status_comp"/>
         <field name="number_of_days_temp">7</field>
@@ -18,7 +18,7 @@
         <field name="state">confirm</field>
     </record>
 
-    <record id="hr_holidays_employee1_vc" model="leave.allocation">
+    <record id="hr_holidays_employee1_vc" model="hr.leave.allocation">
         <field name="name">Summer Vacation</field>
         <field name="holiday_status_id" ref="holiday_status_unpaid"/>
         <field name="number_of_days_temp">7</field>
@@ -26,9 +26,9 @@
     </record>
 
     <!-- approve the first 2 leave allocations -->
-    <function model="leave.allocation" name="action_approve" eval="[[ref('hr_holidays.hr_holidays_employee1_allocation_cl'), ref('hr_holidays.hr_holidays_employee1_int_tour')]]"/>
+    <function model="hr.leave.allocation" name="action_approve" eval="[[ref('hr_holidays.hr_holidays_employee1_allocation_cl'), ref('hr_holidays.hr_holidays_employee1_int_tour')]]"/>
 
-    <record id="hr_holidays_employee1_cl" model="leave.request">
+    <record id="hr_holidays_employee1_cl" model="hr.leave">
         <field name="name">Trip with Family</field>
         <field name="holiday_status_id" ref="holiday_status_comp"/>
         <field eval="time.strftime('%Y-%m-01')" name="date_from"/>
@@ -37,7 +37,7 @@
         <field name="employee_id" ref="hr.employee_root"/>
     </record>
 
-    <record id="hr_holidays_employee1_sl" model="leave.request">
+    <record id="hr_holidays_employee1_sl" model="hr.leave">
         <field name="name">Doctor Appointment</field>
         <field name="holiday_status_id" ref="holiday_status_sl"/>
         <field eval="time.strftime('%Y-%m-20')" name="date_from"/>
@@ -48,7 +48,7 @@
     </record>
 
     <!-- approve the leave request -->
-    <function model="leave.request" name="action_approve" eval="[[ref('hr_holidays.hr_holidays_employee1_sl')]]"/>
+    <function model="hr.leave" name="action_approve" eval="[[ref('hr_holidays.hr_holidays_employee1_sl')]]"/>
 
 </data>
 </odoo>

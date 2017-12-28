@@ -58,7 +58,7 @@ class HrHolidaySummaryReport(models.AbstractModel):
                 res[index]['color'] = '#ababab'
         # count and get leave summary details.
         holiday_type = ['confirm','validate'] if holiday_type == 'both' else ['confirm'] if holiday_type == 'Confirmed' else ['validate']
-        holidays = self.env['leave.request'].search([
+        holidays = self.env['hr.leave'].search([
             ('employee_id', '=', empid), ('state', 'in', holiday_type),
             ('date_from', '<=', str(end_date)),
             ('date_to', '>=', str(start_date))
@@ -102,7 +102,7 @@ class HrHolidaySummaryReport(models.AbstractModel):
 
     def _get_holidays_status(self):
         res = []
-        for holiday in self.env['leave.type'].search([]):
+        for holiday in self.env['hr.leave.type'].search([]):
             res.append({'color': holiday.color_name, 'name': holiday.name})
         return res
 
@@ -113,7 +113,7 @@ class HrHolidaySummaryReport(models.AbstractModel):
 
         holidays_report = self.env['ir.actions.report']._get_report_from_name('hr_holidays.report_holidayssummary')
         # TODO: See if that is the correct type
-        holidays = self.env['leave.request'].browse(self.ids)
+        holidays = self.env['hr.leave'].browse(self.ids)
         return {
             'doc_ids': self.ids,
             'doc_model': holidays_report.model,

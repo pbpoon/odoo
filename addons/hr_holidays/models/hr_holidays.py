@@ -19,7 +19,7 @@ HOURS_PER_DAY = 8
 
 
 class HolidaysType(models.Model):
-    _name = "leave.type"
+    _name = "hr.leave.type"
     _description = "Leave Type"
 
     name = fields.Char('Leave Type', required=True, translate=True)
@@ -68,13 +68,13 @@ class HolidaysType(models.Model):
         # need to use `dict` constructor to create a dict per id
         result = dict((id, dict(max_leaves=0, leaves_taken=0, remaining_leaves=0, virtual_remaining_leaves=0)) for id in self.ids)
 
-        requests = self.env['leave.request'].search([
+        requests = self.env['hr.leave'].search([
             ('employee_id', '=', employee_id),
             ('state', 'in', ['confirm', 'validate1', 'validate']),
             ('holiday_status_id', 'in', self.ids)
         ])
 
-        allocations = self.env['leave.allocation'].search([
+        allocations = self.env['hr.leave.allocation'].search([
             ('employee_id', '=', employee_id),
             ('state', 'in', ['confirm', 'validate1', 'validate']),
             ('holiday_status_id', 'in', self.ids)
@@ -155,7 +155,7 @@ class HolidaysType(models.Model):
 
 
 class HolidaysRequest(models.Model):
-    _name = "leave.request"
+    _name = "hr.leave"
     _description = "Leave"
     _order = "date_from desc"
     _inherit = ['mail.thread']
@@ -184,7 +184,7 @@ class HolidaysRequest(models.Model):
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, track_visibility='onchange')
     date_to = fields.Datetime('End Date', readonly=True, copy=False, required=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, track_visibility='onchange')
-    holiday_status_id = fields.Many2one("leave.type", string="Leave Type", required=True, readonly=True,
+    holiday_status_id = fields.Many2one("hr.leave.type", string="Leave Type", required=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     employee_id = fields.Many2one('hr.employee', string='Employee', index=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, track_visibility='onchange')
@@ -197,8 +197,8 @@ class HolidaysRequest(models.Model):
     number_of_days = fields.Float('Number of Days', compute='_compute_number_of_days', store=True, track_visibility='onchange')
     meeting_id = fields.Many2one('calendar.event', string='Meeting')
 
-    parent_id = fields.Many2one('hr.holidays', string='Parent')
-    linked_request_ids = fields.One2many('hr.holidays', 'parent_id', string='Linked Requests')
+    parent_id = fields.Many2one('hr.leave', string='Parent')
+    linked_request_ids = fields.One2many('hr.leave', 'parent_id', string='Linked Requests')
     department_id = fields.Many2one('hr.department', string='Department', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     category_id = fields.Many2one('hr.employee.category', string='Employee Tag', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, help='Category of Employee')
@@ -480,7 +480,7 @@ class HolidaysRequest(models.Model):
             if holiday.holiday_type == 'employee':
                 holiday._validate_leave_request()
             elif holiday.holiday_type in ['category', 'department']:
-                leaves = self.env['leave.request']
+                leaves = self.env['hr.leave']
                 employees = holiday.category_id.employee_ids if holiday.holiday_type == 'category' else holiday.department_id.member_ids
                 for employee in employees:
                     values = holiday._prepare_holiday_values(employee)
@@ -595,8 +595,9 @@ class HolidaysRequest(models.Model):
                 result[res]['button_access']['title'] = title
         return result
 
+
 class HolidaysAllocation(models.Model):
-    _name = "leave.allocation"
+    _name = "hr.leave.allocation"
     _description = "Allocation"
     _inherit = ['mail.thread']
 
@@ -616,7 +617,7 @@ class HolidaysAllocation(models.Model):
             "\nThe status is 'To Approve', when leave request is confirmed by user." +
             "\nThe status is 'Refused', when leave request is refused by manager." +
             "\nThe status is 'Approved', when leave request is approved by manager.")
-    holiday_status_id = fields.Many2one("leave.type", string="Leave Type", required=True, readonly=True,
+    holiday_status_id = fields.Many2one("hr.leave.type", string="Leave Type", required=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     employee_id = fields.Many2one('hr.employee', string='Employee', index=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, track_visibility='onchange')
@@ -626,8 +627,8 @@ class HolidaysAllocation(models.Model):
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]},
         help='Number of days of the leave request according to your working schedule.')
     number_of_days = fields.Float('Number of Days', compute='_compute_number_of_days', store=True, track_visibility='onchange')
-    parent_id = fields.Many2one('leave.allocation', string='Parent')
-    linked_request_ids = fields.One2many('leave.allocation', 'parent_id', string='Linked Requests')
+    parent_id = fields.Many2one('hr.leave.allocation', string='Parent')
+    linked_request_ids = fields.One2many('hr.leave.allocation', 'parent_id', string='Linked Requests')
     department_id = fields.Many2one('hr.department', string='Department', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     category_id = fields.Many2one('hr.employee.category', string='Employee Tag', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, help='Category of Employee')
@@ -824,7 +825,7 @@ class HolidaysAllocation(models.Model):
             if holiday.holiday_type == 'employee':
                 holiday._validate_leave_request()
             elif holiday.holiday_type in ['category', 'department']:
-                leaves = self.env['leave.request']
+                leaves = self.env['hr.leave.allocation']
                 employees = holiday.category_id.employee_ids if holiday.holiday_type == 'category' else holiday.department_id.member_ids
                 for employee in employees:
                     values = holiday._prepare_holiday_values(employee)

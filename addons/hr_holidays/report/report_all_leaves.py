@@ -4,9 +4,9 @@
 from odoo import fields, models, tools
 
 
-class LeaveAllReport(models.Model):
+class LeaveReport(models.Model):
 
-    _name = "report.hr_holidays.report_leave_all"
+    _name = "hr.leave.report"
     _auto = False
 
     employee_id = fields.Many2one('hr.employee', string="Employee", readonly=True)
@@ -18,7 +18,7 @@ class LeaveAllReport(models.Model):
         ], string='Request Type', readonly=True)
     department_id = fields.Many2one('hr.department', string='Department', readonly=True)
     category_id = fields.Many2one('hr.employee.category', string='Employee Tag', readonly=True)
-    holiday_status_id = fields.Many2one("leave.type", string="Leave Type", readonly=True)
+    holiday_status_id = fields.Many2one("hr.leave.type", string="Leave Type", readonly=True)
     state = fields.Selection([
         ('draft', 'To Submit'),
         ('cancel', 'Cancelled'),
@@ -36,9 +36,9 @@ class LeaveAllReport(models.Model):
     payslip_status = fields.Boolean('Reported in last payslips', readonly=True)
 
     def init(self):
-        tools.drop_view_if_exists(self._cr, 'report_hr_holidays_report_leave_all')
+        tools.drop_view_if_exists(self._cr, 'hr_leave_report')
         self._cr.execute("""
-            CREATE or REPLACE view report_hr_holidays_report_leave_all as (
+            CREATE or REPLACE view hr_leave_report as (
                 SELECT row_number() over(ORDER BY leaves.employee_id) as id,
                 leaves.employee_id as employee_id, leaves.name as name,
                 leaves.number_of_days as number_of_days, leaves.type as type,
@@ -59,7 +59,7 @@ class LeaveAllReport(models.Model):
                     null as date_to,
                     FALSE as payslip_status,
                     'allocation' as type
-                from leave_allocation as allocation
+                from hr_leave_allocation as allocation
                 union select
                     request.employee_id as employee_id,
                     request.name as name,
@@ -73,6 +73,6 @@ class LeaveAllReport(models.Model):
                     request.date_to as date_to,
                     request.payslip_status as payslip_status,
                     'request' as type
-                from leave_request as request) leaves
+                from hr_leave as request) leaves
             );
         """)

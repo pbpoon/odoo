@@ -14,9 +14,9 @@ class TestHolidaysFlow(TestHrHolidaysBase):
     @mute_logger('odoo.addons.base.models.ir_model', 'odoo.models')
     def test_00_leave_request_flow(self):
         """ Testing leave request flow """
-        Requests = self.env['leave.request']
-        Allocations = self.env['leave.allocation']
-        HolidaysStatus = self.env['leave.type']
+        Requests = self.env['hr.leave']
+        Allocations = self.env['hr.leave.allocation']
+        HolidaysStatus = self.env['hr.leave.type']
 
         def _check_holidays_status(holiday_status, ml, lt, rl, vrl):
             self.assertEqual(holiday_status.max_leaves, ml,

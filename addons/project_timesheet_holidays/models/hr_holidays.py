@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError
 
 
 class HolidaysType(models.Model):
-    _inherit = "leave.type"
+    _inherit = "hr.leave.type"
 
     def _default_project_id(self):
         company = self.company_id if self.company_id else self.env.user.company_id
@@ -39,7 +39,7 @@ class HolidaysType(models.Model):
 
 
 class Holidays(models.Model):
-    _inherit = "leave.request"
+    _inherit = "hr.leave"
 
     timesheet_ids = fields.One2many('account.analytic.line', 'holiday_id', string="Analytic Lines")
 
