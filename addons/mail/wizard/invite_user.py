@@ -14,10 +14,5 @@ class Invite(models.TransientModel):
     @api.multi
     def invite_new_user(self):
         """Process new email addresses : create new users """
-        user = self.env['res.users']
         invite_emails = [email for email in self.email.split('\n')]
-        emails = set(invite_emails) - set(user.search([]).mapped('login'))
-        for email in emails:
-            default_values = {'login': email, 'name': email.split('@')[0], 'email': email, 'active': True}
-            user.with_context(signup_valid=True).create(default_values)
-        return True
+        return self.env['res.users'].web_dashboard_create_users(invite_emails)
