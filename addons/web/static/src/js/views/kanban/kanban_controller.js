@@ -311,6 +311,7 @@ var KanbanController = BasicController.extend({
         var column = event.target;
         this.model.loadMore(column.db_id).then(function (db_id) {
             var data = self.model.get(db_id);
+            self.renderer.updateState(data, {noRender: true});
             self.renderer.updateColumn(db_id, data);
             self._updateEnv();
         });
