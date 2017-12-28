@@ -21,10 +21,6 @@ tour.register('hr_recruitment_tour', [{
     content: _t("Let\'s have a look at the <b>applications pipeline</b> for this job position."),
     position: "bottom"
 }, {
-    trigger: ".o_kanban_applicant .o_column_quick_create",
-    content: _t("Add columns to define the <b>interview stages</b>.<br/><i>e.g. New &gt; Qualified &gt; First Interview &gt; Recruited</i>"),
-    position: "right"
-}, {
     trigger: ".breadcrumb li:not(.active):last",
     extra_trigger: '.o_kanban_applicant',
     content: _t("Use the breadcrumbs to <b>go back to the dashboard</b>."),

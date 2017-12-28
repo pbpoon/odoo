@@ -391,6 +391,46 @@ class Applicant(models.Model):
         return super(Applicant, self)._message_post_after_hook(message)
 
     @api.multi
+    def create_rainbow_from_employee(self, dict_act_window):
+        self.ensure_one
+        #case of fast recruitment (priority 3)
+        if  (fields.Date.from_string(self.create_date) + timedelta(days=7)) > date.today():
+            dict_act_window['effect'] = {
+                    'fadeout': 'slow',
+                    'img_url': '/web/static/src/img/smile.svg',
+                    'message': "Only %d days from the application to the recruitment!" %((date.today() - fields.Date.from_string(self.create_date)).days),
+                    'type': "rainbow_man"
+            }
+        #case of reached recruitment goal for job position (priority 2)
+        if self.job_id and self.job_id.no_of_recruitment:
+            date_start_month = fields.Date.to_string(date(date.today().year, date.today().month, 1))
+            #if the number of created employee is equal to the goal of the job.
+            if len(self.search(['&', ('employee_name', '!=', False), ('job_id', '=', self.job_id.id), ('create_date', '>=', date_start_month)])) == self.job_id.no_of_recruitment:
+                dict_act_window['effect'] = {
+                        'fadeout': 'slow',
+                        'img_url': '/web/static/src/img/smile.svg',
+                        'message': "Great! %d out of %d! You've reached your goal for this job position" %(self.job_id.no_of_recruitment, self.job_id.no_of_recruitment),
+                        'type': "rainbow_man"
+                }
+        #case of personal record per month (priority 1)
+        #show a rainbow if the user has beaten its personnal highscore of recruited employee per month
+        applicants = self.env['hr.applicant'].read_group(['&', ('create_uid.id', '=', self.env.uid), ('employee_name', '!=', False)], ['create_date'], ['create_date:month'], lazy=False)
+        max_found_in_a_month = 0
+        best_month = ""
+        for month in applicants:
+            if month['__count'] > max_found_in_a_month:
+                max_found_in_a_month = month['__count']
+                best_month = month['create_date:month']
+        if best_month == date.today().strftime('%B %Y'):
+            dict_act_window['effect'] = {
+                    'fadeout': 'slow',
+                    'img_url': '/web/static/src/img/smile.svg',
+                    'message': "Congrats! It's your %d new employees this month!" %(max_found_in_a_month),
+                    'type': "rainbow_man"
+            }
+        return dict_act_window
+
+    @api.multi
     def create_employee_from_applicant(self):
         """ Create an hr.employee from the hr.applicants """
         employee = False
@@ -431,44 +471,8 @@ class Applicant(models.Model):
 
         employee_action = self.env.ref('hr.open_view_employee_list')
         dict_act_window = employee_action.read([])[0]
-        if employee:
-            dict_act_window['res_id'] = employee.id
-        dict_act_window['view_mode'] = 'form,tree'
-        if len(self) == 1: #only if we create one employee: print rainbow
-            #case of fast recruitment (priority 3)
-            if  (datetime.strptime(self.create_date, '%Y-%m-%d %H:%M:%S') + timedelta(days=7)).date() > date.today():
-                dict_act_window['effect'] = {
-                        'fadeout': 'slow',
-                        'img_url': '/web/static/src/img/smile.svg',
-                        'message': "Only %d days from the application to the recruitment!" %((date.today() - datetime.strptime(self.create_date, '%Y-%m-%d %H:%M:%S').date()).days),
-                        'type': "rainbow_man"
-                }
-            #case of reached recruitment goal for job position (priority 2)
-            if self.job_id and self.job_id.no_of_recruitment:
-                date_start_month = fields.Date.to_string(date(date.today().year, date.today().month, 1))
-                if len(self.search(['&', ('employee_name', '!=', False), ('job_id', '=', self.job_id.id), ('create_date', '>=', date_start_month)])) == self.job_id.no_of_recruitment:
-                    dict_act_window['effect'] = {
-                            'fadeout': 'slow',
-                            'img_url': '/web/static/src/img/smile.svg',
-                            'message': "Great! %d out of %d! You've reached your goal for this job position" %(self.job_id.no_of_recruitment, self.job_id.no_of_recruitment),
-                            'type': "rainbow_man"
-                    }
-            #case of personal record per month (priority 2)
-            applicants = self.env['hr.applicant'].read_group(['&', ('create_uid.id', '=', self.env.uid), ('employee_name', '!=', False)], ['create_date'], ['create_date:month'], lazy=False)
-            max_found_in_a_month = 0
-            best_month = ""
-            for month in applicants:
-                if month['__count'] > max_found_in_a_month:
-                    max_found_in_a_month = month['__count']
-                    best_month = month['create_date:month']
-            if best_month == date.today().strftime('%B %Y'):
-                dict_act_window['effect'] = {
-                        'fadeout': 'slow',
-                        'img_url': '/web/static/src/img/smile.svg',
-                        'message': "Congrats! It's your %d new employees this month!" %(max_found_in_a_month),
-                        'type': "rainbow_man"
-                }
-        return dict_act_window
+        dict_act_window['context'] = {'form_view_initial_mode': 'edit'}
+        return self.create_rainbow_from_employee(dict_act_window)
 
     @api.multi
     def archive_applicant(self):
