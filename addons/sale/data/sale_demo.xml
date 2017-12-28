@@ -685,8 +685,88 @@ Thanks!</field>
             <field name="price_unit">38.25</field>
         </record>
 
-
         <!-- Confirm some Sales Orders-->
         <function model="sale.order" name="action_confirm" eval="[[ref('portal_sale_order_2')]]"/>
+
+        <!-- Product -->
+        <record id="product_product_support" model="product.product">
+            <field name="name">Support (Prepaid Hours)</field>
+            <field name="categ_id" ref="product.product_category_3"/>
+            <field name="type">service</field>
+            <field name="list_price">250.00</field>
+            <field name="uom_id" ref="product.product_uom_hour"/>
+            <field name="uom_po_id" ref="product.product_uom_hour"/>
+        </record>
+
+        <record id="product_product_milestones" model="product.product">
+            <field name="name">Milestones</field>
+            <field name="categ_id" ref="product.product_category_3"/>
+            <field name="list_price">500</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
+            <field name="uom_po_id" ref="product.product_uom_unit"/>
+        </record>
+
+        <record id="product_product_senior_developer" model="product.product">
+            <field name="name">Senior Developer (Invoice on Timesheets)</field>
+            <field name="categ_id" ref="product.product_category_3"/>
+            <field name="list_price">200.00</field>
+            <field name="type">service</field>
+            <field name="taxes_id" eval="[]"/>
+            <field name="uom_id" ref="product.product_uom_hour"/>
+            <field name="uom_po_id" ref="product.product_uom_hour"/>
+        </record>
+
+        <record id="product_product_junior_developer" model="product.product">
+            <field name="name">Junior Developer (Invoice on Timesheets)</field>
+            <field name="categ_id" ref="product.product_category_3"/>
+            <field name="list_price">100.00</field>
+            <field name="type">service</field>
+            <field name="taxes_id" eval="[]"/>
+            <field name="uom_id" ref="product.product_uom_hour"/>
+            <field name="uom_po_id" ref="product.product_uom_hour"/>
+        </record>
+
+        <!-- Sale Order-->
+        <record id="sale_order_sale_1" model="sale.order">
+            <field name="partner_id" ref="base.res_partner_2"/>
+            <field name="client_order_ref">AGR</field>
+        </record>
+
+        <record id="sale_order_sale_2" model="sale.order">
+            <field name="partner_id" ref="base.res_partner_4"/>
+            <field name="client_order_ref">DPC</field>
+        </record>
+
+        <!-- Sale Order line for Agrolait-->
+        <record id="sale_order_line_sale_line_11" model="sale.order.line">
+            <field name="order_id" ref="sale_order_sale_1"/>
+            <field name="sequence" eval="1"/>
+            <field name="product_id" ref="product_product_support"/>
+            <field name="product_uom_qty">20</field>
+        </record>
+
+        <record id="sale_order_line_sale_line_12" model="sale.order.line">
+            <field name="order_id" ref="sale_order_sale_1"/>
+            <field name="sequence" eval="3"/>
+            <field name="product_id" ref="product_product_milestones"/>
+            <field name="product_uom_qty">4</field>
+        </record>
+
+        <!-- Sale Order line for Delta PC-->
+        <record id="sale_order_line_sale_line_21" model="sale.order.line">
+            <field name="order_id" ref="sale_order_sale_2"/>
+            <field name="sequence" eval="1"/>
+            <field name="product_id" ref="product_product_support"/>
+            <field name="product_uom_qty">50</field>
+        </record>
+
+        <record id="sale_order_line_sale_line_22" model="sale.order.line">
+            <field name="order_id" ref="sale_order_sale_2"/>
+            <field name="sequence" eval="2"/>
+            <field name="product_id" ref="product_product_junior_developer"/>
+            <field name="product_uom_qty">110</field>
+        </record>
+
     </data>
 </odoo>

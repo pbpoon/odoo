@@ -17,5 +17,99 @@
             <field name="expense_policy">cost</field>
         </record>
 
+        <record id="hr_expense.product_product_fixed_cost" model="product.product">
+            <field name="invoice_policy">delivery</field>
+            <field name="expense_policy">cost</field>
+        </record>
+
+        <record id="product.product_product_3" model="product.product">
+            <field name="invoice_policy">delivery</field>
+            <field name="expense_policy">sales_price</field>
+        </record>
+
+         <record id="hr_expense_sheet_hotel" model="hr.expense.sheet">
+            <field name="name">Hotel</field>
+            <field name="employee_id" ref="hr.employee_qdp"/>
+            <field name="payment_mode">own_account</field>
+            <field name="journal_id" search="[('type', '=', 'purchase')]"/>
+        </record>
+
+        <record id="hr_expense_sheet_various" model="hr.expense.sheet">
+            <field name="name">Various Expenses</field>
+            <field name="payment_mode">own_account</field>
+            <field name="journal_id" search="[('type', '=', 'purchase')]"/>
+        </record>
+
+        <record id="hr_expense_various" model="hr.expense">
+            <field name="name">Various Expenses</field>
+            <field name="sale_order_id" ref="sale.sale_order_sale_1"/>
+            <field name="product_id" ref="hr_expense.product_product_fixed_cost"/>
+            <field name="unit_amount" eval="100.0"/>
+            <field name="quantity" eval="1.0"/>
+            <field name="analytic_account_id" search="[('partner_id', '=', ref('base.res_partner_2'))]"/>
+            <field name="sheet_id" ref="hr_expense_sheet_various"/>
+        </record>
+
+        <record id="hr_expense_hotel" model="hr.expense">
+            <field name="name">Hotel</field>
+            <field name="sale_order_id" ref="sale.sale_order_sale_2"/>
+            <field name="product_id" ref="hr_expense.hotel_rent"/>
+            <field name="unit_amount" eval="75.0"/>
+            <field name="quantity" eval="1.0"/>
+            <field name="employee_id" ref="hr.employee_qdp"/>
+            <field name="analytic_account_id" search="[('partner_id', '=', ref('base.res_partner_4'))]"/>
+            <field name="sheet_id" ref="hr_expense_sheet_hotel"/>
+        </record>
+
+        <function model="hr.expense.sheet" name="approve_expense_sheets" eval="[[ref('hr_expense_sheet_various')]]"/>
+        <function model="hr.expense.sheet" name="action_sheet_move_create" eval="[[ref('hr_expense_sheet_various')]]"/>
+
+        <record id="hr_expense_sheet_register_payment_wizard_data" model="hr.expense.sheet.register.payment.wizard">
+            <field name="partner_id" ref="hr_expense.res_partner_address_fp"/>
+            <field name="journal_id" search="[('type', '=', 'cash')]"/>
+            <field name="amount" eval="100.0"/>
+            <field name="payment_method_id" search="[('payment_type', '=', 'outbound')]"/>
+        </record>
+
+        <function model="hr.expense.sheet.register.payment.wizard" name="expense_post_payment" eval="[[ref('hr_expense_sheet_register_payment_wizard_data')]]"/>
+
+        <record id="account_invoice_data_1" model="account.invoice">
+            <field name="company_id" ref="base.main_company"/>
+            <field name="partner_id" ref="base.res_partner_2"/>
+            <field name="journal_id" search="[('type', '=', 'purchase')]"/>
+            <field name="type">in_invoice</field>
+        </record>
+
+        <record id="account_invoice_data_2" model="account.invoice">
+            <field name="company_id" ref="base.main_company"/>
+            <field name="partner_id" ref="base.res_partner_4"/>
+            <field name="journal_id" search="[('type', '=', 'purchase')]"/>
+            <field name="type">in_invoice</field>
+        </record>
+
+        <record id="account_invoice_line_data_1" model="account.invoice.line">
+            <field name="name">Computer SC234</field>
+            <field name="product_id" ref="product.product_product_3"/>
+            <field name="invoice_id" ref="account_invoice_data_1"/>
+            <field name="price_unit">100</field>
+            <field name="quantity">1</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
+            <field name="account_analytic_id" model="account.analytic.account" search="[('partner_id', '=', ref('base.res_partner_2'))]"/>
+            <field name="account_id" model="account.invoice.line"  eval="obj().env.ref('product.product_product_3').categ_id.property_account_income_categ_id.id"/>
+        </record>
+
+        <record id="account_invoice_line_data_2" model="account.invoice.line">
+            <field name="name">Computer SC234</field>
+            <field name="product_id" ref="product.product_product_3"/>
+            <field name="invoice_id" ref="account_invoice_data_2"/>
+            <field name="price_unit">100</field>
+            <field name="quantity">1</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
+            <field name="account_analytic_id" ref="analytic.analytic_deltapc"/>
+            <field name="account_id" model="account.invoice.line"  eval="obj().env.ref('product.product_product_3').categ_id.property_account_income_categ_id.id"/>
+        </record>
+
+        <function model="account.invoice" name="action_invoice_open" eval="[[ref('account_invoice_data_1')]]"/>
+        <function model="account.invoice" name="action_invoice_open" eval="[[ref('account_invoice_data_2')]]"/>
     </data>
 </odoo>

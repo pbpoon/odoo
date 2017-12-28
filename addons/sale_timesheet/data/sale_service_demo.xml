@@ -42,6 +42,21 @@
             <field name="legend_done">Done</field>
         </record>
 
+        <!--Project-->
+        <record id="project_support" model="project.project">
+            <field name="date_start" eval="time.strftime('%Y-%m-01 10:00:00')"/>
+            <field name="name">Support</field>
+            <field name="type_ids" eval="[(4, ref('project.project_stage_data_0')), (4, ref('project.project_stage_1')), (4, ref('project_stage_fixed'))]"/>
+        </record>
+
+        <!--Project Task-->
+        <record id="project_task_internal" model="project.task">
+            <field name="name">Internal training</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="project_id" ref="project_support"/>
+            <field name="stage_id" ref="project.project_stage_data_0"/>
+        </record>
+
         <!-- Employee -->
         <record id="hr.employee_root" model="hr.employee">
             <field name="timesheet_cost">100</field>
@@ -50,62 +65,29 @@
         <record id="hr.employee_qdp" model="hr.employee">
             <field name="timesheet_cost">75</field>
             <field name="parent_id" ref="hr.employee_root"/>
-            <field name="timesheet_manager_id" ref="hr.employee_root"/>
-        </record>
-
-        <!--Project-->
-        <record id="project_support" model="project.project">
-            <field name="date_start" eval="time.strftime('%Y-%m-01 10:00:00')"/>
-            <field name="name">Support</field>
-            <field name="type_ids" eval="[(4, ref('project.project_stage_data_0')), (4, ref('project.project_stage_1')), (4, ref('project_stage_fixed'))]"/>
         </record>
 
         <!-- Product -->
-        <record id="product_product_support" model="product.product">
-            <field name="name">Support (Prepaid Hours)</field>
-            <field name="categ_id" ref="product.product_category_3"/>
-            <field name="type">service</field>
-            <field name="list_price">250.00</field>
-            <field name="uom_id" ref="product.product_uom_hour"/>
-            <field name="uom_po_id" ref="product.product_uom_hour"/>
+        <record id="sale.product_product_support" model="product.product">
             <field name="service_policy">ordered_timesheet</field>
             <field name="service_tracking">task_global_project</field>
             <field name="project_id" ref="project_support"/>
         </record>
 
-        <record id="product_product_milestones" model="product.product">
-            <field name="name">Milestones</field>
-            <field name="categ_id" ref="product.product_category_3"/>
-            <field name="list_price">500</field>
-            <field name="type">service</field>
-            <field name="uom_id" ref="product.product_uom_unit"/>
-            <field name="uom_po_id" ref="product.product_uom_unit"/>
+        <record id="sale.product_product_milestones" model="product.product">
             <field name="service_policy">delivered_manual</field>
             <field name="service_tracking">no</field>
         </record>
 
-        <!-- Sale Order-->
-        <record id="sale_order_sale_1" model="sale.order">
-            <field name="partner_id" ref="base.res_partner_2"/>
-            <field name="client_order_ref">AGR</field>
+        <record id="sale.product_product_senior_developer" model="product.product">
+            <field name="service_policy">delivered_timesheet</field>
+            <field name="service_tracking">task_new_project</field>
         </record>
 
-        <!-- Sale Order line-->
-        <record id="sale_order_line_sale_line_1" model="sale.order.line">
-            <field name="order_id" ref="sale_order_sale_1"/>
-            <field name="sequence" eval="1"/>
-            <field name="product_id" ref="product_product_support"/>
-            <field name="product_uom_qty">20</field>
+        <record id="sale.product_product_junior_developer" model="product.product">
+            <field name="service_policy">delivered_timesheet</field>
+            <field name="service_tracking">no</field>
         </record>
 
-        <record id="sale_order_line_sale_line_2" model="sale.order.line">
-            <field name="order_id" ref="sale_order_sale_1"/>
-            <field name="sequence" eval="3"/>
-            <field name="product_id" ref="product_product_milestones"/>
-            <field name="product_uom_qty">4</field>
-        </record>
-
-        <!-- Confirm Sale Order-->
-        <function model="sale.order" name="action_confirm" eval="[[ref('sale_order_sale_1')]]"/>
     </data>
 </odoo>
