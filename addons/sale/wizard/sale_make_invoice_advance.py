@@ -43,8 +43,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
         return self._default_product_id().taxes_id
 
     advance_payment_method = fields.Selection([
-        ('delivered', 'Invoiceable lines'),
-        ('all', 'Invoiceable lines (deduct down payments)'),
+        ('delivered', 'Ready to invoice'),
+        ('all', 'Ready to invoice, deduct down payments (only if down payments)'),
+        ('unbilled', 'Unbilled Total'),
         ('percentage', 'Down payment (percentage)'),
         ('fixed', 'Down payment (fixed amount)')
         ], string='What do you want to invoice?', default=_get_advance_payment_method, required=True)
