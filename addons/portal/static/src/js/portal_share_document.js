@@ -37,12 +37,18 @@ var ProtalShareDoc = Widget.extend({
         switch (tag) {
             case 'action':
                 if (!(widget instanceof ViewManager)) {
+                    var self = this;
                     this._active_view = null;
                     this._view_manager = null;
-                    if (widget && widget.action && widget.action.context.share_icon) {
-                        this.share_action = widget.action.context.share_action ? widget.action.context.share_action : 'portal.mail_share_document_action';
-                        this.$el.removeClass('o_hidden');
-                    }
+                    this.getSession().user_has_group('base.group_erp_manager').then(
+                        function(has_group) {
+                        if (has_group) {
+                            if (widget && widget.action && widget.action.context.share_icon) {
+                                self.share_action = widget.action.context.share_action ? widget.action.context.share_action : 'portal.mail_share_document_action';
+                                self.$el.removeClass('o_hidden');
+                            }
+                        }
+                    });
                     break;
                 }
                 this._view_manager = widget;
