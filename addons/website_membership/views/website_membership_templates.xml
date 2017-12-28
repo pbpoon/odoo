@@ -3,7 +3,7 @@
 
 <!-- Layout add nav and footer -->
 <template id="footer_custom" inherit_id="website.footer_custom" name="Footer Associations Link">
-    <xpath expr="//div[@id='info']/ul" position="inside">
+    <xpath expr="//div[@id='info']//ul[hasclass('list-unstyled')]" position="inside">
         <li><a href="/members">Members</a></li>
     </xpath>
 </template>
