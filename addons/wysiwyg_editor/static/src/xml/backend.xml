@@ -26,6 +26,7 @@
             <div class="back-wrapper"><i class='fa fa-font' style='background:#C96;'></i>
                 <div class="back-palette"/>
             </div>
+            <a href="#" data-command='removeformat'><i class='fa fa-eraser'></i></a>
             <a href="#" data-command='bold'><i class='fa fa-bold'></i></a>
             <a href="#" data-command='italic'><i class='fa fa-italic'></i></a>
             <a href="#" data-command='underline'><i class='fa fa-underline'></i></a>
