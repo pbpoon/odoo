@@ -648,6 +648,15 @@ class TestPickShip(TestStockCommon):
         self.assertEqual(picking_client.move_lines.state, 'confirmed', 'The move should be confirmed since all the origin moves are processed.')
         self.assertEqual(picking_client.state, 'confirmed', 'The picking should be confirmed since all the moves are confirmed.')
 
+    def test_unreserve(self):
+        picking_pick, picking_client = self.create_pick_ship()
+        self.assertEqual(picking_pick.state, 'confirmed')
+        picking_pick.do_unreserve()
+        self.assertEqual(picking_pick.state, 'confirmed')
+        self.assertEqual(picking_client.state, 'waiting')
+        picking_client.do_unreserve()
+        self.assertEqual(picking_client.state, 'waiting')
+
 
 class TestSinglePicking(TestStockCommon):
     def test_backorder_1(self):
