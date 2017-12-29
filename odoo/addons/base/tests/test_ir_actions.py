@@ -239,6 +239,13 @@ class TestCustomFields(common.TransactionCase):
         def check_registry():
             assert set(registry[self.MODEL]._fields) == fnames
 
+        @self.addCleanup
+        def reset():
+            # rollback and close the cursor, and reset the environments
+            self.registry.clear_caches()
+            self.registry.reset_changes()
+            self.env.reset()
+
         super(TestCustomFields, self).setUp()
 
         # use a test cursor instead of a real cursor

@@ -201,42 +201,6 @@ class BaseCase(TreeCase, MetaCase('DummyCase', (object,), {})):
             self.assertCountEqual(a, b, msg=None)
 
 
-class TransactionCase(BaseCase):
-    """ TestCase in which each test method is run in its own transaction,
-    and with its own cursor. The transaction is rolled back and the cursor
-    is closed after each test.
-    """
-
-    def setUp(self):
-        super(TransactionCase, self).setUp()
-        self.registry = odoo.registry(get_db_name())
-        #: current transaction's cursor
-        self.cr = self.cursor()
-        #: :class:`~odoo.api.Environment` for the current test case
-        self.env = api.Environment(self.cr, odoo.SUPERUSER_ID, {})
-
-        @self.addCleanup
-        def reset():
-            # rollback and close the cursor, and reset the environments
-            self.registry.clear_caches()
-            self.registry.reset_changes()
-            self.env.reset()
-            self.cr.rollback()
-            self.cr.close()
-
-        self.patch(type(self.env['res.partner']), '_get_gravatar_image', lambda *a: False)
-
-    def patch(self, obj, key, val):
-        """ Do the patch ``setattr(obj, key, val)``, and prepare cleanup. """
-        old = getattr(obj, key)
-        setattr(obj, key, val)
-        self.addCleanup(setattr, obj, key, old)
-
-    def patch_order(self, model, order):
-        """ Patch the order of the given model (name), and prepare cleanup. """
-        self.patch(type(self.env[model]), '_order', order)
-
-
 class SingleTransactionCase(BaseCase):
     """ TestCase in which all test methods are run in the same transaction,
     the transaction is started with the first test method and rolled back at
@@ -283,6 +247,17 @@ class SavepointCase(SingleTransactionCase):
         self.registry.clear_caches()
         super(SavepointCase, self).tearDown()
 
+    def patch(self, obj, key, val):
+        """ Do the patch ``setattr(obj, key, val)``, and prepare cleanup. """
+        old = getattr(obj, key)
+        setattr(obj, key, val)
+        self.addCleanup(setattr, obj, key, old)
+
+    def patch_order(self, model, order):
+        """ Patch the order of the given model (name), and prepare cleanup. """
+        self.patch(type(self.env[model]), '_order', order)
+
+TransactionCase = SavepointCase
 
 class HttpCase(TransactionCase):
     """ Transactional HTTP TestCase with url_open and phantomjs helpers.
