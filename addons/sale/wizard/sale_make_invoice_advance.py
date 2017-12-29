@@ -135,6 +135,8 @@ class SaleAdvancePaymentInv(models.TransientModel):
             sale_orders.action_invoice_create()
         elif self.advance_payment_method == 'all':
             sale_orders.action_invoice_create(final=True)
+        elif self.advance_payment_method == 'unbilled':
+            sale_orders.action_invoice_create(unbilled=True)
         else:
             # Create deposit product if necessary
             if not self.product_id:

@@ -10,7 +10,7 @@ from werkzeug.urls import url_encode
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, AccessError
 from odoo.osv import expression
-from odoo.tools import float_is_zero, float_compare, DEFAULT_SERVER_DATETIME_FORMAT
+from odoo.tools import float_is_zero, float_compare, float_round, DEFAULT_SERVER_DATETIME_FORMAT
 
 from odoo.tools.misc import formatLang
 
@@ -388,7 +388,7 @@ class SaleOrder(models.Model):
         return action
 
     @api.multi
-    def action_invoice_create(self, grouped=False, final=False):
+    def action_invoice_create(self, grouped=False, final=False, unbilled=False):
         """
         Create the invoice associated to the SO.
         :param grouped: if True, invoices are grouped by SO id. If False, invoices are grouped by
@@ -403,7 +403,7 @@ class SaleOrder(models.Model):
         for order in self:
             group_key = order.id if grouped else (order.partner_invoice_id.id, order.currency_id.id)
             for line in order.order_line.sorted(key=lambda l: l.qty_to_invoice < 0):
-                if float_is_zero(line.qty_to_invoice, precision_digits=precision):
+                if float_is_zero(line.qty_to_invoice, precision_digits=precision) and not unbilled:
                     continue
                 if group_key not in invoices:
                     inv_data = order._prepare_invoice()
@@ -417,10 +417,12 @@ class SaleOrder(models.Model):
                     if order.client_order_ref and order.client_order_ref not in invoices[group_key].name.split(', ') and order.client_order_ref != invoices[group_key].name:
                         vals['name'] = invoices[group_key].name + ', ' + order.client_order_ref
                     invoices[group_key].write(vals)
-                if line.qty_to_invoice > 0:
+                if line.qty_to_invoice > 0 and not unbilled:
                     line.invoice_line_create(invoices[group_key].id, line.qty_to_invoice)
-                elif line.qty_to_invoice < 0 and final:
+                elif line.qty_to_invoice < 0 and final and not unbilled:
                     line.invoice_line_create(invoices[group_key].id, line.qty_to_invoice)
+                elif unbilled and float_compare(line.product_uom_qty, line.qty_invoiced, precision_digits=precision) > 0:
+                    line.invoice_line_create(invoices[group_key].id, float_round((line.product_uom_qty - line.qty_invoiced), precision))
 
             if references.get(invoices.get(group_key)):
                 if order not in references[invoices[group_key]]:
