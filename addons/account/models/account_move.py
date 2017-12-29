@@ -2,6 +2,7 @@
 
 import time
 from collections import OrderedDict
+from dateutil.parser import parse
 from odoo import api, fields, models, _
 from odoo.osv import expression
 from odoo.exceptions import RedirectWarning, UserError, ValidationError
@@ -789,6 +790,7 @@ class AccountMoveLine(models.Model):
             :param target_date: date to use for the monetary conversion
         """
         context = dict(self._context or {})
+        date_format = self.env['res.lang']._lang_get(context.get('lang') or 'en_US').date_format
         ret = []
 
         if target_currency:
@@ -809,8 +811,8 @@ class AccountMoveLine(models.Model):
                 'account_code': line.account_id.code,
                 'account_name': line.account_id.name,
                 'account_type': line.account_id.internal_type,
-                'date_maturity': line.date_maturity,
-                'date': line.date,
+                'date_maturity': parse(line.date_maturity).strftime(date_format),
+                'date': parse(line.date).strftime(date_format),
                 'journal_id': [line.journal_id.id, line.journal_id.display_name],
                 'partner_id': line.partner_id.id,
                 'partner_name': line.partner_id.name,
