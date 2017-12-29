@@ -501,7 +501,8 @@ class Task(models.Model):
         track_visibility='onchange',
         change_default=True)
     notes = fields.Text(string='Notes')
-    planned_hours = fields.Float(string='Initially Planned Hours', help='Estimated time to do the task, usually set by the project manager when the task is in draft state.')
+    planned_hours = fields.Float(string='Planned Hours', help='It is the time planned to achieve the task. If this document has sub-tasks, it means the time needed to achieve this tasks and its childs.')
+    subtask_planned_hours = fields.Float(compute='_compute_subtask_info', string='Subtask Planned Hours', help="Computed using sum of hours planned of all subtasks created from main task. Usually these hours are less or equal to the Planned Hours (of main task).")
     remaining_hours = fields.Float(string='Remaining Hours', digits=(16,2), help="Total remaining time, can be re-estimated periodically by the assignee of the task.")
     user_id = fields.Many2one('res.users',
         string='Assigned to',
@@ -526,7 +527,7 @@ class Task(models.Model):
     parent_id = fields.Many2one('project.task', string='Parent Task')
     child_ids = fields.One2many('project.task', 'parent_id', string="Sub-tasks")
     subtask_project_id = fields.Many2one('project.project', related="project_id.subtask_project_id", string='Sub-task Project', readonly=True)
-    subtask_count = fields.Integer(compute='_compute_subtask_count', type='integer', string="Sub-task count")
+    subtask_count = fields.Integer(compute='_compute_subtask_info', type='integer', string="Sub-task count")
     email_from = fields.Char(string='Email', help="These people will receive email.", index=True)
     email_cc = fields.Char(string='Watchers Emails', help="""These email addresses will be added to the CC field of all inbound
         and outbound emails for this record before being sent. Separate multiple email addresses with a comma""")
@@ -620,9 +621,11 @@ class Task(models.Model):
         return super(Task, self).copy(default)
 
     @api.multi
-    def _compute_subtask_count(self):
+    def _compute_subtask_info(self):
         for task in self:
-            task.subtask_count = self.search_count([('id', 'child_of', task.id), ('id', '!=', task.id)])
+            subtasks = task.child_ids
+            task.subtask_count = len(subtasks)
+            task.subtask_planned_hours = sum(subtasks.mapped('planned_hours'))
 
     # Override view according to the company definition
     @api.model
