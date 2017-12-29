@@ -276,8 +276,8 @@ class Holidays(models.Model):
 
     method = fields.Selection(related='holiday_status_id.method', store=True)
 
-    date_from_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')])
-    date_to_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')])
+    date_from_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')], default='am')
+    date_to_am_pm = fields.Selection([('am', 'AM'), ('pm', 'PM')], default='pm')
 
     unit = fields.Selection([('half', 'Half Day'),
                              ('day', '1 Day'),
@@ -287,32 +287,59 @@ class Holidays(models.Model):
                                  ('period', 'Period')],
                                 default='day')
 
+    def get_time_from_hour(self, hour, delta=(0, 0, 0)):
+        h, m, s = math.floor(hour), math.floor(hour * 3600 // 60 % 60), math.floor(hour * 3600 % 60)
+        return time(hour=max(h+delta[0], 0), minute=max(m+delta[1], 0), second=max(s+delta[2], 0))
+
     def calc_days_temp(self):
         if self.unit == 'day' and self.date_from_date:
             self.number_of_days_temp = 1
         if self.unit == 'half' and self.date_from_date and self.date_from_am_pm:
             self.number_of_days_temp = .5
         if self.unit == 'period':
-            is_set = (self.date_from and self.date_to)
-            is_set_date = (self.date_from_date and self.date_to_date)
+            is_set = self.date_from and self.date_to
+            is_set_date = self.date_from_date and self.date_to_date
+
+            if not is_set or not is_set_date:
+                self.number_of_days_temp = 0
+                return
 
             date_from = False
             date_to = False
 
+            Attendances = self.env['resource.calendar.attendance']
+            domain = [('calendar_id', '=', self.employee_id.resource_calendar_id.id)]
+
+            first_day = fields.Date.from_string(self.date_from_date)
+            last_day = fields.Date.from_string(self.date_to_date)
+
+            attendance_from = Attendances.search(domain + [('dayofweek', '=', first_day.weekday()), ('day_period', '=', 'morning')], limit=1)
+            attendance_to = Attendances.search(domain + [('dayofweek', '=', last_day.weekday()), ('day_period', '=', 'afternoon')], limit=1)
+
+            # In case we only have an attendance in the morning or only in the afternoon
+            if not attendance_to:
+                attendance_to = attendance_from
+
+            if not attendance_from:
+                attendance_from = attendance_to
+
             if self.method == 'day' and is_set_date:
-                date_from = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_from_date), time(9)))
-                date_to = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_to_date), time(17)))
+                hour_from = attendance_from.hour_from
+                hour_to = attendance_to.hour_to
+
+                date_from = fields.Datetime.to_string(datetime.combine(first_day, self.get_time_from_hour(hour_from, (-1, 0, 0))))
+                date_to = fields.Datetime.to_string(datetime.combine(last_day, self.get_time_from_hour(hour_to)))
             if self.method == 'half' and is_set_date:
-                date_from = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_from_date), time(9 if self.date_from_am_pm == 'am' else 12)))
-                date_to = fields.Datetime.to_string(datetime.combine(fields.Date.from_string(self.date_to_date), time(12 if self.date_to_am_pm == 'am' else 17)))
+                hour_from = attendance_from.hour_from if self.date_from_am_pm == 'am' else attendance_from.hour_to
+                hour_to = attendance_to.hour_from if self.date_to_am_pm == 'am' else attendance_to.hour_to
+
+                date_from = fields.Datetime.to_string(datetime.combine(first_day, self.get_time_from_hour(hour_from, (-1, 0, 0))))
+                date_to = fields.Datetime.to_string(datetime.combine(last_day, self.get_time_from_hour(hour_to, (-1, 0, 0))))
             if self.method == 'hour' and is_set:
                 date_from = self.date_from
                 date_to = self.date_to
 
-            if date_from and date_to:
-                self.number_of_days_temp = self._get_number_of_days(date_from, date_to, self.employee_id.id)
-            else:
-                self.number_of_days_temp = 0
+            self.number_of_days_temp = self._get_number_of_days(date_from, date_to, self.employee_id.id)
 
     @api.onchange('unit')
     def _onchange_unit(self):
@@ -429,6 +456,8 @@ class Holidays(models.Model):
     @api.onchange('date_from')
     def _onchange_date_from(self):
         self.date_from_date = self.date_from
+        if self.date_from:
+            self.date_to = fields.Datetime.from_string(self.date_from) + timedelta(hours=4 if self.unit == 'halfday' else 8)
         self.calc_days_temp()
 
     @api.onchange('date_to')
@@ -514,19 +543,11 @@ class Holidays(models.Model):
                 leave.date_to_date = leave.date_from_date
             self.env['resource.calendar.leaves'].create({
                 'name': leave.name,
-                #'date_from': leave.date_from,
+                'date_from': leave.date_from,
                 'holiday_id': leave.id,
-                #'date_to': leave.date_to,
+                'date_to': leave.date_to,
                 'resource_id': leave.employee_id.resource_id.id,
-                'calendar_id': leave.employee_id.resource_calendar_id.id,
-                'leave_infos': {
-                    'unit': leave.unit,
-                    'method': leave.method,
-                    'date_from': leave.date_from if is_datetime else leave.date_from_date,
-                    'date_to': leave.date_to if is_datetime else leave.date_to_date,
-                    'date_from_am_pm': leave.date_from_am_pm,
-                    'date_to_am_pm': leave.date_to_am_pm
-                }
+                'calendar_id': leave.employee_id.resource_calendar_id.id
             })
         return True
 
