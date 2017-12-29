@@ -87,10 +87,10 @@
             groups="analytic.group_analytic_tags"/>
 
         <menuitem
-            id="account_analytic_category_menu"
-            name="Analytic Accounts Categories"
+            id="account_analytic_group_menu"
+            name="Analytic Account Groups"
             parent="menu_analytic_accounting"
-            action="analytic.account_analytic_category_action"
+            action="analytic.account_analytic_group_action"
             groups="analytic.group_analytic_accounting"/>
 
     </data>

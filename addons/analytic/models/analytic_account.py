@@ -27,26 +27,26 @@ class AccountAnalyticTag(models.Model):
     active_analytic_distribution = fields.Boolean('Analytic Distribution')
     analytic_distribution_ids = fields.One2many('account.analytic.distribution', 'tag_id', string="Analytic Accounts")
 
-class AccountAnalyticCategory(models.Model):
-    _name = 'account.analytic.category'
+class AccountAnalyticGroup(models.Model):
+    _name = 'account.analytic.group'
     _description = 'Analytic Categories'
     _parent_store = True
 
     name = fields.Char(string='Category', required=True)
     description = fields.Text(string='Description')
-    parent_id = fields.Many2one('account.analytic.category', string="Parent", ondelete='cascade')
+    parent_id = fields.Many2one('account.analytic.group', string="Parent", ondelete='cascade')
     parent_left = fields.Integer('Left Parent', index=True)
     parent_right = fields.Integer('Right Parent', index=True)
-    children_ids = fields.One2many('account.analytic.category', 'parent_id', string="Childrens")
+    children_ids = fields.One2many('account.analytic.group', 'parent_id', string="Childrens")
     display_name = fields.Char(compute='_compute_display_name', string='Name')
 
     @api.multi
     def _compute_display_name(self):
-        for category in self:
-            if category.parent_id:
-                category.display_name = category.parent_id.display_name + ' / ' + category.name
+        for group in self:
+            if group.parent_id:
+                group.display_name = group.parent_id.display_name + ' / ' + group.name
             else:
-                category.display_name = category.name
+                group.display_name = group.name
 
 class AccountAnalyticAccount(models.Model):
     _name = 'account.analytic.account'
@@ -83,7 +83,7 @@ class AccountAnalyticAccount(models.Model):
     active = fields.Boolean('Active', help="If the active field is set to False, it will allow you to hide the account without removing it.", default=True)
 
     tag_ids = fields.Many2many('account.analytic.tag', 'account_analytic_account_tag_rel', 'account_id', 'tag_id', string='Tags', copy=True)
-    category_id = fields.Many2one('account.analytic.category', string="Category")
+    group_id = fields.Many2one('account.analytic.group', string="Category")
 
     line_ids = fields.One2many('account.analytic.line', 'account_id', string="Analytic Lines")
 
