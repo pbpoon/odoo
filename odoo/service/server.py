@@ -932,7 +932,7 @@ def preload_registries(dbnames):
                 if '-post_install' in config['test_tags']:
                     tag_selection = '-at_install'
                 else:
-                    tag_selection = config['test_tags'] + ',post_install,-standard'
+                    tag_selection = config['test_tags'] + ',post_install,-at_install'
                 with odoo.api.Environment.manage():
                     for module_name in module_names:
                         result = run_unit_tests(module_name, registry.db_name,

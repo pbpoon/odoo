@@ -1263,6 +1263,9 @@ def tag_test_selector(test, spec):
     to_exclude = {t[1:] for t in clean_conf_tags if t.startswith('-')}
     to_include = {t.replace('+', '') for t in clean_conf_tags if not t.startswith('-')}
 
+    # handle the case when the user only wants to remove a tests e.g. --test-tags '-my_tag'
+    if not to_include:
+        to_include = {'at_install'}
     # handle the case where a tag is in to_include and to_exclude
     to_include.difference_update(to_exclude)
 
