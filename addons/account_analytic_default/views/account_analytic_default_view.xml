@@ -109,14 +109,6 @@
 
         <act_window
             name="Analytic Rules"
-            id="analytic_rule_action_partner"
-            res_model="account.analytic.default"
-            src_model="res.partner"
-            context="{'search_default_partner_id': [active_id], 'default_partner_id': active_id}"
-            groups="analytic.group_analytic_accounting"/>
-
-        <act_window
-            name="Analytic Rules"
             id="analytic_rule_action_user"
             res_model="account.analytic.default"
             src_model="res.users"
