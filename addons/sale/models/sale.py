@@ -288,17 +288,9 @@ class SaleOrder(models.Model):
         result = super(SaleOrder, self).create(vals)
         return result
 
-    @api.multi
-    def copy_data(self, default=None):
-        if default is None:
-            default = {}
-        if 'order_line' not in default:
-            default['order_line'] = [(0, 0, line.copy_data()[0]) for line in self.order_line.filtered(lambda l: not l.is_downpayment)]
-        return super(SaleOrder, self).copy_data(default)
-
-    def _write(self, vals):
+    def write(self, values):
         pre_not_upselling = self.filtered(lambda order: order.invoice_status != 'upselling')
-        res = super(SaleOrder, self)._write(vals)
+        res = super(SaleOrder, self)._write(values)
         upselling = self.filtered(lambda order: order.invoice_status == 'upselling' and order in pre_not_upselling)
         for order in upselling:
             order.activity_schedule(
@@ -308,6 +300,14 @@ class SaleOrder(models.Model):
                     order._name, order.id, order.name,
                     order.partner_id._name, order.partner_id.id, order.partner_id.display_name))
         return res
+
+    @api.multi
+    def copy_data(self, default=None):
+        if default is None:
+            default = {}
+        if 'order_line' not in default:
+            default['order_line'] = [(0, 0, line.copy_data()[0]) for line in self.order_line.filtered(lambda l: not l.is_downpayment)]
+        return super(SaleOrder, self).copy_data(default)
 
     @api.multi
     def name_get(self):
