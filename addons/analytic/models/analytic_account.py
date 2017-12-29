@@ -10,29 +10,13 @@ class AccountAnalyticDistribution(models.Model):
 
     account_id = fields.Many2one('account.analytic.account', string='Analytic Account', required=True)
     percentage = fields.Float(string='Percentage', required=True, default=100.0)
-    name = fields.Char(string='Name', related='account_id.name')  # todo jov necessary?
+    name = fields.Char(string='Name', related='account_id.name')
     tag_id = fields.Many2one('account.analytic.tag', string="Parent tag")
 
     _sql_constraints = [
         ('check_percentage', 'CHECK(percentage >= 0 AND percentage <= 100)',
          'The percentage of an analytic distribution should be between 0 and 100.')
     ]
-
-    # todo jov: is this necessary? _rec_name is already account_id
-    # @api.multi
-    # def name_get(self):
-    #     res = []
-    #     for distribution in self:
-    #         res.append((distribution.id, distribution.account_id.name))
-    #     return res
-
-    # todo jov: is this necessary? _rec_name is already account_id
-    # @api.model
-    # def name_search(self, name, args=None, operator='ilike', limit=100):
-    #     if name:
-    #         recs = self.search([('account_id', operator, name)] + (args or []), limit=limit)
-    #         return recs.name_get()
-    #     return super(AccountAnalyticDistribution, self).search(domain, limit=limit).name_get()
 
 class AccountAnalyticTag(models.Model):
     _name = 'account.analytic.tag'
@@ -43,7 +27,7 @@ class AccountAnalyticTag(models.Model):
     active_analytic_distribution = fields.Boolean('Analytic Distribution')
     analytic_distribution_ids = fields.One2many('account.analytic.distribution', 'tag_id', string="Analytic Accounts")
 
-class AccountAnalyticCategory(models.Model):  # todo jov rename to account.analytic.group to be similar to account.group?
+class AccountAnalyticCategory(models.Model):
     _name = 'account.analytic.category'
     _description = 'Analytic Categories'
     _parent_store = True
