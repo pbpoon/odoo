@@ -19,7 +19,6 @@
                     <div class="app_settings_block o_not_app" data-string="Invoicing" string="Invoicing" data-key="account_invoicing" groups="account.group_account_manager">
                         <field name="has_chart_of_accounts" invisible="1"/>
                         <field name="has_accounting_entries" invisible="1"/>
-                        <field name="module_account_analytic_default" invisible="1"/>
                             <h2 attrs="{'invisible': [('has_accounting_entries','!=',False)]}">Fiscal Localization</h2>
                             <div class="row mt16 o_settings_container">
                                 <div class="col-xs-12 col-md-6 o_setting_box" attrs="{'invisible': [('has_accounting_entries','!=',False)]}">

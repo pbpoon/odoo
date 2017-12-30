@@ -32,7 +32,6 @@ class ResConfigSettings(models.TransientModel):
     group_warning_account = fields.Boolean(string="Warnings", implied_group='account.group_warning_account')
     group_cash_rounding = fields.Boolean(string="Cash Rounding", implied_group='account.group_cash_rounding')
     module_account_asset = fields.Boolean(string='Assets Management')
-    module_account_analytic_default = fields.Boolean(string='Account Analytic Defaults')
     module_account_deferred_revenue = fields.Boolean(string="Revenue Recognition")
     module_account_budget = fields.Boolean(string='Budget Management')
     module_account_payment = fields.Boolean(string='Online Payment')
@@ -90,7 +89,6 @@ class ResConfigSettings(models.TransientModel):
     def onchange_analytic_accounting(self):
         if self.group_analytic_accounting:
             self.module_account_accountant = True
-            self.module_account_analytic_default = True
 
     @api.onchange('module_account_budget')
     def onchange_module_account_budget(self):
