@@ -31,6 +31,7 @@ class AccountAnalyticGroup(models.Model):
     _name = 'account.analytic.group'
     _description = 'Analytic Categories'
     _parent_store = True
+    _rec_name = 'complete_name'
 
     name = fields.Char(string='Category', required=True)
     description = fields.Text(string='Description')
@@ -38,15 +39,15 @@ class AccountAnalyticGroup(models.Model):
     parent_left = fields.Integer('Left Parent', index=True)
     parent_right = fields.Integer('Right Parent', index=True)
     children_ids = fields.One2many('account.analytic.group', 'parent_id', string="Childrens")
-    display_name = fields.Char(compute='_compute_display_name', string='Name')
+    complete_name = fields.Char('Complete Name', compute='_compute_complete_name', store=True)
 
-    @api.multi
-    def _compute_display_name(self):
+    @api.depends('name', 'parent_id.complete_name')
+    def _compute_complete_name(self):
         for group in self:
             if group.parent_id:
-                group.display_name = group.parent_id.display_name + ' / ' + group.name
+                group.complete_name = '%s / %s' % (group.parent_id.complete_name, group.name)
             else:
-                group.display_name = group.name
+                group.complete_name = group.name
 
 class AccountAnalyticAccount(models.Model):
     _name = 'account.analytic.account'
