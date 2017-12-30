@@ -365,7 +365,7 @@
                                 <div class="o_setting_right_pane">
                                     <label for="group_analytic_tags"/>
                                     <div class="text-muted">
-                                        Tags for analytics.
+                                        Allows to tag analytic entries and to manage analytic distributions
                                     </div>
                                     <div class="content-group" attrs="{'invisible': [('group_analytic_tags', '=', False)]}">
                                         <div class="mt16">
