@@ -369,7 +369,7 @@
                                     </div>
                                     <div class="content-group" attrs="{'invisible': [('group_analytic_tags', '=', False)]}">
                                         <div class="mt16">
-                                            <button name="%(analytic.account_analytic_tag_action)d" icon="fa-arrow-right" type="action" string="Tags for Multidimensional Analytics" class="btn-link"/>
+                                            <button name="%(analytic.account_analytic_tag_action)d" icon="fa-arrow-right" type="action" string="Analytic Tags" class="btn-link"/>
                                         </div>
                                     </div>
                                 </div>
