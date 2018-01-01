@@ -16,20 +16,16 @@ class ProductTemplate(models.Model):
 
     @api.multi
     def _compute_price_from_bom(self):
-        self.has_bom(self)
-        # print(">>>>>>>>>>>>>> ok", self.has_bom(self))
+        for template in self:
+            if template.product_variant_count == 1 and template.bom_count > 0:
+                bom = self.env['mrp.bom']._bom_find(product_tmpl=template)
+                self.has_bom(bom.bom_line_ids)
 
-    def has_bom(self, product):
-        bom = self.env['mrp.bom']._bom_find(product_tmpl=product)
-        for line in bom.bom_line_ids:
-            test = self.has_bom(line.product_id.product_tmpl_id)
-            if not test:
-                continue
-            else:
-                # print("line.product_id.product_tmpl_id.name", line.product_id.product_tmpl_id.name)
-                # print("line.product_id.product_tmpl_id.standard_price", line.product_id.product_tmpl_id.standard_price)
-                line.product_id.product_tmpl_id.standard_price = line.product_id._calc_price(line.bom_id)
-        return True if bom else False
+    def has_bom(self, bom_line_ids):
+        for line in bom_line_ids:
+            if line.child_line_ids:
+                self.has_bom(line.child_line_ids)
+            line.bom_id.product_tmpl_id.standard_price = line.bom_id.product_tmpl_id.product_variant_id._calc_price(line.bom_id)
 
 
 class ProductProduct(models.Model):
