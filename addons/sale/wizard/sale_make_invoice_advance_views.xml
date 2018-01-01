@@ -10,24 +10,29 @@
                         them before validation.
                     </p>
                     <group>
-                        <field name="count" invisible="[('count','=',1)]" readonly="True"/>
-                        <field name="advance_payment_method" class="oe_inline" widget="radio"
+                        <group>
+                            <field name="count" invisible="[('count','=',1)]" readonly="True"/>
+                            <field name="advance_payment_method" class="oe_inline" widget="radio"
                             attrs="{'invisible': [('count','&gt;',1)]}"/>
-                        <field name="product_id"
+                            <field name="product_id"
                             context="{'search_default_services': 1, 'default_type': 'service', 'default_invoice_policy': 'order'}" class="oe_inline"
                             invisible="1"/>
-                        <label for="amount" attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}"/>
-                        <div attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}">
-                            <field name="amount"
+                            <label for="amount" attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}"/>
+                            <div attrs="{'invisible': [('advance_payment_method', 'not in', ('fixed','percentage'))]}">
+                                <field name="amount"
                                 attrs="{'required': [('advance_payment_method', 'in', ('fixed','percentage'))]}" class="oe_inline" widget="monetary"/>
-                            <label string="%%"
+                                <label string="%%"
                                 attrs="{'invisible': [('advance_payment_method', '!=', 'percentage')]}" class="oe_inline"/>
-                        </div>
-                        <field name="deposit_account_id" class="oe_inline"
+                            </div>
+                            <field name="deposit_account_id" class="oe_inline"
                             attrs="{'invisible': ['|', ('advance_payment_method', 'not in', ('fixed', 'percentage')), ('product_id', '!=', False)]}" groups="account.group_account_manager"/>
-                        <field name="deposit_taxes_id" class="oe_inline" widget="many2many_tags"
+                            <field name="deposit_taxes_id" class="oe_inline" widget="many2many_tags"
                             domain="[('type_tax_use','=','sale')]"
                             attrs="{'invisible': ['|', ('advance_payment_method', 'not in', ('fixed', 'percentage')), ('product_id', '!=', False)]}"/>
+                        </group>
+                        <group>
+                            <field name="amount" readonly="True"/>
+                        </group>
                     </group>
                     <footer>
                         <button name="create_invoices" string="Create and View Invoices" type="object"
