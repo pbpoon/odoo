@@ -1,0 +1,5 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_crm_lead_rule,crm.lead.rule,model_crm_lead_rule,,1,0,0,0
+access_reveal_industry_tag,reveal.industry.tag,model_reveal_industry_tag,,1,0,0,0
+access_reveal_people_role,reveal.people.role,model_reveal_people_role,,1,0,0,0
+access_reveal_people_seniority,reveal.people.seniority,model_reveal_people_seniority,,1,0,0,0

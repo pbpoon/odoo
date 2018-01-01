@@ -29,16 +29,16 @@
                   <field name="company_size_max"/>
                 </group>
                 <group>
-                  <field name="industry_tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                  <field name="industry_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                 </group>
               </group>
               <div class="oe_clear"/>
             </page>
             <page name="people_data_page" string="People Filter">
               <group>
-                <field name="preferred_role"/>
-                <field name="other_role" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                <field name="seniority"/>
+                <field name="preferred_role_id"/>
+                <field name="other_role_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="seniority_id"/>
               </group>
               <div class="oe_clear"/>
             </page>
@@ -48,7 +48,7 @@
                   <field name="lead_type" groups="crm.group_use_lead"/>
                   <field name="lead_for"/>
                   <field name="team_id"/>
-                  <field name="user_id"/>                
+                  <field name="user_id"/>
                 </group>
                 <group>
                   <field name="stage_id"/>
@@ -76,36 +76,9 @@
     </field>
   </record>
 
-  <record model="ir.ui.view" id="ip_visittime_rule_list">
-    <field name="name">ip.visittime.rule.list</field>
-    <field name="model">reveal.ip.visittime</field>
-    <field name="arch" type="xml">
-      <tree>
-        <field name="create_date" string="Visited On"/>
-        <field name="ip_id"/>
-      </tree>
-    </field>
-  </record>
-
-  <record model="ir.ui.view" id="ip_history_list">
-    <field name="name">ip.history.list</field>
-    <field name="model">reveal.ip.history</field>
-    <field name="arch" type="xml">
-      <tree>
-        <field name="ip"/>
-      </tree>
-    </field>
-  </record>
-
   <record model="ir.actions.act_window" id="lead_acquisition_rule">
     <field name="name">Acquisition Rules</field>
     <field name="res_model">crm.lead.rule</field>
-    <field name="view_mode">tree,form</field>
-  </record>
-
-  <record model="ir.actions.act_window" id="ip_history_data">
-    <field name="name">IP History</field>
-    <field name="res_model">reveal.ip.history</field>
     <field name="view_mode">tree,form</field>
   </record>
 
@@ -115,17 +88,11 @@
       name="Lead Generation"
       parent="crm.crm_menu_config"
       sequence="10"/>
- 
+
   <menuitem
     action="lead_acquisition_rule"
     id="menu_lead_acquisition_rule"
     parent="lead_generation_menu_crm"
     sequence="1"/>
-
-  <menuitem
-    action="ip_history_data"
-    id="menu_ip_history_data"
-    parent="lead_generation_menu_crm"
-    sequence="4"/>
 
 </odoo>

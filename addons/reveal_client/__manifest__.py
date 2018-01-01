@@ -3,8 +3,9 @@
     'category': 'Tools',
     'depends': ['iap','crm','website'],
     'data': [
-        'security/reveal.access.csv',
+        'security/ir.model.access.csv',
         'views/views.xml',
+        'views/crm_view.xml',
         'data/acquisition_rule_data.xml'
     ],
 }

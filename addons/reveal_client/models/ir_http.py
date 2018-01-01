@@ -1,8 +1,8 @@
-import odoo
 from odoo import models, api
 from threading import Thread
 from odoo.http import request
 from odoo.modules.registry import Registry
+
 
 class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
@@ -11,20 +11,13 @@ class IrHttp(models.AbstractModel):
     def _dispatch(cls):
         res = super(IrHttp, cls)._dispatch()
 
-        if request.is_frontend and not request.session.uid:
-            path = request.httprequest.path
-            ip = request.httprequest.remote_addr
-            if path != "/website/translations":
-                thread = Thread(target=cls.threaded_function, args=(
-                    request.env.cr.dbname,
-                    request.env.uid,
-                    path,
-                    ip
-                ))
-                thread.start()
+        if 'reveal' not in request.session and request.is_frontend and request.httprequest.method == 'GET' and request._request_type == 'http' and not request.session.uid:
+            args = (request.env.cr.dbname, request.env.uid, request.httprequest.path, request.httprequest.remote_addr)
+            Thread(target=cls.process_reveal_request, args=args).start()
+            request.session['reveal'] = True
         return res
 
-    def threaded_function(dbname, uid, path, ip):
+    def process_reveal_request(dbname, uid, path, ip):
         with api.Environment.manage():
             with Registry(dbname).cursor() as cr:
                 env = api.Environment(cr, uid, {})
