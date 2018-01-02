@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 try:
     import stdnum.eu.vat as stdnum_vat
 except ImportError:
-    _logger.warning('Python `stdnum` library not found, unable to call VIES service to detect address based on VAT number.')
+    _logger.warning('Python `stdnum` library not found, unable to call VIES service to detect address based on VAT number.') #TODO OCO à voir
     stdnum_vat = None
 
 
