@@ -131,7 +131,7 @@ var RunningTourActionHelper = core.Class.extend({
 
         var toCenter = $to.offset();
         toCenter.left += $to.outerWidth()/2;
-        toCenter.top += $to.outerHeight()/2;
+        toCenter.top += $to.outerHeight()/3;
 
         values.$element.trigger($.Event("mousedown", {which: 1, pageX: elementCenter.left, pageY: elementCenter.top}));
         values.$element.trigger($.Event("mousemove", {which: 1, pageX: toCenter.left, pageY: toCenter.top}));
