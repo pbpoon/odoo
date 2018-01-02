@@ -57,6 +57,8 @@ var PortalChatter = Widget.extend({
 
         $(window).on(this.fileupload_id, this._onAttachmentLoaded.bind(this));
         this.on("change:attachment_ids", this, this._renderAttachments);
+        this.set('message_count', this.options['message_count']);
+        this.set('messages', this.preprocessMessages(this.result['messages']));
         return this._super.apply(this, arguments);
     },
     willStart: function(){
@@ -78,8 +80,7 @@ var PortalChatter = Widget.extend({
             self.on("change:domain", self, self._onChangeDomain);
             // set options and parameters
             self.options = _.extend(self.options, result['options'] || {});
-            self.set('message_count', self.options['message_count']);
-            self.set('messages', self.preprocessMessages(result['messages']));
+            self.result = result;
             return result;
         });
     },
