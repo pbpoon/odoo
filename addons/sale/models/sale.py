@@ -660,6 +660,30 @@ class SaleOrder(models.Model):
 
         return groups
 
+    @api.multi
+    def action_view_sale_advance_payment_inv(self):
+        print("------------------------", self.invoice_ids)
+        dp = self.order_line.filtered(lambda x: x.is_downpayment)
+        downpayment = sum(dp.mapped('price_unit'))
+        invoiced = sum(self.invoice_ids.mapped('amount_total'))
+        ctx = dict(
+            default_order_total=self.amount_total,
+            default_res_id=self.id,
+            default_downpayment_total=-(downpayment),
+            default_already_invoiced=-(invoiced),
+        )
+        return {
+            'name': _('Create Invoice'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'sale.advance.payment.inv',
+            'view_id': self.env.ref('sale.view_sale_advance_payment_inv').id,
+            'target': 'new',
+            'groups_id': [(4, self.env.ref('sales_team.group_sale_salesman'))],
+            'context': ctx,
+        }
+
 
 class SaleOrderLine(models.Model):
     _name = 'sale.order.line'
