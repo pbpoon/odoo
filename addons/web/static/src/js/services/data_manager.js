@@ -101,8 +101,7 @@ return core.Class.extend({
                 method: 'load_views',
             }).then(function (result) {
                 // Postprocess fields_views and insert them into the fields_views cache
-                result.fields_views = _.mapObject(result.fields_views, self._postprocess_fvg.bind(self));
-                self.processViews(result.fields_views, result.fields);
+                result.fields_views = self.processFieldsViews(result.fields_views, result.fields);
                 _.each(views_descr, function (view_descr) {
                     var toolbar = options.toolbar && view_descr[1] !== 'search';
                     var fv_key = self._gen_key(model, view_descr[0], view_descr[1], toolbar, context);
@@ -184,6 +183,18 @@ return core.Class.extend({
             });
     },
 
+    /**
+     * Parses and processes the fields views.
+     *
+     * @param {Object} fieldsViews
+     * @param {Object} fields
+     * @returns {Object} processed fieldsViews
+     */
+    processFieldsViews: function (fieldsViews, fields) {
+        fieldsViews = _.mapObject(fieldsViews, this._postprocess_fvg.bind(this));
+        this.processViews(fieldsViews, fields);
+        return fieldsViews;
+    },
     /**
      * Processes fields and fields_views. For each field, writes its name inside
      * the field description to make it self-contained. For each fields_view,

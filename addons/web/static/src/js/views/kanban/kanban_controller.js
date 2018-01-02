@@ -318,39 +318,24 @@ var KanbanController = BasicController.extend({
     /**
      * @private
      * @param {OdooEvent} event
+     * @param {KanbanColumn} event.target the column in which the record should
+     *   be added
+     * @param {Object} event.data.values the field values of the record to
+     *   create; if values only contains the value of the 'display_name', a
+     *   'name_create' is performed instead of 'create'
      */
     _onQuickCreateRecord: function (event) {
         var self = this;
+        var values = event.data.values;
         var column = event.target;
-        var name = event.data.value;
-        var state = this.model.get(this.handle, {raw: true});
         var columnState = this.model.get(column.db_id, {raw: true});
         var context = columnState.getContext();
+        var state = this.model.get(this.handle, {raw: true});
         context['default_' + state.groupedBy[0]] = columnState.res_id;
 
-        this._rpc({
-                model: state.model,
-                method: 'name_create',
-                args: [name],
-                context: context,
-            })
-            .then(add_record)
-            .fail(function (error, event) {
-                event.preventDefault();
-                new view_dialogs.FormViewDialog(self, {
-                    res_model: state.model,
-                    context: _.extend({default_name: name}, context),
-                    title: _t("Create"),
-                    disable_multiple_selection: true,
-                    on_saved: function (record) {
-                        add_record([record.res_id]);
-                    },
-                }).open();
-            });
-
-        function add_record(records) {
+        var addRecord = function (resID) {
             return self.model
-                .addRecordToGroup(columnState.id, records[0])
+                .addRecordToGroup(columnState.id, resID)
                 .then(function (db_id) {
                     self._updateEnv();
 
@@ -363,6 +348,37 @@ var KanbanController = BasicController.extend({
                             }
                         });
                 });
+        };
+
+        if (Object.keys(values).length === 1 && 'display_name' in values) {
+            // only 'display_name is given, perform a 'name_create'
+            this._rpc({
+                    model: state.model,
+                    method: 'name_create',
+                    args: [values.display_name],
+                    context: context,
+                }).then(function (records) {
+                    addRecord(records[0]);
+                }).fail(function (error, event) {
+                    event.preventDefault();
+                    new view_dialogs.FormViewDialog(self, {
+                        res_model: state.model,
+                        context: _.extend({default_name: name}, context),
+                        title: _t("Create"),
+                        disable_multiple_selection: true,
+                        on_saved: function (record) {
+                            addRecord(record.res_id);
+                        },
+                    }).open();
+                });
+        } else {
+            // other fields are specified, perform a classical 'create'
+            this._rpc({
+                model: state.model,
+                method: 'create',
+                args: [values],
+                context: context,
+            }).then(addRecord);
         }
     },
     /**

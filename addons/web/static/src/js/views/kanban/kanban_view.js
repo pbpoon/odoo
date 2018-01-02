@@ -64,6 +64,7 @@ var KanbanView = BasicView.extend({
             deletable: activeActions.group_delete,
             group_creatable: activeActions.group_create && !config.device.isMobile,
             quick_create: params.isQuickCreateEnabled || this._isQuickCreateEnabled(viewInfo),
+            quickCreateView: arch.attrs.quick_create_view || null,
             hasProgressBar: !!progressBar,
         };
         this.rendererParams.record_options = {

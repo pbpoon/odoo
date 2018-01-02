@@ -66,6 +66,10 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
                 .load_filters(event.data.dataset, event.data.action_id)
                 .then(event.data.on_success);
         },
+        process_fields_views: function (event) {
+            var result = data_manager.processFieldsViews(event.data.fieldsViews, event.data.fields);
+            event.data.on_success(result);
+        },
         show_effect: '_onShowEffect',
         // session
         get_session: function (event) {

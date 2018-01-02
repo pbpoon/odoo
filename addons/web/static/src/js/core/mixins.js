@@ -498,6 +498,15 @@ var ServicesMixin = {
         });
         return def;
     },
+    processFieldsViews: function (fieldsViews, fields) {
+        var def = $.Deferred();
+        this.trigger_up('process_fields_views', {
+            fields: fields,
+            fieldsViews: fieldsViews,
+            on_success: def.resolve.bind(def),
+        });
+        return def;
+    },
     // Session stuff
     getSession: function () {
         var session;

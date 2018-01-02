@@ -117,9 +117,11 @@ var KanbanRenderer = BasicRenderer.extend({
 
     /**
      * Displays the quick create record in the first column.
+     *
+     * @returns {Deferred}
      */
     addQuickCreate: function () {
-        this.widgets[0].addQuickCreate();
+        return this.widgets[0].addQuickCreate();
     },
     /**
      * Toggle fold/unfold the Column quick create widget
@@ -151,7 +153,16 @@ var KanbanRenderer = BasicRenderer.extend({
         var index = _.findIndex(this.widgets, {db_id: localID});
         var column = this.widgets[index];
         this.widgets[index] = newColumn;
-        return newColumn.insertAfter(column.$el).then(column.destroy.bind(column));
+        return newColumn.appendTo(document.createDocumentFragment()).then(function () {
+            newColumn.$el.insertAfter(column.$el);
+            // When a record has been quick created, the new column directly
+            // renders the quick create widget (to allow quick creating several
+            // records in a row). However, as we render this column in a
+            // fragment, the quick create widget can't be correctly focused. So
+            // we manually call on_attach_callback to focus it once in the DOM.
+            newColumn.on_attach_callback();
+            column.destroy();
+        });
     },
     /**
      * Updates a given record with its new state.
@@ -328,8 +339,9 @@ var KanbanRenderer = BasicRenderer.extend({
     _setState: function (state) {
         this.state = state;
 
-        var groupByFieldAttrs = state.fields[state.groupedBy[0]];
-        var groupByFieldInfo = state.fieldsInfo.kanban[state.groupedBy[0]];
+        var groupByField = state.groupedBy[0];
+        var groupByFieldAttrs = state.fields[groupByField];
+        var groupByFieldInfo = state.fieldsInfo.kanban[groupByField];
         // Deactivate the drag'n'drop if the groupedBy field:
         // - is a date or datetime since we group by month or
         // - is readonly (on the field attrs or in the view)
@@ -347,13 +359,14 @@ var KanbanRenderer = BasicRenderer.extend({
             }
         }
         this.groupedByM2O = groupByFieldAttrs && (groupByFieldAttrs.type === 'many2one');
-        var grouped_by_field = this.groupedByM2O && groupByFieldAttrs.relation;
+        var relation = this.groupedByM2O && groupByFieldAttrs.relation;
         var groupByTooltip = groupByFieldInfo && groupByFieldInfo.options.group_by_tooltip;
         this.columnOptions = _.extend(this.columnOptions, {
             draggable: draggable,
             group_by_tooltip: groupByTooltip,
+            groupedBy: groupByField,
             grouped_by_m2o: this.groupedByM2O,
-            relation: grouped_by_field,
+            relation: relation,
         });
         this.createColumnEnabled = this.groupedByM2O && this.columnOptions.group_creatable;
     },
