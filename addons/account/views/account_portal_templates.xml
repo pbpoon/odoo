@@ -1,8 +1,8 @@
 <odoo>
        <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
-            <script type="text/javascript" src="/portal/static/src/js/portal_frontend.js"></script>
-            <link rel="stylesheet" type="text/less" href="/portal/static/src/less/portal_frontend.less"/>
+<!--             <script type="text/javascript" src="/portal/static/src/js/portal_frontend.js"></script>
+            <link rel="stylesheet" type="text/less" href="/portal/static/src/less/portal_frontend.less"/> -->
             <li t-if="page_name == 'invoice'" class="active">
                 <a t-if="invoice" t-attf-href="/my/invoices?{{ keep_query() }}">Invoices</a>
                 <t t-else="">Invoices</t>
@@ -70,55 +70,46 @@
       </t>
     </template>
 
-    <template id="portal_invoice_page" name="Invoice Portal Template">
-        <t t-call="portal.portal_layout">
-            <body data-spy="scroll" data-target=".navspy" data-offset="50">
-            <div class="container o_has_portal_frontend">
-                <div class="row mt16">
-                <!-- Sidebar -->
-                <div class="col-md-3 hidden-print">
-                    <div class="bs-sidebar">
-                        <div  class="text-center">
-                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
-                        </div>
-                        <div class="text-center o_portal_div" id="o_portal_account_actions">
-                        </div>
-                        <div class="text-center visible-xs visible-sm" style="padding: 10px">
-                            <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><i class="fa fa-download fa-2x"/></a>
-                        </div>
-                        <div class="text-left o_portal_div">
-                            <strong>Invoice: </strong>
-                            <span t-field="invoice.number"/>
-                        </div>
-                        <div name="reference" t-if="invoice.reference" class="text--left o_portal_div">
-                            <strong>Reference: </strong>
-                            <span t-field="invoice.reference"/>
-                        </div>
-                        <div class="text--left o_portal_div">
-                            <strong>Invoice Date: </strong>
-                            <span t-field="invoice.date_invoice"/>
-                        </div>
-                        <div class="text--left o_portal_div">
-                            <strong>Due Date: </strong>
-                            <span t-field="invoice.date_due"/>
-                        </div>
-                        <div id="History" class="text-center o_portal_div">
-                            <a href="#chatter">A question about the Invoice?</a>
-                        </div>
-                    </div>
-                </div>
-                <div id="invoice_content" class="col-md-9 hidden-print">
-                    <div id="pdf_invoice" class="panel-body">
-                        <t t-if="error or warning" t-call="account.portal_invoice_error"/>
-                        <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
-                        <t t-call="account.portal_invoice_report"/>
-                    </div>
-                </div>
+    <template id="portal_invoice_page" name="Invoice Portal Template" inherit_id="portal.portal_sidebar">
+        <xpath expr="//div[@id='sidebar_content']" position="inside">
+            <div  class="text-center">
+                <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
+            </div>
+            <div class="text-center o_portal_div" id="o_portal_account_actions">
+            </div>
+            <div class="text-center visible-xs visible-sm" style="padding: 10px">
+                <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><i class="fa fa-download fa-2x"/></a>
+            </div>
+            <div class="text-left o_portal_div">
+                <strong>Invoice: </strong>
+                <span t-field="invoice.number"/>
+            </div>
+            <div name="reference" t-if="invoice.reference" class="text--left o_portal_div">
+                <strong>Reference: </strong>
+                <span t-field="invoice.reference"/>
+            </div>
+            <div class="text--left o_portal_div">
+                <strong>Invoice Date: </strong>
+                <span t-field="invoice.date_invoice"/>
+            </div>
+            <div class="text--left o_portal_div">
+                <strong>Due Date: </strong>
+                <span t-field="invoice.date_due"/>
+            </div>
+            <div id="History" class="text-center o_portal_div">
+                <a href="#chatter">A question about the Invoice?</a>
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='page_content']" position="inside">
+            <div id="invoice_content">
+                <div id="pdf_invoice" class="panel-body">
+                    <t t-if="error or warning" t-call="account.portal_invoice_error"/>
+                    <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
+                    <t t-call="account.portal_invoice_report"/>
                 </div>
             </div>
-            <div class="oe_structure mb32"/>
-            </body>
-        </t>
+        </xpath>
+        <!-- <div class="oe_structure mb32"/> -->
     </template>
 
     <template id="chatter" name="Allow Comments &amp; History" inherit_id="account.portal_invoice_page">

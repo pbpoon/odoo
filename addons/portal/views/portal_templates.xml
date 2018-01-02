@@ -372,4 +372,37 @@
             t-att-data-sign-label="signLabel"
             t-att-data-access-token="accessToken"/>
     </template>
+
+    <template id="navigation_menu">
+        <div class="navspy" t-ignore="true" role="complementary">
+            <ul class="nav bs-sidenav" data-id="portal_sidebar">
+                <li><a href="#introduction">Introduction</a></li>
+            </ul>
+        </div>
+    </template>
+
+    <template id="portal_sidebar" name="Sidebar">
+            <t t-call="portal.portal_layout">
+            <body data-spy="scroll" data-target=".navspy" data-offset="50">
+                <div class="container o_portal_sidebar">
+                    <div class="row mt16">
+                        <!-- Sidebar -->
+                        <div class="col-md-3 hidden-print">
+                            <div class="bs-sidebar" id="sidebar_content">
+                                <h3>Website_quote is inside sidebar_content</h3> 
+                                <hr class="mt0 mb0"/>
+                                <t t-call="portal.navigation_menu"/>
+                                <hr class="mt0 mb0"/>
+                            </div>
+                        </div>
+                        <!-- Page content -->
+                        <div id="page_content" class="col-md-9 hidden-print">
+                            <h3>Website_quote is inside page_content</h3> 
+                        </div>
+                    </div>
+                </div>
+                <div class="oe_structure mb32"/>
+            </body>
+        </t>
+    </template>
 </odoo>
