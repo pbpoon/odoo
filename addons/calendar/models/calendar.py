@@ -1696,7 +1696,5 @@ class Meeting(models.Model):
                 activity_values['note'] = values['description']
             if values.get('start'):
                 activity_values['date_deadline'] = fields.Datetime.from_string(values['start']).date()
-            if values.get('user_id'):
-                activity_values['user_id'] = values['user_id']
             if activity_values.keys():
                 self.mapped('activity_ids').write(activity_values)
