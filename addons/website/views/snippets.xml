@@ -305,7 +305,7 @@
     <section class="s_comparisons">
         <div class="container">
             <h2 class="text-center">Our Offers</h2>
-            <div class="row s_manage_column" data-min="2" data-max="4">
+            <div class="row s_manage_column">
                 <div class="col-md-4 col-xs-12">
                     <div class="panel bg-gray-light">
                         <div class="panel-heading text-center" style="background-color: rgba(255, 255, 255, 0.1)">
@@ -569,7 +569,7 @@
 <template id="s_feature_grid" name="Feature Grid">
     <section class="s_feature_grid">
         <div class="container">
-            <div class="row s_manage_column" data-min="2" data-max="4">
+            <div class="row s_manage_column">
                 <div class="col-md-5 col-md-offset-1">
                     <div class="row">
                         <div class="col-md-12 mt16 mb16">

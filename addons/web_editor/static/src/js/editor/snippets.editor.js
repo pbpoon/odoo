@@ -324,12 +324,11 @@ var SnippetEditor = Widget.extend({
     _onAddColumnClick: function (ev) {
         var parent = this.$target.find('.container > .row');
         var children = parent.children();
-        var $clone = $(children.last()).clone(false);
-        var maxItem = parent.data().max || 6;
 
         this.trigger_up('request_history_undo_record', {$target: this.$target});
 
         if (children.length < 6) {
+            var $clone = $(children.last()).clone(false);
             $(children.last()).after($clone);
 
             children = parent.children();
@@ -339,26 +338,28 @@ var SnippetEditor = Widget.extend({
             } else {
                 this._replaceClass(children, 12/children.length);
             }
+            this._onCoverUpdate();
         }
-        this._onCoverUpdate();
     },
 
     _onRemoveColumnClick: function (ev) {
         var self = this;
         var parent = this.$target.find('.container > .row');
         var children = parent.children();
-        var minItem = parent.data().min || 1;
 
         this.trigger_up('request_history_undo_record', {$target: this.$target});
 
-        if (children.length > 1 && children.length <= 6) {
+        if (children.length > 1) {
             children.last().remove();
             children.splice(-1);
+
             if (children.length === 5) {
                 this._replaceClass(children, 2)
                 children.first().addClass('col-md-offset-1');
-            } else {
+            } else if (children.length < 6) {
                 this._replaceClass(children, 12/children.length);
+            } else {
+                this._replaceClass(children, 2);
             }
             this.trigger_up('snippet_removed');
             this._onCoverUpdate();
@@ -367,13 +368,8 @@ var SnippetEditor = Widget.extend({
 
     _replaceClass: function (children, length) {
         _.each(children, function (child) {
-            var className = $(child).attr('class');
-            var col = className.match(/col-md-([0-9-]+)/i);
-            col = col ? col[0] : '';
-            var offset = className.match(/col-md-offset-([0-9-]+)/i);
-            offset = offset ? offset[0] : '';
-            $(child).removeClass(col + ' ' + offset);
-            $(child).addClass('col-md-' + length);
+            var className = $(child).attr('class').replace(/\s*(col-md-|col-md-offset-)([0-9-]+)/g, '');
+            $(child).attr('class', className + ' col-md-' + length);
         })
     },
 
