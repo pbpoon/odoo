@@ -137,7 +137,7 @@ class TestAdvMailPerformance(TransactionCase):
             'default_res_model': 'mail.test.activity',
         })
 
-        with self.assertQueryCount(admin=47, emp=52):  # test_mail only: 35 - 40
+        with self.assertQueryCount(admin=49, emp=54):  # test_mail only: 35 - 40
             model.create({
                 'summary': 'Test Activity',
                 'res_id': record.id,
