@@ -59,7 +59,7 @@ class PortalMixin(models.AbstractModel):
 
             new_group = [
                 ('portal_customer', lambda partner: partner.id == customer.id, {
-                    'has_button_access': True,
+                    'has_button_access': False,
                     'button_access': {
                         'url': access_link,
                         'title': _('Access'),
