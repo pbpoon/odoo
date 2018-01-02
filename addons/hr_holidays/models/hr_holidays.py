@@ -822,9 +822,7 @@ class HolidaysAllocation(models.Model):
                 holiday.write({'second_approver_id': current_employee.id})
             else:
                 holiday.write({'first_approver_id': current_employee.id})
-            if holiday.holiday_type == 'employee':
-                holiday._validate_leave_request()
-            elif holiday.holiday_type in ['category', 'department']:
+            if holiday.holiday_type in ['category', 'department']:
                 leaves = self.env['hr.leave.allocation']
                 employees = holiday.category_id.employee_ids if holiday.holiday_type == 'category' else holiday.department_id.member_ids
                 for employee in employees:

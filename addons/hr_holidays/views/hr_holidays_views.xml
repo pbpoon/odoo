@@ -135,10 +135,10 @@
                                 </div>
                             </group>
                             <group>
-                                <field name="holiday_type" attrs="{'readonly':[('state','!=','draft')]}" string="Mode" groups="hr_holidays.group_hr_holidays_user" context="{'employee_id':employee_id}" />
+                                <field name="holiday_type" string="Mode" groups="hr_holidays.group_hr_holidays_user" context="{'employee_id':employee_id}" />
                                 <field name="employee_id" attrs="{'required':[('holiday_type','=','employee')],'invisible':[('holiday_type','!=','employee')]}" groups="hr_holidays.group_hr_holidays_user"/>
-                                <field name="category_id" attrs="{'required':[('holiday_type','=','category')], 'readonly': [('state','!=','draft'), ('state','!=','confirm')], 'invisible':[('holiday_type','!=','category')]}"/>
-                                <field name="department_id" groups="hr_holidays.group_hr_holidays_user" attrs="{'readonly':['|',('state','=', 'validate'),('holiday_type','!=','department')],'invisible':[('holiday_type','=','category')]}"/>
+                                <field name="category_id" attrs="{'required':[('holiday_type','=','category')], 'invisible':[('holiday_type','!=','category')]}"/>
+                                <field name="department_id" groups="hr_holidays.group_hr_holidays_user" attrs="{'invisible':[('holiday_type','=','category')]}"/>
                             </group>
                             <field name="notes" nolabel="1" colspan="4" placeholder="Add a reason..."/>
                         </group>
@@ -226,7 +226,7 @@
 
         <record id="hr_holidays_view_list_my_allocation" model="ir.ui.view">
             <field name="name">hr.holidays.my.allocation.tree</field>
-            <field name="model">hr.holidays</field>
+            <field name="model">hr.leave.allocation</field>
             <field name="arch" type="xml">
                 <tree decoration-danger="state == 'refuse'" decoration-info="state == 'draft'" string="Allocation Requests"
                        decoration-bf="message_needaction == True">
@@ -464,7 +464,7 @@
                     Click here to create a new leave allocation request.
                 </p>
             </field>
-            <field name="domain">[('user_id', '=', uid)]</field>
+            <field name="domain">[('employee_id.user_id', '=', uid)]</field>
             <field name="view_id" ref="edit_holiday_new_allocation"/>
             <field name="search_view_id" ref="view_hr_holidays_filter_allocations"/>
         </record>
@@ -519,7 +519,7 @@
             <field name="res_model">hr.leave</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,kanban,form,calendar</field>
-            <field name="view_id" eval="view_holiday_employee"/>
+            <field name="view_id" eval="view_holiday"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click here to create a new leave request.
