@@ -662,7 +662,6 @@ class SaleOrder(models.Model):
 
     @api.multi
     def action_view_sale_advance_payment_inv(self):
-        print("------------------------", self.invoice_ids)
         dp = self.order_line.filtered(lambda x: x.is_downpayment)
         downpayment = sum(dp.mapped('price_unit'))
         invoiced = sum(self.invoice_ids.mapped('amount_total'))
