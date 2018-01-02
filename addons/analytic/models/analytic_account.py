@@ -33,7 +33,7 @@ class AccountAnalyticGroup(models.Model):
     _parent_store = True
     _rec_name = 'complete_name'
 
-    name = fields.Char(string='Category', required=True)
+    name = fields.Char(required=True)
     description = fields.Text(string='Description')
     parent_id = fields.Many2one('account.analytic.group', string="Parent", ondelete='cascade')
     parent_left = fields.Integer('Left Parent', index=True)

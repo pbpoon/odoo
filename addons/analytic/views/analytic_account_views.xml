@@ -72,7 +72,7 @@
             <field name="model">account.analytic.group</field>
             <field name="arch" type="xml">
                 <tree string="Analytic Account Groups">
-                    <field name="name" string="Name"/>
+                    <field name="name"/>
                 </tree>
             </field>
         </record>
