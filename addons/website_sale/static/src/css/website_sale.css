@@ -644,6 +644,10 @@ a.no-decoration {
   cursor: zoom-in;
 }
 
+.ecom-zoomable .o_editable img[data-zoom] {
+  cursor: pointer;
+}
+
 .break-word {
   word-wrap: break-word;
 }
