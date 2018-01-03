@@ -1924,16 +1924,17 @@ class MailThread(models.AbstractModel):
             user_signature=self.env.context.get('mail_notify_user_signature', True)
         )
 
-        # Post-process: subscribe author
-        if author_id and model and self.ids and message_type != 'notification' and not self._context.get('mail_create_nosubscribe'):
-            self.message_subscribe([author_id], force=False)
-
-        self._message_post_after_hook(new_message)
-
+        # After hook
+        self._message_post_after_hook(new_message, values)
         return new_message
 
-    def _message_post_after_hook(self, message):
-        pass
+    def _message_post_after_hook(self, message, values):
+        """ Hook to add custom behavior after having posted the message. Both
+        message and computed value are given, to try to lessen query count by
+        using already-computed values instead of having to rebrowse things. """
+        # Post-process: subscribe author
+        if values['author_id'] and values['model'] and self.ids and values['message_type'] != 'notification' and not self._context.get('mail_create_nosubscribe'):
+            self.message_subscribe([values['author_id']], force=False)
 
     @api.multi
     def message_post_with_view(self, views_or_xmlid, **kwargs):
