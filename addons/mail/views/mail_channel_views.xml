@@ -84,7 +84,7 @@
             <field name="arch" type="xml">
                 <form string="Mail Channel Form">
                     <header>
-                        <button name="send_guidelines_to_partners" type="object" string="Send guidelines" confirm="You are going to send guidelines to all subscribers. Do you confirm action?" attrs="{'invisible':[('send_guidelines','=',False)]}"/>
+                        <button name="send_guidelines" type="object" string="Send guidelines" confirm="You are going to send guidelines to all subscribers. Do you confirm action?" attrs="{'invisible':[('moderation_guidelines','=',False)]}"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box"/>
@@ -134,16 +134,16 @@
                             <page string="Moderation" attrs="{'invisible': [('moderation', '=', False)]}">
                                 <group>
                                     <field name="moderator_ids" widget="many2many_tags"/>
-                                    <field name="auto_notification"/>
-                                    <field name="notification_message" attrs="{'invisible': [('auto_notification', '=', False)]}"/>
-                                    <field name="send_guidelines"/>
-                                    <field name="guidelines" attrs="{'invisible':[('send_guidelines', '=', False)]}"/>
+                                    <field name="moderation_notify"/>
+                                    <field name="moderation_notify_msg" attrs="{'invisible': [('moderation_notify', '=', False)]}"/>
+                                    <field name="moderation_guidelines"/>
+                                    <field name="moderation_guidelines_msg" attrs="{'invisible':[('moderation_guidelines', '=', False)]}"/>
                                 </group>
                                 <group string="Whitelist/Blacklist">
-                                    <field name="moderated_email_ids" nolabel="1">
+                                    <field name="moderation_email_ids" nolabel="1">
                                         <tree editable="bottom" string="Moderated Emails">
                                             <field name="email"/>
-                                            <field name="decision"/>
+                                            <field name="status"/>
                                         </tree>
                                     </field>
                                 </group>
@@ -154,15 +154,7 @@
                 </form>
             </field>
         </record>
-
-        <record model="ir.actions.server" id="send_guidelines_to_partners">
-            <field name="name">Send guidelines to partners</field>
-            <field name="model_id" ref="model_mail_channel"/>
-            <field name="code">
-                send_guidelines_to_partner()
-             </field>
-        </record>
-
+        
         <record id="mail_channel_view_tree" model="ir.ui.view">
             <field name="name">mail.channel.tree</field>
             <field name="model">mail.channel</field>

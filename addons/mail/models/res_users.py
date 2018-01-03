@@ -41,7 +41,10 @@ class Users(models.Model):
     @api.multi
     def _compute_is_moderator(self):
         for user in self:
-            user.is_moderator = bool(self.env['mail.channel'].search_count([('moderation', '=', True), ('moderator_ids', 'in', user.id)]))
+            user.is_moderator = bool(self.env['mail.channel'].search_count([
+                    ('moderation', '=', True),
+                    ('moderator_ids', 'in', user.id)
+                ]))
 
     @api.multi
     def _compute_messages_to_moderate_count(self):
@@ -179,12 +182,6 @@ class Users(models.Model):
                 user_activities[activity['model']]['total_count'] += activity['count']
 
         return list(user_activities.values())
-
-    @api.multi
-    def _compute_is_moderator(self):
-        for user in self:
-            user.is_moderator = bool(self.env['mail.channel'].search_count([('moderation', '=', True), ('moderator_ids', 'in', user.id)]))
-
 
 
 class res_groups_mail_channel(models.Model):

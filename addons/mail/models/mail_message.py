@@ -867,7 +867,7 @@ class Message(models.Model):
 
     @api.multi
     def moderate(self, decision):
-        """ :param decision
+        """ :param status
                  * accept       - moderate message and broadcast that message to followers of relevant channels.
                  * reject       - message will be deleted from the database without broadcast
                                   an email sent to the author with an explanation that the moderators can edit.
@@ -915,13 +915,12 @@ class Message(models.Model):
                     ('email_from', '=', message.email_from),
                     ('model', '=', 'mail.channel'),
                     ('res_id', '=', message.res_id)
-                    ])           
-
+                    ])
 
         channel_ids = messages_to_delete.mapped('res_id')
         moderators = messages_to_delete.env['mail.channel'].browse(channel_ids).mapped('moderator_ids')
         authors = messages_to_delete.mapped('author_id')
-        
+
         moderators_notifications = [
             (
                 moderator.partner_id.id,
@@ -974,14 +973,14 @@ class Message(models.Model):
         messages_to_delete.unlink()
 
     @api.model
-    def notify_moderator(self):
+    def _notify_moderators(self):
         """ This method alerts by email the moderators of the existence of messages that need moderation.
             This method is called once a day by a cron.
             """
         moderators_to_notify = self.search([('moderation_status', '=', 'pending_moderation')]).mapped('channel_ids.moderator_ids')
-        template = self.env.ref('mail.moderator_notification_email', raise_if_not_found=False)
+        template = self.env.ref('mail.mail_template_moderator_notification_email', raise_if_not_found=False)
         for moderator in moderators_to_notify:
-            template.with_context(lang=moderator.lang).send_mail(moderator.id, raise_exception=True)
+            template.with_context(lang=moderator.lang).send_mail(moderator.partner_id.id, raise_exception=True)
 
     @api.model
     def create_notification_email(self, vals):
