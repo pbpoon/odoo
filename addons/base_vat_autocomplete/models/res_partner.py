@@ -10,12 +10,6 @@ from suds.client import Client
 
 _logger = logging.getLogger(__name__)
 
-try:
-    import stdnum.eu.vat as stdnum_vat
-except ImportError:
-    _logger.warning('Python `stdnum` library not found, unable to call VIES service to detect address based on VAT number.') #TODO OCO à voir
-    stdnum_vat = None
-
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -36,15 +30,13 @@ class ResPartner(models.Model):
                     return (result.group(1), result.group(2))
             return False
 
-        if stdnum_vat is None:
-            return {}
-
+        eu_country_codes = self.env.ref('base.europe').country_ids.mapped('code')
         for partner in self:
             if not partner.vat:
                 return {}
-            if len(partner.vat) > 5 and partner.vat[:2].lower() in stdnum_vat.country_codes: #TODO OCO les country codes font qu'on ne peut pas s'en passer, semble-t-il ... mais bon => vatnumber n'a pas ça ? Qu'on n'en garde qu'un seul des deux ... => de toute façon, ce check est-il réellement primordial ? > tester
+            if len(partner.vat) > 5 and partner.vat[:2].lower() in eu_country_codes:
                 try:
-                    partner_vat = stdnum_vat.compact(partner.vat) #TODO OCO voir si recoder ça permettrait de retirer la dépendance
+                    partner_vat = partner.compact_vat_number(partner.vat)
                     result = partner.vies_vat_check(partner_vat[:2], partner_vat[2:], except_to_simple_check=False)
                 except:
                     # Avoid blocking the client when the service is unreachable/unavailable
