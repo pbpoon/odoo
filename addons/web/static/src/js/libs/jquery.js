@@ -89,8 +89,16 @@ $.fn.extend({
      */
     odooBounce: function () {
         return this.each(function () {
-            $(this).css('box-sizing', 'content-box')
-                   .effect('bounce', {distance: 18, times: 5}, 250);
+            var $el = $(this);
+            var times = 5;
+            var distance = 9;
+            var speed = 60;
+            $el.css('box-sizing', 'content-box');
+            for(var i = 0; i < times; i++) {
+                var dist = distance*(times-i)/times;
+                $el.animate({marginTop: '-='+dist+'px'}, speed)
+                   .animate({marginTop: '+='+dist+'px'}, speed);
+            }
         });
     },
     /**
