@@ -35,15 +35,15 @@ class TemplatePreview(models.TransientModel):
             result['res_id'] = records and records[0][0] or False  # select first record as a Default
         if template and 'model_id' in fields and not result.get('model_id'):
             result['model_id'] = template.model_id.id
-        if template and 'lang' in fields and not result.get('lang'):
-            result['lang'] = template._context.get('lang')
+        if template and 'preview_lang' in fields and not result.get('preview_lang'):
+            result['preview_lang'] = template.lang and template.generate_email(result['res_id'], ['lang'])['lang'] or template._context.get('lang')
         return result
 
     res_id = fields.Selection(_get_records, 'Sample Document')
     partner_ids = fields.Many2many('res.partner', string='Recipients')
-    lang = fields.Selection(_get_languages, string='Template Preview Language')
+    preview_lang = fields.Selection(_get_languages, string='Template Preview Language')
 
-    @api.onchange('res_id', 'lang')
+    @api.onchange('res_id', 'preview_lang')
     @api.multi
     def on_change_res_id(self):
         if not self.res_id:
@@ -52,6 +52,6 @@ class TemplatePreview(models.TransientModel):
         if self._context.get('template_id'):
             template = self.env['mail.template'].browse(self._context['template_id'])
             self.name = template.name
-            mail_values = template.with_context(template_preview_lang=self.lang).generate_email(self.res_id)
+            mail_values = template.with_context(template_preview_lang=self.preview_lang).generate_email(self.res_id)
         for field in ['email_from', 'email_to', 'email_cc', 'reply_to', 'subject', 'body_html', 'partner_to', 'partner_ids', 'attachment_ids']:
             setattr(self, field, mail_values.get(field, False))
