@@ -11,6 +11,24 @@ class StockImmediateTransfer(models.TransientModel):
 
     pick_ids = fields.Many2many('stock.picking', 'stock_picking_transfer_rel')
 
+    def inventory_valuation(self):
+        #check that all data is correct
+        if self.pick_ids.product_id.categ_id.property_valuation == 'real_time' and self.pick_ids.product_id.lst_price == 0.0:
+            return {
+                'name': _('Inventory Valuation'),
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.inventory.valuation',
+                'view_id': self.env.ref('stock.view_inventory_valuation').id,
+                'type': 'ir.actions.act_window',
+                'target': 'new',
+                'context': {
+                    'default_product_name': self.pick_ids.product_id.name,
+                },
+            }
+        else:
+            self.process()
+
     def process(self):
         pick_to_backorder = self.env['stock.picking']
         pick_to_do = self.env['stock.picking']

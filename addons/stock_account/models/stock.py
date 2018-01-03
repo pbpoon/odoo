@@ -473,9 +473,6 @@ class StockMove(models.Model):
         # the company currency... so we need to use round() before creating the accounting entries.
         debit_value = self.company_id.currency_id.round(valuation_amount)
 
-        # check that all data is correct
-        if self.company_id.currency_id.is_zero(debit_value):
-            raise UserError(_("The cost of %s is currently equal to 0. Change the cost or the configuration of your product to avoid an incorrect valuation.") % (self.product_id.name,))
         credit_value = debit_value
 
         if self.product_id.cost_method == 'average' and self.company_id.anglo_saxon_accounting:

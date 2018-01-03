@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_inventory_valuation" model="ir.ui.view">
+        <field name="name">stock.inventory.valuation.view.form</field>
+        <field name="model">stock.inventory.valuation</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Valuation">
+                <group>
+                    <p>
+                        The cost of<field name="product_name" readonly="1" class="ml4 mr4"/> is currently equal to 0,meaning that your product will be valued at 0.Are you sure you want to confirm?
+                    </p>
+                </group>
+                <footer>
+                    <button string="Discard" special="cancel" class="btn-primary"/>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

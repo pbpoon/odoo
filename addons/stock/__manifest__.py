@@ -44,6 +44,7 @@
         'wizard/stock_overprocessed_transfer_views.xml',
         'wizard/stock_quantity_history.xml',
         'wizard/stock_warn_insufficient_qty_views.xml',
+        'wizard/stock_inventory_valuation.xml',
 
         'views/res_partner_views.xml',
         'views/product_strategy_views.xml',
