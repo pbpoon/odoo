@@ -201,7 +201,8 @@ class TestHeavyMailPerformance(TransactionCase):
         self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
         self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
         self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
-        message = self.env['mail.message'].sudo().with_context(message_create_from_mail_mail=True).create({
+
+        message = self.env['mail.message'].sudo().create({
             'subject': 'Test',
             'body': '<p>Test</p>',
             'author_id': self.env.user.partner_id.id,
