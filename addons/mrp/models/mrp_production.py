@@ -519,8 +519,8 @@ class MrpProduction(models.Model):
     def action_cancel(self):
         """ Cancels production order, unfinished stock moves and set procurement
         orders in exception """
-        if any(workorder.state == 'progress' for workorder in self.mapped('workorder_ids')):
-            raise UserError(_('You can not cancel production order, a work order is still in progress.'))
+        if any(workorder.state == 'done' for workorder in self.mapped('workorder_ids')):
+            raise UserError(_('You can not cancel production order, a work order is a done'))
         for production in self:
             production.workorder_ids.filtered(lambda x: x.state != 'cancel').action_cancel()
 
