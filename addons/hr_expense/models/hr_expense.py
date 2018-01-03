@@ -32,6 +32,7 @@ class HrExpense(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency', readonly=True, states={'draft': [('readonly', False)], 'refused': [('readonly', False)]}, default=lambda self: self.env.user.company_id.currency_id)
     company_currency_id = fields.Many2one('res.currency', string="Report Company Currency", related='sheet_id.currency_id', store=True)
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account', states={'post': [('readonly', True)], 'done': [('readonly', True)]}, oldname='analytic_account')
+    analytic_tag_ids = fields.Many2many('account.analytic.tag', string='Analytic Tags', states={'post': [('readonly', True)], 'done': [('readonly', True)]})
     account_id = fields.Many2one('account.account', string='Account', states={'post': [('readonly', True)], 'done': [('readonly', True)]}, default=lambda self: self.env['ir.property'].get('property_account_expense_categ_id', 'product.category'),
         help="An expense account is expected")
     description = fields.Text()
@@ -153,6 +154,7 @@ class HrExpense(models.Model):
             'product_id': line.get('product_id'),
             'product_uom_id': line.get('uom_id'),
             'analytic_account_id': line.get('analytic_account_id'),
+            'analytic_tag_ids': [(6, 0, line.get('analytic_tag_ids', []))],
             'payment_id': line.get('payment_id'),
             'expense_id': line.get('expense_id'),
         }
@@ -290,6 +292,7 @@ class HrExpense(models.Model):
             'product_id': self.product_id.id,
             'uom_id': self.product_uom_id.id,
             'analytic_account_id': self.analytic_account_id.id,
+            'analytic_tag_ids': self.analytic_tag_ids.ids,
             'expense_id': self.id,
         }
         return move_line
