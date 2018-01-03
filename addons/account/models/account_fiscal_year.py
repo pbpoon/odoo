@@ -10,9 +10,9 @@ class AccountFiscalYear(models.Model):
 
     name = fields.Char(string='Name', required=True)
     date_start = fields.Date(string='Start Date', required=True,
-        help='Starting date.')
+        help='Start Date, included in the fiscal year.')
     date_end = fields.Date(string='End Date', required=True,
-        help='The ending date is inclusive to your fiscal year.')
+        help='Ending Date, included in the fiscal year.')
     company_id = fields.Many2one('res.company', string='Company', required=True,
         default=lambda self: self.env.user.company_id)
 
