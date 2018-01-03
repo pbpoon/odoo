@@ -1030,11 +1030,11 @@ var SnippetsMenu = Widget.extend({
                 }
                 var $thumbnail = $(_.str.sprintf(
                     '<div class="oe_snippet_thumbnail">'+
-                        '<div class="oe_snippet_thumbnail_img" style="background-image: url(%s);"/>'+
                         '<span class="oe_snippet_thumbnail_title">%s</span>'+
+                        '<div class="oe_snippet_thumbnail_img" style="background-image: url(%s);"/>'+
                     '</div>',
-                    $snippet.find('[data-oe-thumbnail]').data('oeThumbnail'),
-                    name
+                    name,
+                    $snippet.find('[data-oe-thumbnail]').data('oeThumbnail')
                 ));
                 $snippet.prepend($thumbnail);
 

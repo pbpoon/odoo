@@ -42,8 +42,8 @@
             text-align: center;
             text-shadow: none;
         }
-        &.left > * { left: 0; }
-        &.right > * { right: 0; }
+        &.left > * { left: 0; padding-right: 4px; }
+        &.right > * { right: 0; padding-left: 4px; }
     }
     .carousel-indicators {
         margin-bottom: 0;
@@ -97,6 +97,22 @@
     .container > .row > div {
         padding: @s_text_block_image_fw-padding;
     }
+}
+
+/* 
+   Features
+   ========================================================================== */
+
+.s_features {
+    .fa {
+        &.img-circle,
+        &.img-rounded
+        &.thumbnail
+        &.shadow {
+            .fa-size-generator(30px);
+        }
+    }
+    
 }
 
 /* 
@@ -156,6 +172,10 @@
 /* 
    Button
    ========================================================================== */
+
+.s_btn .fa {
+    vertical-align: middle;
+}
 
 .s_btn {
     &.s_btn_rounded {
@@ -227,19 +247,36 @@
    Well
    ========================================================================== */
 
-.s_well {
+.well {
     .clearfix;
-    color: @text-color;
+    padding: 20px;
+    margin-bottom: 0;
     p, ul, ol {
         &:last-child {
             margin-bottom: 0;
         }
     }
     &.well-sm {
+        padding: 10px;
         font-size: @font-size-small;
     }
     &.well-lg {
+        padding: 30px;
         font-size: @font-size-large;
+    }
+    &.s_well_border {
+        background-color: transparent;
+        border-color: @text-color;
+        .box-shadow(none);
+    }
+    &.s_well_shadow {
+        border: 0;
+        .box-shadow(0 1px 1px rgba(0,0,0,0.2));
+    }
+    &.s_well_flat {
+        border: 0;
+        border-radius: 0;
+        .box-shadow(none);
     }
 }
 
@@ -548,14 +585,6 @@
     }
 }
 
-/* 
-   References
-   ========================================================================== */
-
-.s_references .img-thumbnail {
-    border: none;
-}
-
 
 /* 
    FAQ
@@ -612,8 +641,8 @@
     .s_feature_grid_content {
         overflow: hidden;
     }
-    .fa-size-generator(30px);
     .s_feature_grid_icon {
+    .fa-size-generator(30px);
         margin-right: @grid-gutter-width/2;
         float: left;
     }
@@ -658,33 +687,31 @@
    ========================================================================== */
 
 .fa-size-generator(@base-size) {
-    .fa {
         text-align: center;
         display: inline-block;
         vertical-align: middle;
-    }
-    .fa,
-    .fa.fa-1x {
+    &,
+    &.fa-1x {
         width: (@base-size + 20px);
         height: (@base-size + 20px);
         line-height: (@base-size + 20px);
     }
-    .fa.fa-2x {
+    &.fa-2x {
         width: (@base-size + 40px);
         height: (@base-size + 40px);
         line-height: (@base-size + 40px);
     }
-    .fa.fa-3x {
+    &.fa-3x {
         width: (@base-size + 60px);
         height: (@base-size + 60px);
         line-height: (@base-size + 60px);
     }
-    .fa.fa-4x {
+    &.fa-4x {
         width: (@base-size + 80px);
         height: (@base-size + 80px);
         line-height: (@base-size + 80px);
     }
-    .fa.fa-5x {
+    &.fa-5x {
         width: (@base-size + 100px);
         height: (@base-size + 100px);
         line-height: (@base-size + 100px);

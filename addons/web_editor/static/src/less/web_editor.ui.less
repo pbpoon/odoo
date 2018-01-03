@@ -141,8 +141,8 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
 
             .oe_snippet {
                 float: left;
-                width: 45.5%;
-                margin: 0 0 6% 3%;
+                width: 90%;
+                margin: 0 0 5% 5%;
                 box-shadow: none;
                 background-color: transparent;
                 .user-select(none);
@@ -155,11 +155,6 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
                     .oe_snippet_thumbnail_img {
                         border: none;
                     }
-                    .oe_snippet_thumbnail_title {
-                        border: none;
-                        padding: 0px;
-                    }
-
                     &:hover .oe_snippet_thumbnail_img {
                         .o-transition(transform, 200ms, ease);
                         .scale(1.05);
@@ -211,7 +206,7 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
             width: 100%;
             height: 0;
             border: 1px solid @o-we-color-normal;
-            padding-bottom: 75%;
+            padding-bottom: 30%;
             background-size: cover;
             background-position: center center;
             text-align: center;
@@ -223,11 +218,9 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
         }
         .oe_snippet_thumbnail_title {
             display: block;
-            border: 1px solid @o-we-color-dark;
-            padding: 5px;
+            background-color: @o-we-color-dark;
+            padding: 4px 8px;
             font-size: 12px;
-            font-weight: 300;
-            text-shadow: none;
             color: @o-we-color-text-light;
         }
         &:hover .oe_snippet_thumbnail_title {

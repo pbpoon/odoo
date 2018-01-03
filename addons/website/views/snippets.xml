@@ -100,18 +100,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6 mt64 mb32">
-                    <h3 style="text-align: right;">A Section Subtitle</h3>
-                    <p style="text-align: right;">
-                        Write one or two paragraphs describing your product or
-                        services.<br/>To be successful your content needs to be
-                        useful to your readers.
-                    </p><p style="text-align: right;">
-                        Start with the customer – find out what they want
-                        and give it to them.
-                    </p>
+                    <h3>A Section Subtitle</h3>
+                    <p>Write one or two paragraphs describing your product or services.<br/>To be successful your content needs to be useful to your readers.</p>
+                    <p>Start with the customer – find out what they want and give it to them.</p>
                 </div>
                 <div class="col-md-6 mt32 mb32">
-                  <img class="img img-responsive pull-left mb16" src="/web/image/website.s_text_image_default_image" alt="Odoo text and image block"/>
+                  <img class="img img-responsive pull-left mb16" src="/website/static/src/img/snippets_demo/s_image_text.jpg" alt="Odoo text and image block"/>
                 </div>
             </div>
         </div>
@@ -159,9 +153,11 @@
     <section class="s_title">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 mt32 mb32">
-                    <h1 class="text-center" style="font-size: 48px;" >Your Website Title</h1>
-                    <h3 class="text-center text-muted lead">And a great subtitle too</h3>
+                <div class="col-md-12 mt32">
+                    <h1 class="" style="text-align: center; font-size: 48px;">Your Website Title</h1>
+                </div>
+                <div class="col-md-12 mb32">
+                    <h3 class="text-gray-light lead" style="text-align: center;">And a great subtitle too</h3>
                 </div>
             </div>
         </div>
@@ -173,17 +169,17 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mt48 mb48 text-center">
-                    <i class="fa fa-4x fa-suitcase"/>
+                    <i class="fa fa-3x fa-suitcase img-circle bg-alpha"/>
                     <h3>First Feature</h3>
                     <p class="text-gray-light">Tell what's the value for the <br/>customer for this feature.</p>
                 </div>
                 <div class="col-md-4 mt48 mb48 text-center">
-                    <i class="fa fa-4x fa-lock"/>
+                    <i class="fa fa-3x fa-lock img-circle bg-beta"/>
                     <h3>Second Feature</h3>
                     <p class="text-gray-light">Write what the customer would like to know, <br/>not what you want to show.</p>
                 </div>
                 <div class="col-md-4 mt48 mb48 text-center">
-                    <i class="fa fa-4x fa-heart"/>
+                    <i class="fa fa-3x fa-heart img-circle bg-primary"/>
                     <h3>Third Feature</h3>
                     <p class="text-gray-light">A small explanation of this great <br/>feature, in clear words.</p>
                 </div>
@@ -254,7 +250,7 @@
 </template>
 
 <template id="s_well" name="Well">
-    <div class="well s_well well-md">
+    <div class="well well-md mt16 mb16">
         <p><b>Explain the benefits you offer.</b> Don't write about products or services here, write about solutions.</p>
     </div>
 </template>
@@ -411,18 +407,21 @@
     <section class="s_tabs">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8 mb48">
+                    <h2>Product Description</h2>
+                </div>
+                <div class="col-md-8">
                     <ul class="nav nav-tabs" role="tablist">
-                        <li role="presentation" class="active"><a href="#myTab01" aria-controls="myTab01" role="tab" data-toggle="tab">Item 1</a></li>
-                        <li role="presentation"><a href="#myTab02" aria-controls="myTab02" role="tab" data-toggle="tab">Item 2</a></li>
-                        <li role="presentation"><a href="#myTab03" aria-controls="myTab03" role="tab" data-toggle="tab">Item 3</a></li>
-                        <li role="presentation"><a href="#myTab04" aria-controls="myTab04" role="tab" data-toggle="tab">Item 4</a></li>
+                        <li role="presentation" class="active"><a href="#myTab01" aria-controls="myTab01" role="tab" data-toggle="tab">Description</a></li>
+                        <li role="presentation"><a href="#myTab02" aria-controls="myTab02" role="tab" data-toggle="tab">Details</a></li>
+                        <li role="presentation"><a href="#myTab03" aria-controls="myTab03" role="tab" data-toggle="tab">Shipping</a></li>
+                        <li role="presentation"><a href="#myTab04" aria-controls="myTab04" role="tab" data-toggle="tab">Review</a></li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane fade in active" id="myTab01">
                             <div class="panel panel-default">
                                 <div class="panel-body">
-                                    <h3 class="mt0">Item 1</h3>
+                                    <h3 class="mt0">Description</h3>
                                     <p>A great way to catch your reader's attention is to tell a story. Everything you consider writing can be told as a story.</p> 
                                 </div>
                             </div>
@@ -430,7 +429,7 @@
                         <div role="tabpanel" class="tab-pane fade" id="myTab02">
                             <div class="panel panel-default">
                                 <div class="panel-body">
-                                    <h3 class="mt0">Item 2</h3>
+                                    <h3 class="mt0">Details</h3>
                                     <p><b>Great stories have personality.</b> Consider telling a great story that provides personality. Writing a story with personality for potential clients will assists with making a relationship connection. This shows up in small quirks like word choices or phrases. Write from your point of view, not from someone else's experience.</p>
                                 </div>
                             </div>
@@ -438,7 +437,7 @@
                         <div role="tabpanel" class="tab-pane fade" id="myTab03">
                             <div class="panel panel-default">
                                 <div class="panel-body">
-                                    <h3 class="mt0">Item 3</h3>
+                                    <h3 class="mt0">Shipping</h3>
                                     <p><b>Great stories are for everyone even when only written for just one person.</b> If you try to write with a wide general audience in mind, your story will ring false and be bland. No one will be interested. Write for one person. If it’s genuine for the one, it’s genuine for the rest.</p>
                                 </div>
                             </div>
@@ -446,8 +445,14 @@
                         <div role="tabpanel" class="tab-pane fade" id="myTab04">
                             <div class="panel panel-default">
                                 <div class="panel-body">
-                                    <h3 class="mt0">Item 4</h3>
+                                    <h3 class="mt0">Review</h3>
                                     <p>Text</p>
+                                    <blockquote class="">
+                                    <p>Write a quote here from one of your customers. Quotes are a great way to build confidence in your products or services.</p>
+                                    <footer>
+                                        Jane DOE, CEO of <b>MyCompany</b>
+                                    </footer>
+                                </blockquote>
                                 </div>
                             </div>
                         </div>
@@ -535,11 +540,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-10 mt48 mb48">
-                    <p class="lead mb0"><strong>50,000+ companies run Odoo to grow their businesses.</strong>
-                    <br/>Join us and make your company a better place.</p>
+                    <h2 class="mt0 mb4">50,000+ companies run Odoo to grow their businesses.</h2>
+                    <p class="text-gray lead mb0">Join us and make your company a better place.</p>
                 </div>
-                <div class="col-md-2 mt48 mb48">
-                    <a href="/contactus" class="btn btn-primary s_btn btn-lg">
+                <div class="col-md-2 mt64 mb48">
+                    <a href="/contactus" class="btn btn-primary btn-lg s_btn">
                         Contact us <i class="fa fa-1x fa-arrow-right ml8"/>
                     </a>
                 </div>
@@ -549,9 +554,7 @@
 </template>
 
 <template id="s_btn" name="Button">
-    <a href="/contactus" class="s_btn s_btn_default btn btn-primary">
-        Contact us
-    </a>
+    <a href="/contactus" class="s_btn s_btn_default btn btn-primary">Contact us</a>
 </template>
 
 <template id="s_faq_collapse" name="FAQ">
@@ -620,7 +623,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-2 col-sm-12 mt48">
-                  <h3 class="text-center">References</h3>
+                  <h2 class="text-center">References</h2>
                 </div>
                 <div class="col-md-2 col-sm-3 col-xs-6 mt24 mb24">
                   <img src="/web/image/website.s_reference_demo_image_1" class="img img-responsive " alt="Demo Logo"/>
@@ -650,7 +653,7 @@
                     <div class="row">
                         <div class="col-md-12 mb48">
                             <h2>First list of Features</h2>
-                            <h4 class="text-gray-light">Add a great slogan</h4>
+                            <h5 class="text-primary">Add a great slogan.</h5>
                         </div>
                         <div class="col-md-12 mb24">
                             <i class="fa fa-2x fa-font-awesome img-circle bg-primary s_feature_grid_icon"/>
@@ -679,7 +682,7 @@
                     <div class="row">
                         <div class="col-md-12 mb48">
                             <h2>Second list of Features</h2>
-                            <h4 class="text-gray-light">Add a great slogan</h4>
+                            <h5 class="text-gray-light">Add a great slogan.</h5>
                         </div>
                         <div class="col-md-12 mb24">
                             <i class="fa fa-2x fa-magic img-rounded bg-gray-lighter s_feature_grid_icon"/>
@@ -942,7 +945,7 @@
     </div>
 
     <div data-js="colorpicker"
-        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_three_columns [class*='col-md-']"
+        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_three_columns [class*='col-md-'], i"
         data-exclude=".parallax">
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Background Color</a>
@@ -1005,7 +1008,7 @@
     </div>
 
     <div data-js='margin-y'
-        data-selector="section, .row:not(.s_no_resize_cols) > [class*='col-md-'], :not(.o_gallery > .container) > .carousel, .parallax, hr">
+        data-selector="section, .row:not(.s_no_resize_cols) > [class*='col-md-'], :not(.o_gallery > .container) > .carousel, .parallax, hr, .well">
     </div>
 
     <div data-js='resize'
@@ -1035,7 +1038,6 @@
                 <li data-select-class="s_hr_full"><a href="#">Full</a></li>
             </ul>
         </li>
-
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#">Style</a>
             <ul class="dropdown-menu">
@@ -1045,7 +1047,6 @@
                 <li data-select-class="s_hr_double"><a href="#">Double</a></li>
             </ul>
         </li>
-
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#">Thickness</a>
             <ul class="dropdown-menu">
@@ -1058,16 +1059,15 @@
         </li>
     </div>
 
-    <div data-selector=".s_title h1">
+    <div data-selector="h1, h2, h3">
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#">Style</a>
             <ul class="dropdown-menu">
-                <li data-select-class=""><a>None</a></li>
-                <li data-select-class="s_title_boxed"><a>Boxed</a></li>
-                <li data-select-class="s_title_uppercase"><a>Uppercase</a></li>
-                <li data-select-class="s_title_lines"><a>Line Behind</a></li>
-                <li data-select-class="page-header"><a>Page Header</a></li>
-                <li data-select-class="text-muted"><a>Muted</a></li>
+                <li data-select-class="s_title_default"><a>None</a></li>
+                <li data-select-class="s_title_boxed"><a>Box</a></li>
+                <li data-select-class="s_title_lines"><a>Lines</a></li>
+                <li data-select-class="page-header"><a>Underline</a></li>
+                <li data-select-class="s_title_transparent"><a>Semi Transparent</a></li>
                 <li data-select-class="lead"><a>Lead</a></li>
             </ul>
         </li>
@@ -1087,11 +1087,33 @@
 
     <div data-selector=".well">
         <li class="dropdown-submenu">
-            <a tabindex="-1" href="#">Size</a>
+            <a tabindex="-1" href="#"><i class="fa fa-expand"/>Size</a>
             <ul class="dropdown-menu">
                 <li data-select-class="well-sm"><a href="#">Small</a></li>
                 <li data-select-class="well-md"><a href="#">Medium</a></li>
                 <li data-select-class="well-lg"><a href="#">Large</a></li>
+            </ul>
+        </li>
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#"><i class="fa fa-paint-brush"/>Style</a>
+            <ul class="dropdown-menu">
+                <li data-select-class="s_well"><a href="#">Default</a></li>
+                <li data-select-class="s_well_border"><a href="#">Border</a></li>
+                <li data-select-class="s_well_shadow"><a href="#">Shadow</a></li>
+                <li data-select-class="s_well_flat"><a href="#">Flat</a></li>
+            </ul>
+        </li>
+    </div>
+
+    <div data-selector="i">
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#">Styles</a>
+            <ul class="dropdown-menu">
+                <li data-select-class=""><a href="#">None</a></li>
+                <li data-select-class="img-square"><a href="#">Square</a></li>
+                <li data-select-class="img-circle"><a href="#">Circle</a></li>
+                <li data-select-class="img-rounded"><a href="#">Rounded</a></li>
+                <li data-select-class="thumbnail"><a href="#">Thumbnail</a></li>
             </ul>
         </li>
     </div>
