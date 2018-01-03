@@ -251,7 +251,7 @@
                         help="Manufacturing Orders which are in confirmed state."/>
                     <separator/>
                     <filter string="Confirmed" name="confirmed" domain="[('state','=','confirmed')]"/>
-                    <filter string="Planned" name="planned" domain="[('state','=','planned')]"/>
+                    <filter string="Planned" name="planned" domain="[('state','=','planned')]" groups="mrp.group_mrp_routings"/>
                     <filter string="In Progress" name="inprogress" domain="[('state','=','progress')]"
                         help="Manufacturing Orders which are currently in production."/>
                     <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
