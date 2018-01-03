@@ -254,7 +254,7 @@
 
 <template id="footer_custom" inherit_id="website.layout" name="Footer">
     <xpath expr="//div[@id='footer']" position="replace">
-        <div class="oe_structure" id="footer" t-if='not no_footer' t-ignore="true">
+        <div id="footer" t-if='not no_footer' t-ignore="true">
             <section>
                 <div class="container">
                     <div class="row">
