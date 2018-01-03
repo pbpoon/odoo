@@ -1,11 +1,12 @@
 #
 # test cases for new-style fields
 #
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from odoo.exceptions import AccessError, except_orm
 from odoo.tests import common
 from odoo.tools import mute_logger, float_repr, pycompat
+from odoo.tools.datetime import ODate, ODatetime
 
 
 class TestFields(common.TransactionCase):
@@ -391,6 +392,76 @@ class TestFields(common.TransactionCase):
 
         with self.assertRaises(ValueError):
             record.date = '12-5-1'
+
+        record = self.env['test_new_api.testdatetime'].create({})
+
+        # Test default values
+        self.assertEqual(record.startday, date(1955, 11, 5))
+        self.assertFalse(record.startday == datetime(1955, 11, 5, 3, 30, 12))
+        self.assertEqual(record.startday, '1955-11-05')
+        self.assertFalse(record.startday == '1955-11-05 03:30:12')
+        self.assertFalse(record.startdt == date(1985, 10, 26))
+        self.assertFalse(record.startdt == '1985-10-26')
+        self.assertEqual(record.startdt, date(1985, 10, 26, 1, 20, 0))
+        self.assertEqual(record.startdt, '1985-10-26 01:20:00')
+
+        with self.assertRaises(ValueError):
+            record.startdt.fromstring('1985-10-26 1:20:0')
+
+        with self.assertRaises(ValueError):
+            record.startdt.fromstring('108-18-43')
+
+        with self.assertRaises(ValueError):
+            ODatetime(88, 88, 88)
+
+        with self.assertRaises(ValueError):
+            ODate(88, 88, 88)
+
+        record.startdt.replace('1985', '1984')
+        self.assertEqual(record.startdt, '1984-10-26 1:20:0')
+        self.assertEqual(record.startdt, datetime(1984, 10, 26, 1, 20, 0))
+
+        record.startdt.replace('1984', '1985')
+        self.assertEqual(record.startdt.index('1'), 0)
+        self.assertEqual(record.startdt.rindex('1'), 12)
+        with self.assertRaises(ValueError):
+            record.startdt.index('7')
+        with self.assertRaises(ValueError):
+            record.startdt.rindex('7')
+
+        self.assertEqual(record.startdt.find('985'), 1)
+        self.assertEqual(record.startdt.find('984'), -1)
+        self.assertEqual(record.startdt.rfind('985'), 1)
+        self.assertEqual(record.startdt.rfind('984'), -1)
+        self.assertTrue(record.startdt.startswith('1985'))
+        self.assertFalse(record.startdt.startswith('1984'))
+        self.assertTrue(record.startdt.endswith('20:00'))
+        self.assertFalse(record.startdt.endswith('20:01'))
+
+        record.startdt.fromstring('1985-10-26 01:21:00')
+        record.enddt.fromdatetime(datetime(2015, 10, 21, 16, 29, 0))
+        self.assertEqual(record.startdt, '1985-10-26 01:21:00')
+        self.assertEqual(record.startdt, datetime(1985, 10, 26, 1, 21, 0))
+        self.assertEqual(record.enddt, '2015-10-21 16:29:00')
+        self.assertEqual(record.enddt, datetime(2015, 10, 21, 16, 29, 0))
+        self.assertEqual(record.startdt - '1985-10-25 01:21:00', timedelta(days=1))
+        self.assertEqual(record.startdt - datetime(1985, 10, 25, 1, 21), timedelta(days=1))
+        self.assertEqual(record.startdt - timedelta(days=1), '1985-10-25 01:20:00')
+        self.assertEqual(record.startday - '1955-11-04', timedelta(days=1))
+        self.assertEqual(record.startday - datetime(1955, 11, 4), timedelta(days=1))
+        self.assertEqual(record.startday - timedelta(days=1), '1955-11-04')
+        self.assertTrue(record.startdt < record.enddt)
+        self.assertFalse(record.startdt > record.enddt)
+        self.assertFalse(record.enddt < record.startdt)
+        self.assertTrue(record.enddt > record.startdt)
+        self.assertFalse(record.enddt == record.startdt)
+        self.assertEqual(record.enddt, record.enddt)
+        self.assertTrue(record.startday < record.endday)
+        self.assertFalse(record.startday > record.endday)
+        self.assertFalse(record.endday < record.startday)
+        self.assertTrue(record.endday > record.startday)
+        self.assertFalse(record.endday == record.startday)
+        self.assertEqual(record.endday, record.endday)
 
     def test_22_selection(self):
         """ test selection fields """

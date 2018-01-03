@@ -22,6 +22,7 @@ import psycopg2
 
 from .sql_db import LazyCursor
 from .tools import float_repr, float_round, frozendict, html_sanitize, human_size, pg_varchar, ustr, OrderedSet, pycompat, sql
+from .tools.datetime import ODatetime, ODate
 from .tools import DEFAULT_SERVER_DATE_FORMAT as DATE_FORMAT
 from .tools import DEFAULT_SERVER_DATETIME_FORMAT as DATETIME_FORMAT
 from .tools.translate import html_translate, _
@@ -1503,7 +1504,7 @@ class Date(Field):
         """ Return the current day in the format expected by the ORM.
             This function may be used to compute default values.
         """
-        return date.today().strftime(DATE_FORMAT)
+        return ODate.today()
 
     @staticmethod
     def context_today(record, timestamp=None):
@@ -1516,7 +1517,7 @@ class Date(Field):
                 can't be converted between timezones.)
             :rtype: str
         """
-        today = timestamp or datetime.now()
+        today = timestamp or ODatetime.now()
         context_today = None
         tz_name = record._context.get('tz') or record.env.user.tz
         if tz_name:
@@ -1526,7 +1527,7 @@ class Date(Field):
             except Exception:
                 _logger.debug("failed to compute context/client-specific today date, using UTC value for `today`",
                               exc_info=True)
-        return (context_today or today).strftime(DATE_FORMAT)
+        return ODate.fromdate(context_today or today)
 
     @staticmethod
     def from_string(value):
@@ -1534,28 +1535,26 @@ class Date(Field):
         if not value:
             return None
         value = value[:DATE_LENGTH]
-        return datetime.strptime(value, DATE_FORMAT).date()
+        return ODate.fromstring(value)
 
     @staticmethod
     def to_string(value):
-        """ Convert a :class:`date` value into the format expected by the ORM. """
-        return value.strftime(DATE_FORMAT) if value else False
+        """ Convert a :class:`ODate` value into the format expected by the ORM. """
+        return value if value else False
 
     def convert_to_cache(self, value, record, validate=True):
         if not value:
             return False
         if isinstance(value, pycompat.string_types):
-            if validate:
-                # force parsing for validation
-                self.from_string(value)
-            return value[:DATE_LENGTH]
-        return self.to_string(value)
+            return self.from_string(value[:DATE_LENGTH])
+        if not isinstance(value, ODate):
+            return ODatetime.fromdate(value)
+        return value
 
     def convert_to_export(self, value, record):
         if not value:
             return ''
         return self.from_string(value) if record._context.get('export_raw_data') else ustr(value)
-
 
 class Datetime(Field):
     type = 'datetime'
@@ -1567,7 +1566,7 @@ class Datetime(Field):
         """ Return the current day and time in the format expected by the ORM.
             This function may be used to compute default values.
         """
-        return datetime.now().strftime(DATETIME_FORMAT)
+        return ODatetime.now()
 
     @staticmethod
     def context_timestamp(record, timestamp):
@@ -1583,7 +1582,7 @@ class Datetime(Field):
            :return: timestamp converted to timezone-aware datetime in context
                     timezone
         """
-        assert isinstance(timestamp, datetime), 'Datetime instance expected'
+        assert isinstance(timestamp, ODatetime), 'ODatetime instance expected'
         tz_name = record._context.get('tz') or record.env.user.tz
         utc_timestamp = pytz.utc.localize(timestamp, is_dst=False)  # UTC = no DST
         if tz_name:
@@ -1601,28 +1600,21 @@ class Datetime(Field):
         """ Convert an ORM ``value`` into a :class:`datetime` value. """
         if not value:
             return None
-        value = value[:DATETIME_LENGTH]
-        if len(value) == DATE_LENGTH:
-            value += " 00:00:00"
-        return datetime.strptime(value, DATETIME_FORMAT)
+        return ODatetime.fromstring(value)
 
     @staticmethod
     def to_string(value):
-        """ Convert a :class:`datetime` value into the format expected by the ORM. """
-        return value.strftime(DATETIME_FORMAT) if value else False
+        """ Convert a :class:`ODatetime` value into the format expected by the ORM. """
+        return value if value else False
 
     def convert_to_cache(self, value, record, validate=True):
         if not value:
             return False
         if isinstance(value, pycompat.string_types):
-            if validate:
-                # force parsing for validation
-                self.from_string(value)
-            value = value[:DATETIME_LENGTH]
-            if len(value) == DATE_LENGTH:
-                value += " 00:00:00"
-            return value
-        return self.to_string(value)
+            return self.from_string(value[:DATETIME_LENGTH])
+        if not isinstance(value, ODatetime):
+            return ODatetime.fromdatetime(value)
+        return value
 
     def convert_to_export(self, value, record):
         if not value:
@@ -1631,7 +1623,7 @@ class Datetime(Field):
 
     def convert_to_display_name(self, value, record):
         assert record, 'Record expected'
-        return Datetime.to_string(Datetime.context_timestamp(record, Datetime.from_string(value)))
+        return ODatetime.to_string(ODatetime.context_timestamp(record, ODatetime.from_string(value)))
 
 # http://initd.org/psycopg/docs/usage.html#binary-adaptation
 # Received data is returned as buffer (in Python 2) or memoryview (in Python 3).
