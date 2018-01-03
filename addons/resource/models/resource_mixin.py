@@ -47,6 +47,12 @@ class ResourceMixin(models.AbstractModel):
         be used on the resource. """
         return self.get_work_days_data(from_datetime, to_datetime, calendar=calendar)['days']
 
+    def get_work_hours_count(self, from_datetime, to_datetime, calendar=None):
+        """ Return the number of work hours for the resource, taking into account
+        leaves. An optional calendar can be given in case multiple calendars can
+        be used on the resource. """
+        return self.get_work_days_data(from_datetime, to_datetime, calendar=calendar)['hours']
+
     def get_work_days_data(self, from_datetime, to_datetime, calendar=None):
         days_count = 0.0
         total_work_time = timedelta()
@@ -71,17 +77,31 @@ class ResourceMixin(models.AbstractModel):
         calendar = calendar or self.resource_calendar_id
         return calendar._iter_work_hours_count(from_datetime, to_datetime, self.resource_id.id)
 
-    def get_leaves_day_count(self, from_datetime, to_datetime, calendar=None):
+    def get_leaves_days_count(self, from_datetime, to_datetime, calendar=None):
         """ Return the number of leave days for the resource, taking into account
         attendances. An optional calendar can be given in case multiple calendars
         can be used on the resource. """
+        return self.get_leaves_days_data(from_datetime, to_datetime, calendar=calendar)['days']
+
+    def get_leaves_hours_count(self, from_datetime, to_datetime, calendar=None):
+        """ Return the number of leave hours for the resource, taking into account
+        attendances. An optional calendar can be given in case multiple calendars can
+        be used on the resource. """
+        return self.get_leaves_days_data(from_datetime, to_datetime, calendar=calendar)['hours']
+
+    def get_leaves_days_data(self, from_datetime, to_datetime, calendar=None):
         days_count = 0.0
+        total_leave_time = timedelta()
         calendar = calendar or self.resource_calendar_id
         for day_intervals in calendar._iter_leave_intervals(from_datetime, to_datetime, self.resource_id.id):
             theoric_hours = self.get_day_work_hours_count(day_intervals[0][0].date(), calendar=calendar)
             leave_time = sum((interval[1] - interval[0] for interval in day_intervals), timedelta())
+            total_leave_time += leave_time
             days_count += float_utils.round((leave_time.total_seconds() / 3600 / theoric_hours) * 4) / 4
-        return days_count
+        return {
+            'days': days_count,
+            'hours': total_leave_time.total_seconds() / 3600,
+        }
 
     def iter_leaves(self, from_datetime, to_datetime, calendar=None):
         calendar = calendar or self.resource_calendar_id
