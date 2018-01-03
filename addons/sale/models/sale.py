@@ -667,6 +667,7 @@ class SaleOrder(models.Model):
         invoiced = sum(self.invoice_ids.mapped('amount_total'))
         undelivered_product = self.order_line.filtered(lambda line: line.product_id.invoice_policy == 'delivery')
         undeliver = sum((rec.product_uom_qty - rec.qty_delivered) * rec.price_unit for rec in undelivered_product)
+        ready_to_invoice = (self.amount_total - (invoiced + undeliver)) if (self.amount_total - (invoiced + undeliver)) > 0.0 else 0.0
         ctx = dict(
             default_res_id=self.id,
             default_order_total=self.amount_total,
@@ -674,8 +675,8 @@ class SaleOrder(models.Model):
             default_downpayment_total=downpayment,
             default_already_invoiced=invoiced,
             default_unbilled_total=(self.amount_total - invoiced),
-            default_undelivered_products=-(undeliver),
-            default_ready_to_invoice=self.amount_total - (invoiced + undeliver),
+            default_undelivered_products=undeliver,
+            default_ready_to_invoice=ready_to_invoice,
         )
         return {
             'name': _('Create Invoice'),
