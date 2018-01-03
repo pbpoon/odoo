@@ -236,6 +236,10 @@ eventHandler.modules.popover.button.update = function ($container, oStyle) {
 
         if (dom.isImgFont(oStyle.image)) {
 
+            $container.find('i#colors_preview')
+                .toggleClass('bg-transparent', oStyle['background-color'] === 'rgba(0, 0, 0, 0)')
+                .css({'color': oStyle['color'], 'background-color': oStyle['background-color']});
+
             $container.find('.btn-group:not(.only_fa):has(button[data-event="resize"],button[data-value="img-thumbnail"])').addClass("hidden");
             $container.find('.only_fa').removeClass("hidden");
             $container.find('button[data-event="resizefa"][data-value="2"]').toggleClass("active", $(oStyle.image).hasClass("fa-2x"));
@@ -275,6 +279,10 @@ eventHandler.modules.popover.button.update = function ($container, oStyle) {
         $container.find('button[data-event="floatMe"][data-value="right"]').toggleClass("active", $(oStyle.image).hasClass("pull-right"));
 
         $(oStyle.image).trigger('attributes_change');
+    } else {
+        $container.find('i#colors_preview')
+            .toggleClass('bg-transparent', oStyle['background-color'] === 'rgba(0, 0, 0, 0)')
+            .css({'color': oStyle['color'], 'background-color': oStyle['background-color']});
     }
 };
 

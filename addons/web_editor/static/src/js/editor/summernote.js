@@ -1922,6 +1922,15 @@ eventHandler.modules.editor.redo = function ($popover) {
     if (!$popover.attr('disabled'))  $popover.data('NoteHistory').redo();
 };
 
+// Get color and background color of node to update recent color button
+var fn_from_node = eventHandler.modules.editor.style.fromNode;
+eventHandler.modules.editor.style.fromNode = function ($node) {
+    var styleInfo = fn_from_node.apply(this, arguments);
+    styleInfo['color'] = $node.css('color');
+    styleInfo['background-color'] = $node.css('background-color');
+    return styleInfo;
+};
+
 // use image toolbar if current range is on image
 var fn_editor_currentstyle = eventHandler.modules.editor.currentStyle;
 eventHandler.modules.editor.currentStyle = function (target) {

@@ -896,10 +896,17 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
         }
 
         #colors_preview {
-            padding: 4px;
+            padding: 4px 0px;
             border-radius: 2px;
             border: 1px solid #989898;
             border-color: fadeOut(@o-we-color-text-normal, 0.5);
+            &.bg-transparent {
+                background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAClJREFUeNpivHnzJgMSUFNTQ+YyMeAFNJVm/P//PzL/1q1bg8VpAAEGAMiICJs4Ce8uAAAAAElFTkSuQmCC');
+            }
+            &::before {
+                padding: 4px;
+                background-color: rgba(0, 0, 0, 0.25);
+            }
         }
         .note-color-palette .note-color-row {
             height: auto!important;
