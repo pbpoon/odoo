@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <!-- mail.moderation.email tree: short view !-->
+        <record model="ir.ui.view" id="view_moderation_email_tree">
+            <field name="name">mail.moderation.email.tree</field>
+            <field name="model">mail.moderation.email</field>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <tree string="Messages">
+                    <field name="channel_id"/>
+                    <field name="email"/>
+                    <field name="status"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- mail.moderation.email search: wall view !-->
+        <record model="ir.ui.view" id="view_moderation_email_search">
+            <field name="name">mail.moderation.email.search</field>
+            <field name="model">mail.moderation.email</field>
+            <field name="priority">25</field>
+            <field name="arch" type="xml">
+                <search string="Moderation Email Search">
+                    <field name="channel_id"/>
+                    <field name="email"/>
+                    <field name="status"/>
+                    <filter string="Is Banned"
+                            name="moderation_email_ban" help="Banned Emails"
+                            domain="[('status', '=', 'ban')]"/>
+                    <separator/>
+                    <filter string="Is Allowed"
+                            name="moderation_email_allow" help="Allowed Emails"
+                            domain="[('status', '=', 'allow')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_view_mail_moderation_email" model="ir.actions.act_window">
+            <field name="name">White List / Black List</field>
+            <field name="res_model">mail.moderation.email</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="search_view_id" ref="view_moderation_email_search"/>
+        </record>
+        
+        <!-- Add menu entry in Settings/Email -->
+        <menuitem name="White List / Black List" id="menu_mail_moderation_email" parent="base.menu_email" action="action_view_mail_moderation_email"/>
+    </data>
+</odoo>
