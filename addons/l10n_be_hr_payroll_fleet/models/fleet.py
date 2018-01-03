@@ -61,7 +61,7 @@ class FleetVehicle(models.Model):
     def _compute_vehicle_name(self):
         super(FleetVehicle, self)._compute_vehicle_name()
         for vehicle in self:
-            acquisition_date = self._get_acquisition_date()
+            acquisition_date = vehicle._get_acquisition_date()
             vehicle.name += u" \u2022 " + str(round(vehicle.total_depreciated_cost, 2)) + u" \u2022 " + acquisition_date
 
     def _get_acquisition_date(self):
