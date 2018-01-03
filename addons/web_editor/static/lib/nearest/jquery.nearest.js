@@ -156,7 +156,7 @@
 			w: 0, // Width of region
 			h: 0, // Height of region
 			tolerance:   1, // Distance tolerance in pixels, mainly to handle fractional pixel rounding bugs
-			container:   document, // Container of objects for calculating %-based dimensions
+			container:   document.body, // Container of objects for calculating %-based dimensions
 			furthest:    name == 'furthest', // Find max distance (true) or min distance (false)
 			includeSelf: false, // Include 'this' in search results (t/f) - only applies to $(elem).func(selector) syntax
 			checkHoriz:  name != 'touching', // Check variations in X axis (t/f)

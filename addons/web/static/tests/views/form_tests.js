@@ -157,7 +157,7 @@ QUnit.module('Views', {
         assert.strictEqual(form.$('div.o_field_one2many table').length, 1,
                         "should render a one2many relation");
 
-        assert.strictEqual(form.$('tbody td:not(.o_list_record_selector) .o_checkbox input:checked').length, 1,
+        assert.strictEqual(form.$('td:not(.o_list_record_selector) .o_checkbox input:checked').length, 1,
                         "1 checkboxes should be checked");
 
         assert.strictEqual(form.get('title'), "second record",
@@ -5107,7 +5107,7 @@ QUnit.module('Views', {
         assert.ok($parentGroupChildren.eq(1).is('.o_group_col_8'), "second .parent_group group should be 2/3 parent width");
 
         // Verify .group_4 content
-        var $group4rows = $group4.find('> tbody > tr');
+        var $group4rows = $group4.find('> tr');
         assert.strictEqual($group4rows.length, 3, "there should be 3 rows in .group_4");
         var $group4firstRowTd = $group4rows.eq(0).children('td');
         assert.strictEqual($group4firstRowTd.length, 1, "there should be 1 td in first row");
@@ -5130,10 +5130,10 @@ QUnit.module('Views', {
         assert.strictEqual($group3.children('.o_group_col_4').length, 3, ".group_3 should have 3 children of 1/3 width");
 
         // Verify .group_1 content
-        assert.strictEqual($group1.find('> tbody > tr').length, 3, "there should be 3 rows in .group_1");
+        assert.strictEqual($group1.find('> tr').length, 3, "there should be 3 rows in .group_1");
 
         // Verify .field_group content
-        var $fieldGroupRows = $fieldGroup.find('> tbody > tr');
+        var $fieldGroupRows = $fieldGroup.find('> tr');
         assert.strictEqual($fieldGroupRows.length, 5, "there should be 5 rows in .field_group");
         var $fieldGroupFirstRowTds = $fieldGroupRows.eq(0).children('td');
         assert.strictEqual($fieldGroupFirstRowTds.length, 2, "there should be 2 tds in first row");
@@ -5207,15 +5207,15 @@ QUnit.module('Views', {
         });
 
         // Inner group
-        assert.strictEqual(form.$('.main_inner_group > tbody > tr').length, 2,
+        assert.strictEqual(form.$('.main_inner_group > tr').length, 2,
             "there should be 2 rows in the group");
-        assert.strictEqual(form.$('.main_inner_group > tbody > tr:first > .o_td_label').length, 1,
+        assert.strictEqual(form.$('.main_inner_group > tr:first > .o_td_label').length, 1,
             "there should be only one label in the first row");
-        assert.strictEqual(form.$('.main_inner_group > tbody > tr:first .o_field_widget').length, 1,
+        assert.strictEqual(form.$('.main_inner_group > tr:first .o_field_widget').length, 1,
             "there should be only one widget in the first row");
-        assert.strictEqual(form.$('.main_inner_group > tbody > tr:last > .o_td_label').length, 2,
+        assert.strictEqual(form.$('.main_inner_group > tr:last > .o_td_label').length, 2,
             "there should be two labels in the second row");
-        assert.strictEqual(form.$('.main_inner_group > tbody > tr:last .o_field_widget').length, 2,
+        assert.strictEqual(form.$('.main_inner_group > tr:last .o_field_widget').length, 2,
             "there should be two widgets in the second row");
 
         // Outer group

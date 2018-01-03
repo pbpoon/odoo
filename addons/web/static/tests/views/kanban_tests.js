@@ -665,9 +665,9 @@ QUnit.module('Views', {
 
         assert.strictEqual(kanban.$('.thisiseditable').length, 4, "all records should be editable");
         var $record = kanban.$('.o_kanban_group:nth-child(1) .o_kanban_record:first');
-        var $group = kanban.$('.o_kanban_group:nth-child(2)');
+        var $group = kanban.$('.o_kanban_group:nth-child(2) .o_kanban_record:last');
         envIDs = [3, 2, 4, 1]; // first record of first column moved to the bottom of second column
-        testUtils.dragAndDrop($record, $group);
+        testUtils.dragAndDrop($record, $group, {position: 'bottom'});
 
         assert.strictEqual(kanban.$('.o_kanban_group:nth-child(1) .o_kanban_record').length, 1,
                         "column should now contain 1 record(s)");

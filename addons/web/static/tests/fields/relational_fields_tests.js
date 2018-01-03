@@ -5164,7 +5164,7 @@ QUnit.module('relational_fields', {
         $('.modal-footer button.btn-primary').first().click();
 
         assert.strictEqual($('.modal').length, 1, "should still have an open modal");
-        assert.strictEqual($('.modal tbody label.o_field_invalid').length, 1,
+        assert.strictEqual($('.modal label.o_field_invalid').length, 1,
             "should have displayed invalid fields");
         form.destroy();
     });
