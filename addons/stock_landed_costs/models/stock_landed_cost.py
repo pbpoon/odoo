@@ -271,7 +271,7 @@ class AdjustmentLines(models.Model):
         digits=0, store=True)
 
     @api.one
-    @api.depends('cost_line_id.name', 'product_id.code', 'product_id.name')
+    @api.depends('cost_line_id.name', 'product_id.name')
     def _compute_name(self):
         name = '%s - ' % (self.cost_line_id.name if self.cost_line_id else '')
         self.name = name + (self.product_id.code or self.product_id.name or '')
