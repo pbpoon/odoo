@@ -137,29 +137,6 @@ class AccountAnalyticLine(models.Model):
     def _default_user(self):
         return self.env.context.get('user_id', self.env.user.id)
 
-
-
-    def _compute_amount_user_currency(self):
-        """ Compute the amount into the user's currency
-        """
-        user_currency_id = self.env.user.company_id.currency_id
-        for line in self:
-            company_currency_id = line.company_id.currency_id
-            line.amount_user_currency = company_currency_id.with_context(date=line.date).compute(line.amount, user_currency_id)
-
-    @api.model
-    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        res = super(AccountAnalyticLine, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
-        # We compute the amount that have to be displayed into the user's currency
-        # We must call '_compute_amount_user_currency' manually, because of the pivot view not doing it.
-        if 'amount_user_currency' in fields:
-            self._compute_amount_user_currency()
-            for line in res:
-                __domain = ('__domain' in line and line['__domain'] or []) + (domain or [])
-                records = self.search_read(__domain, ['amount_user_currency'])
-                line['amount_user_currency'] = sum([r['amount_user_currency'] for r in records])
-        return res
-
     name = fields.Char('Description', required=True)
     date = fields.Date('Date', required=True, index=True, default=fields.Date.context_today)
     amount = fields.Monetary('Amount', required=True, default=0.0)
@@ -172,5 +149,4 @@ class AccountAnalyticLine(models.Model):
 
     company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True, default=lambda self: self.env.user.company_id)
     currency_id = fields.Many2one(related="company_id.currency_id", string="Currency", readonly=True)
-    amount_user_currency = fields.Monetary(compute='_compute_amount_user_currency', string='Amount', help='Amount expressed in the user currency.')
     group_id = fields.Many2one('account.analytic.group', related='account_id.group_id', store=True, readonly=True)
