@@ -57,8 +57,12 @@ class SaleAdvancePaymentInv(models.TransientModel):
         help="Account used for deposits", default=_default_deposit_account_id)
     deposit_taxes_id = fields.Many2many("account.tax", string="Customer Taxes", help="Taxes used for deposits", default=_default_deposit_taxes_id)
     order_total = fields.Float(string='Order Total', readonly=True)
+    total_to_invoice = fields.Float(string='Total to Invoice', readonly=True)
     downpayment_total = fields.Float(string='Downpayment', readonly=True)
     already_invoiced = fields.Float(string='Already Invoiced', readonly=True)
+    unbilled_total = fields.Float(string='Unbilled Total', readonly=True)
+    undelivered_products = fields.Float(string='Undelivered Products', readonly=True)
+    ready_to_invoice = fields.Float(string='Ready to Invoice', readonly=True)
 
     @api.onchange('advance_payment_method')
     def onchange_advance_payment_method(self):

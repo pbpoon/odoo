@@ -32,8 +32,12 @@
                         </group>
                         <group>
                             <field name="order_total"/>
+                            <field name="total_to_invoice"/>
                             <field name="downpayment_total"/>
                             <field name="already_invoiced"/>
+                            <field name="unbilled_total"/>
+                            <field name="undelivered_products"/>
+                            <field name="ready_to_invoice"/>
                         </group>
                     </group>
                     <footer>
