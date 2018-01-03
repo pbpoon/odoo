@@ -8,8 +8,7 @@ class AccountFiscalYear(models.Model):
     _name = 'account.fiscal.year'
     _description = 'Fiscal Year'
 
-    name = fields.Char(string='Name', required=True,
-        help='The name of your fiscal year.')
+    name = fields.Char(string='Name', required=True)
     date_start = fields.Date(string='Start Date', required=True,
         help='Starting date.')
     date_end = fields.Date(string='End Date', required=True,

@@ -75,23 +75,18 @@ Best Regards,''')
 
     @api.multi
     def compute_fiscalyear_dates(self, date):
-        """ Computes the start and end dates of the fiscalyear where the given 'date' belongs to
+        """ Computes the start and end dates of the fiscalyear_from where the given 'date' belongs to
             @param date: a datetime object
             @returns: a dictionary with date_from and date_to
         """
         self = self[0]
+        initial_date = date
         date_str = date.strftime(DEFAULT_SERVER_DATE_FORMAT)
-        fiscalyear = self.env['account.fiscal.year'].search([
-            ('company_id', '=', self.id),
-            ('date_start', '<=', date_str),
-            ('date_end', '>=', date_str)
-        ])
-        if fiscalyear:
-            date_from = datetime.strptime(fiscalyear.date_start, DEFAULT_SERVER_DATE_FORMAT)
-            date_to = datetime.strptime(fiscalyear.date_end, DEFAULT_SERVER_DATE_FORMAT)
-            return {'date_from': date_from, 'date_to': date_to}
+
+        # Compute initial date_from/date_to
         last_month = self.fiscalyear_last_month
         last_day = self.fiscalyear_last_day
+
         if (date.month < last_month or (date.month == last_month and date.day <= last_day)):
             date = date.replace(month=last_month, day=last_day)
         else:
@@ -105,6 +100,37 @@ Best Regards,''')
             date_from = date_from.replace(day=28, year=date_from.year - 1)
         else:
             date_from = date_from.replace(year=date_from.year - 1)
+
+        # Search for a fiscal year record as a lower bound.
+        fiscalyear_from = self.env['account.fiscal.year'].search([
+            ('company_id', '=', self.id),
+            ('date_start', '<=', date_str),
+        ], order='date_start DESC', limit=1)
+
+        if fiscalyear_from:
+            fy_date_from = datetime.strptime(fiscalyear_from.date_start, DEFAULT_SERVER_DATE_FORMAT)
+            fy_date_to = datetime.strptime(fiscalyear_from.date_end, DEFAULT_SERVER_DATE_FORMAT)
+
+            # Check if the date is part of an existing fiscal year record.
+            if fy_date_to >= initial_date:
+                return {'date_from': fy_date_from, 'date_to': fy_date_to}
+
+            # Check if the date_from must be updated.
+            if fy_date_to > date_from:
+                date_from = fy_date_to + timedelta(days=1)
+
+        # Search for a fiscal year record as an upper bound.
+        fiscalyear_to = self.env['account.fiscal.year'].search([
+            ('company_id', '=', self.id),
+            ('date_start', '>', date_str),
+        ], order='date_end', limit=1)
+
+        if fiscalyear_to:
+            fy_date_from = datetime.strptime(fiscalyear_from.date_start, DEFAULT_SERVER_DATE_FORMAT)
+
+            if fy_date_from < date_to:
+                date_to = fy_date_from - timedelta(days=1)
+
         return {'date_from': date_from, 'date_to': date_to}
 
     def get_new_account_code(self, current_code, old_prefix, new_prefix):

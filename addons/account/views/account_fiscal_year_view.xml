@@ -2,12 +2,17 @@
 <odoo>
     <data>
         <record id="actions_account_fiscal_year" model="ir.actions.act_window">
-            <field name="name">Fiscal Year</field>
+            <field name="name">Fiscal Years</field>
             <field name="res_model">account.fiscal.year</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
-                <p class="oe_view_nocontent_create">Create the first fiscal year</p>
+                <p class="oe_view_nocontent_create">
+                    Click here to create a new fiscal year.
+                </p>
+                <p>
+                    If all your fiscal years are 12 months period, this is not needed.
+                </p>
             </field>
         </record>
 
@@ -18,7 +23,7 @@
                 <form>
                     <sheet>
                         <group>
-                            <field name="name"/>
+                            <field name="name" placeholder="Fiscal Year 2018"/>
                             <field name="date_start"/>
                             <field name="date_end"/>
                         </group>
