@@ -83,6 +83,12 @@ class MrpUnbuild(models.Model):
         return super(MrpUnbuild, self).create(vals)
 
     @api.multi
+    def unlink(self):
+        if 'done' in self.mapped('state'):
+            raise UserError(_('You cannot delete a unbuild orders which is done.'))
+        return super(MrpUnbuild, self).unlink()
+
+    @api.multi
     def action_unbuild(self):
         self.ensure_one()
         if self.product_id.tracking != 'none' and not self.lot_id.id:
