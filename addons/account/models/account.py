@@ -786,8 +786,10 @@ class AccountTax(models.Model):
                     incl_percent_amount += tax.amount
                 elif tax.amount_type == 'division':
                     incl_division_amount += tax.amount
+                elif tax.amount_type == 'fixed':
+                    incl_fixed_amount += quantity * tax.amount
                 else:
-                    # tax.amount_type == 'fixed' or other (python)
+                    # tax.amount_type == other (python)
                     tax_amount = tax._compute_amount(base, price_unit, quantity, product, partner)
                     incl_fixed_amount += tax_amount
                     # Avoid unecessary re-computation

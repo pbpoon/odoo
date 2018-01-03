@@ -1445,6 +1445,8 @@ exports.Orderline = Backbone.Model.extend({
                     incl_percent_amount += tax.amount;
                 else if(tax.amount_type !== 'division')
                     incl_division_amount += tax.amount;
+                else if(tax.amount_type == 'fixed')
+                    incl_fixed_amount += quantity * tax.amount
                 else{
                     tax_amount = self._compute_all(tax, base, quantity);
                     incl_fixed_amount += tax_amount;
