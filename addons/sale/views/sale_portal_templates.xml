@@ -128,17 +128,28 @@
       </t>
     </template>
 
-    <template id="portal_order_page" name="Sales Order">
-      <t t-call="portal.portal_layout">
-        <t t-set="sales_order" t-value="order"/> <!-- rename to ensure breadcrumb compatibility (differentiate with purchase orders) -->
-        <t t-set="invoices" t-value="[i for i in order.invoice_ids if i.state not in ['draft', 'cancel']]"/>
-        <t t-set="invoices_amount" t-value="sum(i.amount_total for i in invoices)"/>
-        <div id="optional_placeholder"></div>
-        <div class="container">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <div class="row">
-                <div class="col-md-6 col-xs-9 col-sm-9">
+    <template id="portal_order_page" name="Sales Order" inherit_id="portal.portal_sidebar" primary="True">
+      <!-- <t t-call="portal.portal_layout"> -->
+        <!-- <t t-set="sales_order" t-value="order"/> --> <!-- rename to ensure breadcrumb compatibility (differentiate with purchase orders) -->
+        <!-- <t t-set="invoices" t-value="[i for i in order.invoice_ids if i.state not in ['draft', 'cancel']]"/>
+        <t t-set="invoices_amount" t-value="sum(i.amount_total for i in invoices)"/> -->
+        <!-- <div id="optional_placeholder"></div> -->
+        <xpath expr="//div[@id='sidebar_content']" position="inside">
+            <div  class="text-center">
+                <h3><strong><span t-field="order.amount_total" t-options='{"widget": "monetary", "display_currency": order.pricelist_id.currency_id}'/></strong><br/></h3>
+                <a target="_blank" class="btn btn-primary ml8 text-center" t-att-href="'/my/orders/pdf/%s?%s' % (order.id, keep_query())" title="Download">
+                    <i class="fa fa-download" aria-hidden="true"/> Download
+                </a>
+            </div>          
+            <div class="text-left o_portal_div"> 
+                <strong>Date:</strong> <span t-field="order.create_date" t-options='{"widget": "date"}'/>
+            </div>
+            <div class="text-left o_portal_div" t-if="order.validity_date">
+                <strong>Expiration Date:</strong> <span t-field="order.validity_date" t-options='{"widget": "date"}'/>
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='page_content']" position="inside">
+                <div id="page_content">
                     <h4>
                         <t t-call='portal.record_pager'/>
                         <t t-if="order.state in ('sent', 'cancel')">Quotation</t>
@@ -164,12 +175,7 @@
                             <i class="fa fa-check-circle"/> Signed
                         </a>
                     </t>
-                    <a target="_blank" t-att-href="'/my/orders/pdf/%s?%s' % (order.id, keep_query())" class="ml8 pull-right mt4 mr8" title="Download">
-                        <i class="fa fa-download fa-2x" aria-hidden="true"/>
-                    </a>
                 </div>
-              </div>
-            </div>
             <div class="panel-body">
               <t t-if="error or warning" t-call="sale.portal_order_error"/>
               <t t-if="success and (not error and not warning)" t-call="sale.portal_order_success"/>
@@ -328,10 +334,17 @@
                     </div>
                 </div>
             </div>
-          </div>
-        </div>
+          </xpath>
         <div class="oe_structure mb32"/>
-      </t>
+    </template>
+
+    <template id="chatter" name="Allow Comments &amp; History" inherit_id="sale.portal_order_page">
+      <xpath expr="//div[@id='page_content']" position="inside">
+          <h1 class="page-header" id="chatter">History</h1>
+          <t t-call="portal.message_thread">
+            <t t-set="object" t-value="order"/>
+          </t>
+      </xpath>
     </template>
 
     <template id="portal_order_error" name="Order error/warning display">

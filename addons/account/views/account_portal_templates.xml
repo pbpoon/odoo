@@ -70,7 +70,7 @@
       </t>
     </template>
 
-    <template id="portal_invoice_page" name="Invoice Portal Template" inherit_id="portal.portal_sidebar">
+    <template id="portal_invoice_page" name="Invoice Portal Template" inherit_id="portal.portal_sidebar" primary="True">
         <xpath expr="//div[@id='sidebar_content']" position="inside">
             <div  class="text-center">
                 <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h5>Due <timeago class="timeago" t-att-datetime="invoice.date_due"></timeago></h5>
@@ -84,15 +84,15 @@
                 <strong>Invoice: </strong>
                 <span t-field="invoice.number"/>
             </div>
-            <div name="reference" t-if="invoice.reference" class="text--left o_portal_div">
+            <div name="reference" t-if="invoice.reference" class="text-left o_portal_div">
                 <strong>Reference: </strong>
                 <span t-field="invoice.reference"/>
             </div>
-            <div class="text--left o_portal_div">
+            <div class="text-left o_portal_div">
                 <strong>Invoice Date: </strong>
                 <span t-field="invoice.date_invoice"/>
             </div>
-            <div class="text--left o_portal_div">
+            <div class="text-left o_portal_div">
                 <strong>Due Date: </strong>
                 <span t-field="invoice.date_due"/>
             </div>
