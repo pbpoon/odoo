@@ -1918,6 +1918,12 @@ class MailThread(models.AbstractModel):
         # Post the message
         new_message = MailMessage.create(values)
 
+        # Notify recipients of the newly-created message (Inbox / Email + channels)
+        new_message._notify(
+            force_send=self.env.context.get('mail_notify_force_send', True),
+            user_signature=self.env.context.get('mail_notify_user_signature', True)
+        )
+
         # Post-process: subscribe author
         if author_id and model and self.ids and message_type != 'notification' and not self._context.get('mail_create_nosubscribe'):
             self.message_subscribe([author_id], force=False)
