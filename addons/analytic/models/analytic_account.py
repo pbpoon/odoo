@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, exceptions, _
+from odoo.osv import expression
 
 
 class AccountAnalyticDistribution(models.Model):
@@ -63,6 +64,9 @@ class AccountAnalyticAccount(models.Model):
             domain.append(('date', '>=', self._context['from_date']))
         if self._context.get('to_date', False):
             domain.append(('date', '<=', self._context['to_date']))
+        if self._context.get('tag_ids'):
+            tag_domain = expression.OR([[('tag_ids', 'in', [tag])] for tag in self._context['tag_ids']])
+            domain = expression.AND([domain, tag_domain])
 
         account_amounts = analytic_line_obj.search_read(domain, ['account_id', 'amount'])
         account_ids = set([line['account_id'][0] for line in account_amounts])
@@ -84,7 +88,7 @@ class AccountAnalyticAccount(models.Model):
     active = fields.Boolean('Active', help="If the active field is set to False, it will allow you to hide the account without removing it.", default=True)
 
     tag_ids = fields.Many2many('account.analytic.tag', 'account_analytic_account_tag_rel', 'account_id', 'tag_id', string='Tags', copy=True)
-    group_id = fields.Many2one('account.analytic.group', string="Category")
+    group_id = fields.Many2one('account.analytic.group', string='Group')
 
     line_ids = fields.One2many('account.analytic.line', 'account_id', string="Analytic Lines")
 
