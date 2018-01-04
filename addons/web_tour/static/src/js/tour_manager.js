@@ -110,7 +110,7 @@ var RunningTourActionHelper = core.Class.extend({
             values.$element.trigger("keydown").val(text).trigger("keyup").trigger("input");
         } else if (values.$element.is("select")) {
             var $options = values.$element.children("option");
-            $options.prop("selected", false).removeProp("selected");
+            $options.filter("[selected]").prop("selected", false).removeProp("selected");
             var $selectedOption = $options.filter(function () { return $(this).val() === text; });
             if ($selectedOption.length === 0) {
                 $selectedOption = $options.filter(function () { return $(this).text() === text; });
