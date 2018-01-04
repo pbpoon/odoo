@@ -41,7 +41,7 @@ class AccountAssetCategory(models.Model):
     type = fields.Selection([('sale', 'Sale: Revenue Recognition'), ('purchase', 'Purchase: Asset')], required=True, index=True, default='purchase')
     date_first_depreciation = fields.Selection([
         ('last_day_period', 'Based on Last Day of Purchase Period'),
-        ('manual', 'Based on Purchase Date')],
+        ('manual', 'Manual (defaulted on Purchase Date)')],
         string='Depreciation Dates', default='manual', required=True,
         help='The way to compute the date of the first depreciation.\n'
              '  * Based on the last day of period: The depreciation dates will be based on the last day of the purchase month or the last day of the fiscal year if the depreciation periods are in years.\n'
