@@ -12,6 +12,8 @@ from odoo.osv import expression
 from odoo.tools import ormcache, pycompat
 from odoo.tools.safe_eval import safe_eval
 
+moderation_keys = ['moderation', 'moderator_ids', 'moderation_email_ids', 'moderation_notify', 'moderation_notify_msg',
+'moderation_guidelines', 'moderation_guidelines_msg']
 
 class ChannelPartner(models.Model):
     _name = 'mail.channel.partner'
@@ -129,6 +131,11 @@ class Channel(models.Model):
         if any(not channel.email_send and channel.moderation for channel in self):
             raise ValidationError('Only email lists can be moderated!')
 
+    @api.constrains('moderator_ids')
+    def _check_moderated_channel_has_moderator(self):
+        if any(not channel.moderator_ids for channel in self if channel.moderation):
+            raise ValidationError('A moderated channel needs a moderator! Please be sure to set the "moderators" field accordingly')
+
     @api.onchange('moderator_ids')
     def _onchange_add_moderators_to_channel_last_seen_partners(self):
         ChannelPartner = self.env['mail.channel.partner']
@@ -146,7 +153,10 @@ class Channel(models.Model):
         if not self.moderation:
             self.moderation_notify = False
             self.moderation_guidelines = False
-            self.moderator_ids = self.env['res.users']
+            self.moderator_ids = False
+
+        if self.moderation:
+            self.moderator_ids |= self.env.user
 
     @api.multi
     def send_guidelines(self):
@@ -257,21 +267,29 @@ class Channel(models.Model):
 
     @api.multi
     def write(self, vals):
+        # First checks if user tries to modify moderation fields and has not the right to do it.
+        # We don't check if the fields touched are actually modified.
+        moderation_keys_are_touched = any(key for key in moderation_keys if vals.get(key))
+        if moderation_keys_are_touched and not self.env.user.has_group('base.group_system'):
+            if any(self.env.user not in channel.moderator_ids for channel in self if channel.moderation):
+                raise UserError("You do not possess the rights to modify fields related to moderation on one of the channels you are trying to modify!")
+
         tools.image_resize_images(vals)
         result = super(Channel, self).write(vals)
+
         if vals.get('group_ids'):
             self._subscribe_users()
-        # The form of the following test is important. If 'moderation' cannot be found in vals, vals.get('moderation')
-        # returns "None" and we do not want accept messages in that case. Hence, "if vals.get('moderation')" is not good.
-        if vals.get('moderation') == False:
+
+        if vals.get('moderation') is False:
             MessagesToAccept = self.env['mail.message'].search(
-                    [
-                        ('moderation_status', '=', 'pending_moderation'),
-                        ('model', '=', 'mail.channel'),
-                        ('res_id', 'in', self.ids)
-                    ]
+                        [
+                            ('moderation_status', '=', 'pending_moderation'),
+                            ('model', '=', 'mail.channel'),
+                            ('res_id', 'in', self.ids)
+                        ]
                 )
             MessagesToAccept.accept_message()
+
         return result
 
     def get_alias_model_name(self, vals):
