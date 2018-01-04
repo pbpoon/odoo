@@ -4,37 +4,13 @@ odoo.define('website.tour.rte', function (require) {
 var tour = require('web_tour.tour');
 var base = require('web_editor.base');
 
-var d = new $.Deferred();
-base.ready().then(function () {
-    setTimeout(function () {
-        d.resolve();
-    }, 1000);
-});
-
 tour.register('rte_translator', {
     test: true,
-    wait_for: d,
+    wait_for: base.ready(),
 }, [{
-    content: "click on Add a language",
-    trigger: '.js_language_selector a:has(i.fa)',
-}, {
-    content: "select french",
-    trigger: 'select[name="lang"]',
-    run: 'text "fr_BE"',
-}, {
-    content: "load french",
-    trigger: '.modal-footer button:first',
-    extra_trigger: '.modal select[name="lang"]:propValueContains(fr_BE)',
-}, {
-    content: "go to english version",
-    trigger: '.js_language_selector a[data-lang="en_US"]',
-    extra_trigger: 'html[lang*="fr"]',
-    timeout: 60000,
-}, {
     content: "Open new page menu",
     trigger: '#new-content-menu > a',
     extra_trigger: 'a[data-action="edit"]',
-    timeout: 500,
 }, {
     content: "click on new page",
     trigger: 'a[data-action="new_page"]',
@@ -158,5 +134,9 @@ tour.register('rte_translator', {
 }, {
     content: "check bis: placeholder translation",
     trigger: 'input[placeholder="test french placeholder"]',
-}]);
+}, {
+    content: "go to english version",
+    trigger: '.js_language_selector a[data-lang="en_US"]',
+    extra_trigger: 'html[lang*="fr"]',
+}, ]);
 });
