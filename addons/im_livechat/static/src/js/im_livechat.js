@@ -90,11 +90,6 @@ var LivechatButton = Widget.extend({
         }
         bus.on('notification', this, function (notifications) {
             var self = this;
-            if(!$('.o_chat_window').length && notifications[0][1]['author_id'][1]){
-                self.channel.state = 'open';
-                utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
-                self.open_chat(self.channel);
-            }
             _.each(notifications, function (notification) {
                 self._on_notification(notification);
             });
@@ -112,6 +107,12 @@ var LivechatButton = Widget.extend({
                     page_history: history,
                 });
             }else{ // normal message
+                // when session is continue and popup is closed by visitor and notification is send by operator reopen the popup
+                if (this.chat_window.is_destroyed && notification[1]['author_id'][1]) {
+                    this.channel.state = 'open';
+                    utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
+                    this.open_chat(self.channel);
+                }
                 this.add_message(notification[1]);
                 this.render_messages();
                 if (this.chat_window.folded || !this.chat_window.thread.is_at_bottom()) {
@@ -213,6 +214,8 @@ var LivechatButton = Widget.extend({
 
     close_chat: function () {
         this.chat_window.destroy();
+        this.chat_window.is_destroyed = true;
+        // set channel as folded instead of destroying session
         this.channel.state = 'folded';
         utils.set_cookie('im_livechat_session', JSON.stringify(this.channel), 60*60);
     },
