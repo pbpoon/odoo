@@ -16,6 +16,14 @@
     }
 }
 
+.bg-pattern-01 { background-image: url('/website/static/src/img/backgrounds/pattern_01.png'); }
+.bg-pattern-02 { background-image: url('/website/static/src/img/backgrounds/pattern_02.png'); }
+.bg-pattern-03 { background-image: url('/website/static/src/img/backgrounds/pattern_03.png'); }
+.bg-pattern-04 { background-image: url('/website/static/src/img/backgrounds/pattern_04.png'); }
+.bg-pattern-05 { background-image: url('/website/static/src/img/backgrounds/pattern_05.png'); }
+.bg-pattern-06 { background-image: url('/website/static/src/img/backgrounds/pattern_06.png'); }
+
+
 /* 
    Carousel
    ========================================================================== */
@@ -106,10 +114,28 @@
 .s_features {
     .fa {
         &.img-circle,
-        &.img-rounded
-        &.thumbnail
+        &.img-rounded,
+        &.img-square,
+        &.img-thumbnail,
         &.shadow {
             .fa-size-generator(30px);
+        }
+        .img-circle.img-thumbnail {
+            border-radius: 50%;
+        }
+        .img-rounded.img-thumbnail {
+            border-radius: @border-radius-base;
+        }
+        .img-thumbnail {
+            border-radius: inherit;
+            border: 0;
+            padding: 0;
+        }
+        &.shadow {
+            .box-shadow(0px 3px 8px rgba(0, 0, 0, 0.2));
+            // &.bg-gray-darker {
+            //     border-bottom-color: #000;
+            // }
         }
     }
     

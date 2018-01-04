@@ -944,8 +944,22 @@
         </li>
     </div>
 
+    <div data-selector="section">
+        <li class="dropdown-submenu">
+            <a tabindex="-1" href="#"><i class="fa fa-cubes"/>Pattern</a>
+            <ul class="dropdown-menu">
+                <li data-select-class="bg-pattern-01"><a href="#">01</a></li>
+                <li data-select-class="bg-pattern-02"><a href="#">02</a></li>
+                <li data-select-class="bg-pattern-03"><a href="#">03</a></li>
+                <li data-select-class="bg-pattern-04"><a href="#">04</a></li>
+                <li data-select-class="bg-pattern-05"><a href="#">05</a></li>
+                <li data-select-class="bg-pattern-06"><a href="#">06</a></li>
+            </ul>
+        </li>
+    </div>
+
     <div data-js="colorpicker"
-        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_three_columns [class*='col-md-'], i"
+        data-selector="section, :not(.o_gallery > .container) > .carousel, .s_three_columns [class*='col-md-']"
         data-exclude=".parallax">
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Background Color</a>
@@ -1109,11 +1123,12 @@
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#">Styles</a>
             <ul class="dropdown-menu">
-                <li data-select-class=""><a href="#">None</a></li>
-                <li data-select-class="img-square"><a href="#">Square</a></li>
-                <li data-select-class="img-circle"><a href="#">Circle</a></li>
-                <li data-select-class="img-rounded"><a href="#">Rounded</a></li>
-                <li data-select-class="thumbnail"><a href="#">Thumbnail</a></li>
+                <!-- <li data-select-class=""><a href="#">None</a></li> -->
+                <li data-toggle-class="img-square"><a href="#">Square</a></li>
+                <li data-toggle-class="img-circle"><a href="#">Circle</a></li>
+                <li data-toggle-class="img-rounded"><a href="#">Rounded</a></li>
+                <li data-toggle-class="img-thumbnail"><a href="#">Thumbnail</a></li>
+                <li data-toggle-class="shadow"><a href="#">Shadow</a></li>
             </ul>
         </li>
     </div>
