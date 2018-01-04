@@ -42,13 +42,22 @@ class SaleAdvancePaymentInv(models.TransientModel):
     def _default_deposit_taxes_id(self):
         return self._default_product_id().taxes_id
 
-    advance_payment_method = fields.Selection([
-        ('delivered', 'Ready to invoice'),
-        ('all', 'Ready to invoice, deduct down payments (only if down payments)'),
-        ('unbilled', 'Unbilled Total'),
-        ('percentage', 'Down payment (percentage)'),
-        ('fixed', 'Down payment (fixed amount)')
-        ], string='What do you want to invoice?', default=_get_advance_payment_method, required=True)
+    @api.model
+    def _default_advance_payment_method(self):
+        options = []
+        sale_order = self.env['sale.order']
+        if self._context.get('active_id'):
+            sale_order = self.env['sale.order'].browse(self._context['active_id'])
+            if sale_order.invoice_status in ['to invoice', 'upselling']:
+                options = [('delivered', 'Ready to invoice')]
+            else:
+                options = [('unbilled', 'Unbilled Total')]
+            if sale_order.order_line.filtered(lambda x: x.is_downpayment):
+                options.append(('all', 'Ready to invoice, deduct down payments (only if down payments)'))
+        options.extend([('percentage', 'Down payment (percentage)'), ('fixed', 'Down payment (fixed amount)')])
+        return options
+
+    advance_payment_method = fields.Selection('_default_advance_payment_method', string='What do you want to invoice?', default=_get_advance_payment_method, required=True)
     product_id = fields.Many2one('product.product', string='Down Payment Product', domain=[('type', '=', 'service')],
         default=_default_product_id)
     count = fields.Integer(default=_count, string='Order Count')

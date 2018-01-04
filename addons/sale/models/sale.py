@@ -669,7 +669,6 @@ class SaleOrder(models.Model):
         undeliver = sum((rec.product_uom_qty - rec.qty_delivered) * rec.price_unit for rec in undelivered_product)
         ready_to_invoice = (self.amount_total - (invoiced + undeliver)) if (self.amount_total - (invoiced + undeliver)) > 0.0 else 0.0
         ctx = dict(
-            default_res_id=self.id,
             default_order_total=self.amount_total,
             default_total_to_invoice=self.amount_total,
             default_downpayment_total=downpayment,
