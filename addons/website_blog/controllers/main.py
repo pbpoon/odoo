@@ -275,8 +275,7 @@ class WebsiteBlog(http.Controller):
         # get the partner of the current user
         partner_id = request.env.user.partner_id.id
 
-        message = BlogPost.message_post(
-            int(blog_post_id),
+        message = BlogPost.browse(blog_post_id).message_post(
             body=message_content,
             message_type='comment',
             subtype='mt_comment',
