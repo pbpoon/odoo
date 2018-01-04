@@ -327,7 +327,7 @@ return core.Class.extend({
                     }
                 }
                 if (mode.indexOf(',') !== -1) {
-                    mode = config.device.size_class !== config.device.SIZES.XS ? 'tree' : 'kanban';
+                    mode = !config.device.isMobile ? 'tree' : 'kanban';
                 }
                 if (mode === 'tree') {
                     mode = 'list';
