@@ -9,7 +9,6 @@ class ResCompany(models.Model):
     fiscal_position_ids = fields.Many2many('account.fiscal.position', string='Fiscal Positions', help='This is useful for restaurants with onsite and take-away services that imply specific tax rates.')
     default_fiscal_position_id = fields.Many2one('account.fiscal.position', string='Default Fiscal Position')
     iface_tax_included = fields.Selection([('subtotal', 'Tax-Excluded Prices'), ('total', 'Tax-Included Prices')], "Tax Display", default='subtotal', required=True)
-    use_pricelist = fields.Boolean("Use a pricelist.")
     group_sale_pricelist = fields.Boolean("Use pricelists to adapt your price per customers",
                                           implied_group='product.group_sale_pricelist',
                                           help="""Allows to manage different prices based on rules per category of customers.
