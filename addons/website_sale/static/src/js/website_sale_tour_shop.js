@@ -7,9 +7,16 @@ odoo.define("website_sale.tour_shop", function (require) {
 
     var _t = core._t;
 
+    var d = new $.Deferred();
+    base.ready().then(function () {
+        setTimeout(function () {
+            d.resolve();
+        }, 1000);
+    });
+
     tour.register("shop", {
         url: "/shop",
-        wait_for: base.ready(),
+        wait_for: d,
     }, [{
         trigger: "#new-content-menu > a",
         content: _t("Let's create your first product."),

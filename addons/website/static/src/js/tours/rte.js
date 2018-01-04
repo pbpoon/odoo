@@ -4,9 +4,16 @@ odoo.define('website.tour.rte', function (require) {
 var tour = require('web_tour.tour');
 var base = require('web_editor.base');
 
+var d = new $.Deferred();
+base.ready().then(function () {
+    setTimeout(function () {
+        d.resolve();
+    }, 1000);
+});
+
 tour.register('rte_translator', {
     test: true,
-    wait_for: base.ready(),
+    wait_for: d,
 }, [{
     content: "click on Add a language",
     trigger: '.js_language_selector a:has(i.fa)',
@@ -27,6 +34,7 @@ tour.register('rte_translator', {
     content: "Open new page menu",
     trigger: '#new-content-menu > a',
     extra_trigger: 'a[data-action="edit"]',
+    timeout: 500,
 }, {
     content: "click on new page",
     trigger: 'a[data-action="new_page"]',

@@ -4,10 +4,17 @@ odoo.define('survey.tour_test_survey', function (require) {
 var tour = require('web_tour.tour');
 var base = require("web_editor.base");
 
+var d = new $.Deferred();
+base.ready().then(function () {
+    setTimeout(function () {
+        d.resolve();
+    }, 1000);
+});
+
 tour.register('test_survey', {
     test: true,
     url: '/survey/start/user-feedback-form-1/phantom',
-    wait_for: base.ready()
+    wait_for: d
 },
     [
         // Page-1
