@@ -142,8 +142,8 @@ ActionManager.include({
      * @param {Object} action
      * @param {AbstractController[]} action.controllers the already created
      *   controllers for this action
-     * @param {Object[]} action.views the views available for the action, each
-     *   one containing its fieldsView
+     * @param {Object[]} action.generatedViews the views available for the
+     *   action, each one containing its fieldsView
      * @param {Object} action.env
      * @param {string} viewType
      * @param {Object} [viewOptions] dict of options passed to the initialization
@@ -180,7 +180,7 @@ ActionManager.include({
         // with trigger_up (e.g. for 'env_updated' event)
         viewOptions = _.extend(viewOptions, { controllerID: controllerID });
 
-        var viewDescr = _.findWhere(action.views, {type: viewType});
+        var viewDescr = _.findWhere(action.generatedViews, {type: viewType});
         var view = new viewDescr.Widget(viewDescr.fieldsView, viewOptions);
         if (!options || !options.lazy) {
             var def = $.Deferred();
@@ -236,7 +236,7 @@ ActionManager.include({
 
         return this._loadViews(action).then(function (fieldsViews) {
             var views = self._generateActionViews(action, fieldsViews);
-            action.views = views;
+            action.generatedViews = views;
             if (fieldsViews.search) {
                 action.searchFieldsView = fieldsViews.search;
             }
@@ -254,7 +254,7 @@ ActionManager.include({
                 firstView = views[0];
             }
             if (config.device.isMobile && !firstView.isMobileFriendly) {
-                firstView = _.findWhere(action.views, {isMobileFriendly: true}) || firstView;
+                firstView = _.findWhere(views, {isMobileFriendly: true}) || firstView;
             }
 
             var def;
@@ -559,7 +559,7 @@ ActionManager.include({
         }
 
         return this.dp.add(controllerDef).then(function (controller) {
-            var view = _.findWhere(action.views, {type: viewType});
+            var view = _.findWhere(action.generatedViews, {type: viewType});
             var currentController = self.getCurrentController();
             var index;
             if (currentController.actionID !== action.jsID) {
@@ -569,7 +569,7 @@ ActionManager.include({
                 index = _.findIndex(self.controllerStack, function (controllerID) {
                     return self.controllers[controllerID].actionID === action.jsID;
                 });
-            } else if (!_.findWhere(action.views, {type: currentController.viewType}).multiRecord) {
+            } else if (!_.findWhere(action.generatedViews, {type: currentController.viewType}).multiRecord) {
                 // replace the last controller by the new one if they are from the
                 // same action and if they both are mono record
                 index = self.controllerStack.length - 1;
