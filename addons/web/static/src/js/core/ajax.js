@@ -255,7 +255,7 @@ function get_file(options) {
     var $target = $('<iframe style="display: none;">')
         .attr({id: id, name: id})
         .appendTo(document.body)
-        .load(function () {
+        .on('load', function () {
             try {
                 if (options.error) {
                     var body = this.contentDocument.body;
