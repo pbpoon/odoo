@@ -976,6 +976,11 @@ QUnit.module('Views', {
             viewOptions: {
                 initialDate: initialDate,
             },
+            session: {
+                getTZOffset: function () {
+                    return 120;
+                },
+            },
             mockRPC: function (route, args) {
                 if (args.method === "get_formview_id") {
                     return $.Deferred().resolve('A view');
