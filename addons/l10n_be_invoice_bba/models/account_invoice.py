@@ -85,8 +85,8 @@ class AccountInvoice(models.Model):
                         partner_ref = self.env['res.partner'].browse(partner_id).ref
                         partner_ref_nr = re.sub('\D', '', partner_ref or '')
                         if (len(partner_ref_nr) < 3) or (len(partner_ref_nr) > 7):
-                            raise UserError(_('The Partner should have a 3-7 digit Reference Number for the generation of BBA Structured Communications!'
-                                                '\nPlease correct the Partner record.'))
+                            raise UserError(_('The Customer should have a minimum 3 to maximum 7 digit Internal Reference'
+                                                '\nfor the generation of BBA Structured Communications!'))
                         else:
                             partner_ref_nr = partner_ref_nr.ljust(7, '0')
                             seq = '001'
