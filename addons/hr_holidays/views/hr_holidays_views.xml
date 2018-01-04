@@ -589,22 +589,20 @@
                                 <field name="limit"/>
                                 <field name="sequence" attrs="{'invisible': [('limit', '=', 'False')]}"/>
                             </group>
-                            <group name="validity" string="Validity">
-                                <field name="validity_start"/>
-                                <field name="validity_stop"/>
-                            </group>
                             <group name="validation" string="Validation">
                                 <field name="validation_type" widget="radio"/>
                             </group>
                             <group name="visibility" string="Visibility">
                                 <field name="employee_visibility" widget="radio"/>
                             </group>
-                            <group name="timesheet" string="Timesheet">
-                            </group>
                             <group name="calendar" string="Calendar">
                                 <field name="categ_id"/>
                                 <field name="color_name"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                            <group name="validity" string="Validity" attrs="{'invisible': [('employee_visibility', '=', 'ar')]}">
+                                <field name="validity_start" eval="time.strftime('%Y-%m-%d')"/>
+                                <field name="validity_stop"/>
                             </group>
                         </group>
                     </sheet>

@@ -64,19 +64,20 @@ class HolidaysType(models.Model):
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
 
-    validation_type = fields.Selection([('manager', 'By the Manager of the department'),
-                                      ('hr', 'By the human resources responsible'),
-                                      ('both', 'Both: the manager and the human resource responsible')],
+    validation_type = fields.Selection([('manager', 'Department manager'),
+                                      ('hr', 'Human resource responsible'),
+                                      ('both', 'Both')],
                                      default='hr',
-                                     string='Validation')
+                                     string='Validation by')
 
     sequence = fields.Integer(default=100,
                               help='The type with the smallest sequence is the default value in leave request')
 
-    employee_visibility = fields.Selection([('both', 'both requests: Leaves and allocation'),
-                                            ('lr', 'leave requests'),
-                                            ('ar', 'allocation requests')],
-                                           default='both', string='Request Visibility')
+    employee_visibility = fields.Selection([('both', 'Leaves as well as on Allocation'),
+                                            ('lr', 'Only on Leaves'),
+                                            ('ar', 'Only on Allocation')],
+                                           default='both', string='Available for section in :',
+                                           help='This leave type will be available on Leave / Allocation request based on selected value')
 
     # Adding validity to types of leaves so that it cannot be selected outside
     # this time period
@@ -406,8 +407,25 @@ class Holidays(models.Model):
             self.message_subscribe_users(user_ids=employee.user_id.ids)
 
     @api.model
+    def _check_validity(self, values):
+        if 'holiday_status_id' in values:
+            holiday_status = self.env['hr.holidays.status'].browse([values['holiday_status_id']])
+
+            if holiday_status.validity_start and holiday_status.validity_stop:
+                vstart = fields.Datetime.from_string(holiday_status.validity_start)
+                vstop  = fields.Datetime.from_string(holiday_status.validity_stop)
+                dfrom  = fields.Datetime.from_string(values.get('date_from', False))
+                dto    = fields.Datetime.from_string(values.get('date_to', False))
+
+                if dfrom and dto and (dfrom < vstart or dto > vstop):
+                    raise UserError('You can take a {} only between {} and {}'.format(holiday_status.display_name, \
+                                                                                  holiday_status.validity_start, holiday_status.validity_stop))
+
+    @api.model
     def create(self, values):
         """ Override to avoid automatic logging of creation """
+        self._check_validity(values)
+
         employee_id = values.get('employee_id', False)
         if not self._check_state_access_right(values):
             raise AccessError(_('You cannot set a leave request as \'%s\'. Contact a human resource manager.') % values.get('state'))
@@ -419,6 +437,8 @@ class Holidays(models.Model):
 
     @api.multi
     def write(self, values):
+        self._check_validity(values)
+
         employee_id = values.get('employee_id', False)
         if not self._check_state_access_right(values):
             raise AccessError(_('You cannot set a leave request as \'%s\'. Contact a human resource manager.') % values.get('state'))
