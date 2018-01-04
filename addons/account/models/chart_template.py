@@ -126,6 +126,8 @@ class AccountChartTemplate(models.Model):
     property_stock_account_input_categ_id = fields.Many2one('account.account.template', string="Input Account for Stock Valuation", oldname="property_stock_account_input_categ")
     property_stock_account_output_categ_id = fields.Many2one('account.account.template', string="Output Account for Stock Valuation", oldname="property_stock_account_output_categ")
     property_stock_valuation_account_id = fields.Many2one('account.account.template', string="Account Template for Stock Valuation")
+    property_account_income_refund_id = fields.Many2one('account.account.template', string="Income Refund Account on Product Template")
+    property_account_income_refund_categ_id = fields.Many2one('account.account.template', string="Category of Income Refund Account")
 
     @api.one
     def try_loading_for_current_company(self):
@@ -232,8 +234,10 @@ class AccountChartTemplate(models.Model):
             ('property_account_payable_id', 'res.partner', 'account.account'),
             ('property_account_expense_categ_id', 'product.category', 'account.account'),
             ('property_account_income_categ_id', 'product.category', 'account.account'),
+            ('property_account_income_refund_categ_id', 'product.category', 'account.account'),
             ('property_account_expense_id', 'product.template', 'account.account'),
             ('property_account_income_id', 'product.template', 'account.account'),
+            ('property_account_income_refund_id', 'product.template', 'account.account'),
         ]
         for record in todo_list:
             account = getattr(self, record[0])
