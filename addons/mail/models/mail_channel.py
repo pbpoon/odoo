@@ -202,7 +202,7 @@ class Channel(models.Model):
 
     @api.multi
     def _is_moderated_email(self, email, status):
-        """ This method will returns true if email status is ban or allow has been (for a unique channel).
+        """ This method will returns true if email status is ban or allow (for a unique channel).
         """
         self.ensure_one()
         email_from = tools.email_split(email)

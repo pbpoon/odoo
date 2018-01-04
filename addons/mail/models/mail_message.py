@@ -867,7 +867,7 @@ class Message(models.Model):
 
     @api.multi
     def moderate(self, decision):
-        """ :param status
+        """ :param decision
                  * accept       - moderate message and broadcast that message to followers of relevant channels.
                  * reject       - message will be deleted from the database without broadcast
                                   an email sent to the author with an explanation that the moderators can edit.
