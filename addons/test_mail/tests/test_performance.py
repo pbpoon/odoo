@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from email.utils import formataddr
+
 from odoo.tests.common import TransactionCase, users, warmup
 from odoo.tools import mute_logger
 
@@ -96,8 +98,7 @@ class TestMailPerformance(TransactionCase):
 
     @users('admin', 'emp')
     @warmup
-    def test_simple(self):
-        """ Create records inheriting from 'mail.thread' (simple models) """
+    def test_create_mail_simple(self):
         with self.assertQueryCount(admin=32, emp=42):  # test_mail only: 30 - 39
             self.env['mail.test.simple'].create({'name': 'Test'})
 
@@ -123,7 +124,7 @@ class TestAdvMailPerformance(TransactionCase):
 
     @users('admin', 'emp')
     @warmup
-    def test_activity(self):
+    def test_adv_activity(self):
         model = self.env['mail.test.activity']
 
         with self.assertQueryCount(admin=35, emp=45):  # test_mail only: 33 - 42
@@ -131,13 +132,14 @@ class TestAdvMailPerformance(TransactionCase):
 
     @users('admin', 'emp')
     @warmup
-    def test_activity_full(self):
+    @mute_logger('odoo.models.unlink')
+    def test_adv_activity_full(self):
         record = self.env['mail.test.activity'].create({'name': 'Test'})
         model = self.env['mail.activity'].with_context({
             'default_res_model': 'mail.test.activity',
         })
 
-        with self.assertQueryCount(admin=47, emp=52):  # test_mail only: 35 - 40
+        with self.assertQueryCount(admin=47, emp=52):  # com runbot 46 - 51 // test_mail only: 35 - 40
             model.create({
                 'summary': 'Test Activity',
                 'res_id': record.id,
@@ -175,6 +177,7 @@ class TestHeavyMailPerformance(TransactionCase):
         self.admin = self.env.user
         self.admin.login = 'admin'
 
+        # prepare recipients to test for more realistic workload
         self.customer = self.env['res.partner'].with_context(self._quick_create_ctx).create({
             'name': 'Test Customer',
             'email': 'test@example.com'
@@ -182,9 +185,8 @@ class TestHeavyMailPerformance(TransactionCase):
         self.umbrella = self.env['mail.test'].with_context(mail_create_nosubscribe=True).create({
             'name': 'Test Umbrella',
             'customer_id': self.customer.id,
-            'alias_name': 'test',
+            'alias_name': 'test-alias',
         })
-
         Partners = self.env['res.partner'].with_context(self._quick_create_ctx)
         self.partners = self.env['res.partner']
         for x in range(0, 10):
@@ -197,10 +199,12 @@ class TestHeavyMailPerformance(TransactionCase):
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('admin', 'emp')
     @warmup
-    def test_mail_mail_send(self):
+    def test_complex_mail_mail_send(self):
+        # setup mail gateway
         self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
         self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
         self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
+
         message = self.env['mail.message'].sudo().with_context(message_create_from_mail_mail=True).create({
             'subject': 'Test',
             'body': '<p>Test</p>',
@@ -210,6 +214,7 @@ class TestHeavyMailPerformance(TransactionCase):
             'res_id': self.umbrella.id,
         })
         mail = self.env['mail.mail'].sudo().create({
+            'body_html': '<p>Test</p>',
             'mail_message_id': message.id,
             'recipient_ids': [(4, pid) for pid in self.partners.ids],
         })
@@ -218,14 +223,22 @@ class TestHeavyMailPerformance(TransactionCase):
         with self.assertQueryCount(admin=24, emp=47):  # test_mail only: 20 - 41
             self.env['mail.mail'].browse(mail_ids).send()
 
+        self.assertEqual(mail.body_html, '<p>Test</p>')
+        self.assertEqual(mail.reply_to, formataddr(('%s %s' % (self.env.user.company_id.name, self.umbrella.name), 'test-alias@example.com')))
+
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('admin', 'emp')
     @warmup
-    def test_message_post(self):
+    def test_complex_message_post(self):
+        # setup mail gateway
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
+        self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
+
         self.umbrella.message_subscribe(self.user_portal.partner_id.ids)
         record = self.umbrella.sudo(self.env.user)
 
-        with self.assertQueryCount(admin=128, emp=160):  # test_mail only: 120 - 151
+        with self.assertQueryCount(admin=550, emp=750):  # com runbot 126 - 158 // test_mail only: 149 - 214
             record.message_post(
                 body='<p>Test Post Performances</p>',
                 message_type='comment', subtype='mail.mt_comment')
@@ -236,12 +249,17 @@ class TestHeavyMailPerformance(TransactionCase):
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('admin', 'emp')
     @warmup
-    def test_message_post_template(self):
+    def test_complex_message_post_template(self):
+        # setup mail gateway
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
+        self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
+
         self.umbrella.message_subscribe(self.user_portal.partner_id.ids)
         record = self.umbrella.sudo(self.env.user)
         template = self.env.ref('test_mail.mail_test_tpl')
 
-        with self.assertQueryCount(admin=186, emp=233):  # test_mail only: 176 - 223
+        with self.assertQueryCount(admin=500, emp=700):  # com runbot 184 - 231 // test_mail only: 209 - 292
             record.message_post_with_template(template.id, message_type='comment', composition_mode='comment')
 
         self.assertEqual(record.message_ids[0].body, '<p>Adding stuff on %s</p>' % record.name)
@@ -250,14 +268,19 @@ class TestHeavyMailPerformance(TransactionCase):
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('admin', 'emp')
     @warmup
-    def test_create_tracking_subscription(self):
+    def test_complex_create_tracking_subscription(self):
         """ Create record using most features: auto subscription, tracking
         and templates. """
+        # setup mail gateway
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'example.com')
+        self.env['ir.config_parameter'].sudo().set_param('mail.catchall.alias', 'test-catchall')
+        self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'test-bounce')
+
         umbrella_id = self.umbrella.id
         customer_id = self.customer.id
         user_id = self.user_portal.id
 
-        with self.assertQueryCount(admin=345, emp=418):  # test_mail only: 327 - 397
+        with self.assertQueryCount(admin=650, emp=850):  # test_mail only: 391 - 535
             rec = self.env['mail.test.full'].create({
                 'name': 'Test',
                 'umbrella_id': umbrella_id,
