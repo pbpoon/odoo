@@ -7,7 +7,7 @@ import base64
 
 from datetime import datetime
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, release, _
 
 
 class L10nNlCBS(models.TransientModel):
@@ -34,6 +34,11 @@ class L10nNlCBS(models.TransientModel):
         company = self.env.user.company_id
         vat = company.vat
         now = datetime.now()
+        registration_number = company.l10n_nl_cbs_reg_number or ''
+        software_version = release.version
+
+        # The software_version looks like saas~11.1+e but we have maximum 5 characters allowed
+        software_version = software_version.replace('saas~', '').replace('+e', '')
 
         # HEADER LINE
         file_content = ''.join([
@@ -41,8 +46,8 @@ class L10nNlCBS(models.TransientModel):
             vat and vat[2:].replace(' ', '').ljust(12) or ''.ljust(12),         # VAT number            length=12
             self.date_from[:4] + self.date_from[5:7],                           # Review perior         length=6
             (company.name or '').ljust(40),                                     # Company name          length=40
-            ''.ljust(6),                                                        # Registration number   length=6
-            ''.ljust(5),                                                        # Version number        length=5
+            registration_number.ljust(6),                                       # Registration number   length=6
+            software_version.ljust(5),                                          # Version number        length=5
             now.strftime('%Y%m%d'),                                             # Creation date         length=8
             now.strftime('%H%M%S'),                                             # Creation time         length=6
             company.phone and\

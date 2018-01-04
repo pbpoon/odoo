@@ -28,6 +28,7 @@
         'data/account_chart_template_data.xml',
         'data/menuitem.xml',
         'views/l10n_nl_cbs_wizard_view.xml',
+        'views/res_company_view.xml',
     ],
     'demo': [],
     'auto_install': False,
