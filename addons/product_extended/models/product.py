@@ -18,14 +18,7 @@ class ProductTemplate(models.Model):
     def _compute_price_from_bom(self):
         for template in self:
             if template.product_variant_count == 1 and template.bom_count > 0:
-                bom = self.env['mrp.bom']._bom_find(product_tmpl=template)
-                self.has_bom(bom.bom_line_ids)
-
-    def has_bom(self, bom_line_ids):
-        for line in bom_line_ids:
-            if line.child_line_ids:
-                self.has_bom(line.child_line_ids)
-            line.bom_id.product_tmpl_id.standard_price = line.bom_id.product_tmpl_id.product_variant_id._calc_price(line.bom_id)
+                template.product_variant_id._compute_price_from_bom()
 
 
 class ProductProduct(models.Model):
@@ -45,6 +38,28 @@ class ProductProduct(models.Model):
                     action['context'] = {'default_new_price': price}
                     return action
         return True
+
+    @api.multi
+    def _compute_price_from_bom(self):
+        for product in self:
+            if product.bom_count > 0:
+                bom = self.env['mrp.bom']._bom_find(product=product)
+                product.standard_price = self.compute_hierarchy(bom.bom_line_ids)
+                # print("\n>>>>>>>>>>>>>>>>>>>>>>>>>.total", product.standard_price)
+
+    def compute_hierarchy(self, bom_line_ids):
+        total = 0
+        for line in bom_line_ids:
+            if line.child_line_ids:
+                total += self.compute_hierarchy(line.child_line_ids) * line.product_qty
+            else:
+                total += line.product_id.uom_id._compute_price(line.product_id.standard_price, line.product_uom_id) * line.product_qty
+                if line.bom_id.routing_id:
+                    total_cost = 0.0
+                    for order in line.bom_id.routing_id.operation_ids:
+                        total_cost += (order.time_cycle/60) * order.workcenter_id.costs_hour
+                    total += line.bom_id.product_uom_id._compute_price(total_cost, line.bom_id.product_id.uom_id)
+        return total
 
     def _calc_price(self, bom):
         price = 0.0
