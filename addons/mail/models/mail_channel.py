@@ -260,7 +260,9 @@ class Channel(models.Model):
         tools.image_resize_images(vals)
         result = super(Channel, self).write(vals)
         if vals.get('group_ids'):
-            self._subscribe_users() 
+            self._subscribe_users()
+        # The form of the following test is important. If 'moderation' cannot be found in vals, vals.get('moderation')
+        # returns "None" and we do not want accept messages in that case. Hence, "if vals.get('moderation')" is not good.
         if vals.get('moderation') == False:
             MessagesToAccept = self.env['mail.message'].search(
                     [
@@ -393,7 +395,7 @@ class Channel(models.Model):
             return self.env['mail.message']
         if self.moderation_notify and message_type == 'email' and moderation_status == 'pending_moderation':
         # Notifies the message author when his message is pending moderation if required on channel.
-        # The fields "email_from" and "reply_to" are filled in automatically.
+        # The fields "email_from" and "reply_to" are filled in automatically (by the method create in model mail.message).
             if not subject:
                 subject = ''
             self.env['mail.message'].create_notification_email({
