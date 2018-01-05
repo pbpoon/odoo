@@ -107,6 +107,7 @@ class Message(models.Model):
     message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
     reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
     mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
+    is_read = fields.Boolean('Is Read')
 
     @api.multi
     def _get_needaction(self):
@@ -114,7 +115,7 @@ class Message(models.Model):
         my_messages = self.env['mail.notification'].sudo().search([
             ('mail_message_id', 'in', self.ids),
             ('res_partner_id', '=', self.env.user.partner_id.id),
-            ('is_read', '=', False)]).mapped('mail_message_id')
+            ('is_read', '=', False), ('is_history', '=', False)]).mapped('mail_message_id')
         for message in self:
             message.needaction = message in my_messages
 
@@ -176,7 +177,8 @@ class Message(models.Model):
                 ('res_partner_id', '=', self.env.user.partner_id.id),
                 ('is_read', '=', False)])
             if delete_mode:
-                notifications.unlink()
+                notifications.write({'is_history': True})
+                notifications.mapped('mail_message_id').write({'is_read': True})
             else:
                 notifications.write({'is_read': True})
             ids = unread_messages.mapped('id')
@@ -228,9 +230,9 @@ class Message(models.Model):
         groups.append((current_group, current_channel_ids))
         current_group = [record.id]
         current_channel_ids = record.channel_ids
-
         if delete_mode:
-            notifications.unlink()
+            notifications.write({'is_history': True, 'is_read': True})
+            notifications.mapped('mail_message_id').write({'is_read': True})
         else:
             notifications.write({'is_read': True})
 
@@ -366,6 +368,12 @@ class Message(models.Model):
     def message_fetch(self, domain, limit=20):
         return self.search(domain, limit=limit).message_format()
 
+    @api.model
+    def history_fetch(self, domain, limit=20):
+        res = self.search(domain, limit=limit)
+        notifications = self.env['mail.notification'].search([('mail_message_id', 'in', res.ids), ('is_history', '=', True)])
+        return notifications.mapped('mail_message_id').message_format()
+
     @api.multi
     def message_format(self):
         """ Get the message values in the format for web client. Since message values can be broadcasted,
@@ -413,10 +421,11 @@ class Message(models.Model):
             'channel_ids', 'partner_ids',  # recipients
             'needaction_partner_ids',  # list of partner ids for whom the message is a needaction
             'starred_partner_ids',  # list of partner ids for whom the message is starred
+            'is_read'
         ])
+
         message_tree = dict((m.id, m) for m in self.sudo())
         self._message_read_dict_postprocess(message_values, message_tree)
-
         # add subtype data (is_note flag, subtype_description). Do it as sudo
         # because portal / public may have to look for internal subtypes
         subtype_ids = [msg['subtype_id'][0] for msg in message_values if msg['subtype_id']]

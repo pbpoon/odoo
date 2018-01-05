@@ -121,6 +121,7 @@ function add_message (data, options) {
 }
 
 function make_message (data) {
+
     var msg = {
         id: data.id,
         author_id: data.author_id,
@@ -144,6 +145,7 @@ function make_message (data) {
         res_id: data.res_id,
         url: session.url("/mail/view?message_id=" + data.id),
         module_icon:data.module_icon,
+        is_read: data.is_read
     };
 
     _.each(_.keys(emoji_substitutions), function (key) {
@@ -173,14 +175,13 @@ function make_message (data) {
         is_needaction: property_descr("channel_inbox"),
         is_history: property_descr("channel_history"),
     });
-
-    if (_.contains(data.needaction_partner_ids, session.partner_id)) {
+    if (_.contains(data.needaction_partner_ids, session.partner_id) && msg.is_read === false) {
         msg.is_needaction = true;
     }
     if (_.contains(data.starred_partner_ids, session.partner_id)) {
         msg.is_starred = true;
     }
-    if (!msg.is_needaction && !msg.is_starred) {
+    if (msg.is_read) {
         msg.is_history = true;
     }
     if (msg.model === 'mail.channel') {
@@ -670,7 +671,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
             id: "channel_history",
             name: _lt("History"),
             type: "static"
-        }, { display_needactions: false });
+        });
     },
 
     _onMailClientAction: function (result) {
@@ -722,9 +723,10 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         if (channel.id === "channel_history") {
             LIMIT = 40;
         }
+        var method = channel.id === "channel_history" ? 'history_fetch' : 'message_fetch';
         return this._rpc({
                 model: 'mail.message',
-                method: 'message_fetch',
+                method: method,
                 args: [domain],
                 kwargs: {limit: LIMIT, context: session.user_context},
             })
