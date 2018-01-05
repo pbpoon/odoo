@@ -151,6 +151,31 @@
         <field name="salary_expected">11000.0</field>
     </record>
 
+    <record id="hr_case_marketing_manager" model="hr.applicant">
+        <field name="name">Marketing Manager</field>
+        <field name="job_id" ref="hr.job_marketing"/>
+        <field name="department_id" ref="hr.dep_administration"/>
+        <field name="type_id" ref="degree_graduate"/>
+        <field name="categ_ids" eval="[(6,0,[ref('tag_applicant_it')])]"/>
+        <field name="partner_name">John Doe</field>
+        <field name="partner_mobile">9987774455</field>
+        <field name="stage_id" ref="stage_job1"/>
+        <field name="salary_expected">25000.0</field>
+    </record>
+
+    <record id="hr_case_traineemca2" model="hr.applicant">
+        <field name="name">Fresher</field>
+        <field name="job_id" ref="hr.job_trainee"/>
+        <field name="department_id" ref="hr.dep_rd"/>
+        <field name="type_id" ref="degree_graduate"/>
+        <field name="categ_ids" eval="[(6,0,[ref('tag_applicant_it')])]"/>
+        <field name="partner_name">Mary Smith
+</field>
+        <field name="partner_mobile">+123 774455</field>
+        <field name="stage_id" ref="stage_job3"/>
+        <field name="salary_expected">25000.0</field>
+    </record>
+
     <record id="hr_case_salesman0_cv" model="ir.attachment">
         <field name="name">Jones_CV.pdf</field>
         <field name="datas_fname">Jones_CV.pdf</field>
@@ -239,5 +264,12 @@
         <field name="summary">Call to define real needs about training</field>
     </record>
 
+    <!-- Sources of applicants -->
+    <record id="source_1" model="hr.recruitment.source">
+        <field name="source_id" ref="utm.utm_source_search_engine"/>
+    </record>
+    <record id="source_2" model="hr.recruitment.source">
+        <field name="source_id" ref="utm.utm_source_facebook"/>
+    </record>
   </data>
 </odoo>
