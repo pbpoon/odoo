@@ -20,6 +20,10 @@ if (!config.device.isMobile) {
 }
 
 KanbanRenderer.include({
+    custom_events:  _.extend({}, KanbanRenderer.prototype.events, {
+        'kanban_column_swipe_left': '_onMobileSwipeLeft',
+        'kanban_column_swipe_right': '_onMobileSwipeRight'
+    }),
     events: _.extend({}, KanbanRenderer.prototype.events, {
         'click .o_kanban_mobile_tab': '_onMobileTabClicked',
     }),
@@ -72,15 +76,15 @@ KanbanRenderer.include({
      * @private
      * @param {KanbanColumn} column
      */
-    _enableSwipe: function () {
+    _enableSwipe: function (index) {
         var self = this;
-        var currentColumn = this.widgets[this.activeColumnIndex];
+        var currentColumn = this.widgets[index];
         currentColumn.$el.swipe({
             swipeLeft: function () {
-                self._moveToGroup(self.activeColumnIndex + 1, self.ANIMATE);
+                self._moveToGroup(index + 1, self.ANIMATE);
             },
             swipeRight: function () {
-                self._moveToGroup(self.activeColumnIndex - 1, self.ANIMATE);
+                self._moveToGroup(index - 1, self.ANIMATE);
             }
         });
     },
@@ -98,41 +102,32 @@ KanbanRenderer.include({
         if (moveToIndex < 0 || moveToIndex >= this.widgets.length) {
             return $.when();
         }
-        var def = $.Deferred();
         this.activeColumnIndex = moveToIndex;
         var column = this.widgets[this.activeColumnIndex];
-        this.trigger_up('kanban_load_records', {
-            columnID: column.db_id,
-            onSuccess: function () {
-                // update the columns and tabs positions (optionally with an animation)
-                var updateFunc = animate ? 'animate' : 'css';
-                self.$('.o_kanban_mobile_tab').removeClass('o_current');
-                _.each(self.widgets, function (column, index) {
-                    var columnID = column.id || column.db_id;
-                    var $column = self.$('.o_kanban_group[data-id="' + columnID + '"]');
-                    var $tab = self.$('.o_kanban_mobile_tab[data-id="' + columnID + '"]');
-                    if (index === moveToIndex - 1) {
-                        $column[updateFunc]({left: '-100%'});
-                        $tab[updateFunc]({left: '0%'});
-                    } else if (index === moveToIndex + 1) {
-                        $column[updateFunc]({left: '100%'});
-                        $tab[updateFunc]({left: '100%'});
-                    } else if (index === moveToIndex) {
-                        $column[updateFunc]({left: '0%'});
-                        $tab[updateFunc]({left: '50%'});
-                        $tab.addClass('o_current');
-                    } else if (index < moveToIndex) {
-                        $column.css({left: '-100%'});
-                        $tab[updateFunc]({left: '-100%'});
-                    } else if (index > moveToIndex) {
-                        $column.css({left: '100%'});
-                        $tab[updateFunc]({left: '200%'});
-                    }
-                });
-                def.resolve();
-            },
+        // update the columns and tabs positions (optionally with an animation)
+        var updateFunc = animate ? 'animate' : 'css';
+        self.$('.o_kanban_mobile_tab').removeClass('o_current');
+        _.each(self.widgets, function (column, index) {
+            var columnID = column.id || column.db_id;
+            var $column = self.$('.o_kanban_group[data-id="' + columnID + '"]');
+            self._enableSwipe(index);
+            var $tab = self.$('.o_kanban_mobile_tab[data-id="' + columnID + '"]');
+            if (index === moveToIndex - 1) {
+                $tab[updateFunc]({left: '0%'});
+            } else if (index === moveToIndex + 1) {
+                $tab[updateFunc]({left: '100%'});
+            } else if (index === moveToIndex) {
+                $tab[updateFunc]({left: '50%'});
+                $tab.addClass('o_current');
+            } else if (index < moveToIndex) {
+                $tab[updateFunc]({left: '-100%'});
+            } else if (index > moveToIndex) {
+                $tab[updateFunc]({left: '200%'});
+            }
         });
-        return def;
+        var t = self.$el.width()*(moveToIndex) * -1;
+        self.$el.css({'transform': 'translateX(' + t + 'px)'});
+        return true;
     },
     /**
      * @override
@@ -180,6 +175,13 @@ KanbanRenderer.include({
     _onMobileTabClicked: function (event) {
         this._moveToGroup($(event.currentTarget).index(), true);
     },
+    _onMobileSwipeLeft: function (event) {
+        console.log("this.activeColumnIndex>>>>>>",this.activeColumnIndex);
+        this._moveToGroup(this.activeColumnIndex + 1, this.ANIMATE);
+    },
+    _onMobileSwipeRight: function (event) {
+        this._moveToGroup(this.activeColumnIndex - 1, this.ANIMATE);
+     },
 });
 
 });

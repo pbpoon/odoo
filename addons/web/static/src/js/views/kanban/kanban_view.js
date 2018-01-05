@@ -35,7 +35,7 @@ var KanbanView = BasicView.extend({
         this.loadParams.limit = this.loadParams.limit || 40;
         // in mobile, columns are lazy-loaded, so set 'openGroupByDefault' to
         // false so that they will won't be loaded by the initial load
-        this.loadParams.openGroupByDefault = config.device.isMobile ? false : true;
+        this.loadParams.openGroupByDefault = true;
         this.loadParams.type = 'list';
         this.loadParams.groupBy = arch.attrs.default_group_by ? [arch.attrs.default_group_by] : (params.groupBy || []);
         var progressBar;
