@@ -9,6 +9,7 @@ Convenience classes to manipulate dates and datetimes
 import datetime
 import json
 from odoo.tools import pycompat
+from odoo.tools.func import monkey_patch
 from . import DEFAULT_SERVER_DATE_FORMAT as DATE_FORMAT
 from . import DEFAULT_SERVER_DATETIME_FORMAT as DATETIME_FORMAT
 
@@ -256,3 +257,9 @@ class ODatetime(datetime.datetime, ODate):
         self.replace(
             new.year, new.month, new.day, new.hour, new.second,
             microsecond=new.microsecond, tzinfo=new.tzinfo)
+
+@monkey_patch(json.JSONEncoder)
+def default(self, o):
+    if isinstance(o, ODate):
+        return str(o)
+    return default.super(self, o)
