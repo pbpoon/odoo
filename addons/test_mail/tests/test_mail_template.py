@@ -186,7 +186,7 @@ class TestMailTemplate(BaseFunctionalTest, MockEmails, TestRecipients):
     #         self.assertEqual(bool(mail_now.scheduled_date), False)
     #         self.assertEqual(mail_now.state, 'outgoing')
     #         self.assertEqual(mail_in_2_days.state, 'outgoing')
-    #         scheduled_date = datetime.strptime(mail_in_2_days.scheduled_date, DEFAULT_SERVER_DATETIME_FORMAT)
+    #         scheduled_date = mail_in_2_days.scheduled_date
     #         date_in_2_days = datetime.now() + timedelta(days = 2)
     #         self.assertEqual(scheduled_date, date_in_2_days)
     #         # self.assertEqual(scheduled_date.month, date_in_2_days.month)

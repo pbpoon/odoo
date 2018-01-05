@@ -64,7 +64,7 @@ class AccountInvoiceLine(models.Model):
             if self.invoice_id.type in ['out_invoice', 'out_refund']:
                 self.asset_mrr = self.price_subtotal_signed / months
             if self.invoice_id.date_invoice:
-                start_date = datetime.strptime(self.invoice_id.date_invoice, DF).replace(day=1)
+                start_date = self.invoice_id.date_invoice.replace(day=1)
                 end_date = (start_date + relativedelta(months=months, days=-1))
                 self.asset_start_date = start_date.strftime(DF)
                 self.asset_end_date = end_date.strftime(DF)

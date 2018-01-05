@@ -55,6 +55,7 @@ from .tools.func import frame_codeinfo
 from .tools.misc import CountingStream, DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 from .tools.safe_eval import safe_eval
 from .tools.translate import _
+from .tools.datetime import ODate, ODatetime
 
 _logger = logging.getLogger(__name__)
 _schema = logging.getLogger(__name__ + '.schema')
@@ -1721,8 +1722,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         gb = groupby_dict.get(key)
         if gb and gb['type'] in ('date', 'datetime') and value:
             if isinstance(value, pycompat.string_types):
-                dt_format = DEFAULT_SERVER_DATETIME_FORMAT if gb['type'] == 'datetime' else DEFAULT_SERVER_DATE_FORMAT
-                value = datetime.datetime.strptime(value, dt_format)
+                value = ODatetime.fromstring(value) if gb['type'] == 'datetime' else ODate.fromstring(value)
             if gb['tz_convert']:
                 value = pytz.timezone(self._context['tz']).localize(value)
         return value

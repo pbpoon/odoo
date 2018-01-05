@@ -32,6 +32,8 @@ from .which import which
 import traceback
 from operator import itemgetter
 
+from odoo.tools.datetime import ODate
+
 try:
     # pylint: disable=bad-python3-import
     import cProfile
@@ -1113,7 +1115,7 @@ def format_date(env, value, lang_code=False, date_format=False):
         if len(value) < DATE_LENGTH:
             return ''
         value = value[:DATE_LENGTH]
-        value = datetime.datetime.strptime(value, DEFAULT_SERVER_DATE_FORMAT).date()
+        value = ODate.fromstring(value)
 
     lang = env['res.lang']._lang_get(lang_code or env.context.get('lang') or 'en_US')
     locale = babel.Locale.parse(lang.code)

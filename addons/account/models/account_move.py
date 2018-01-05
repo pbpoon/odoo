@@ -204,10 +204,14 @@ class AccountMove(models.Model):
     @api.multi
     def _check_lock_date(self):
         for move in self:
-            lock_date = max(move.company_id.period_lock_date or '0000-00-00', move.company_id.fiscalyear_lock_date or '0000-00-00')
+            if move.company_id.period_lock_date and move.company_id.fiscalyear_lock_date:
+                lock_date = max(move.company_id.period_lock_date, move.company_id.fiscalyear_lock_date)
+            else:
+                lock_date = move.company_id.period_lock_date or move.company_id.fiscalyear_lock_date
+
             if self.user_has_groups('account.group_account_manager'):
                 lock_date = move.company_id.fiscalyear_lock_date
-            if move.date <= (lock_date or '0000-00-00'):
+            if lock_date and move.date <= lock_date:
                 if self.user_has_groups('account.group_account_manager'):
                     message = _("You cannot add/modify entries prior to and inclusive of the lock date %s") % (lock_date)
                 else:
@@ -1144,10 +1148,13 @@ class AccountMoveLine(models.Model):
         """
         aml_to_balance_currency = {}
         partial_rec_set = self.env['account.partial.reconcile']
-        maxdate = '0000-00-00'
+        maxdate = None
 
         # gather the max date for the move creation, and all aml that are unbalanced
         for aml in self:
+            if not maxdate:
+                maxdate = aml.date
+
             maxdate = max(aml.date, maxdate)
             if aml.amount_residual_currency:
                 if aml.currency_id not in aml_to_balance_currency:
@@ -1743,7 +1750,7 @@ class AccountPartialReconcile(models.Model):
                                 'partner_id': line.partner_id.id,
                             })
             if newly_created_move:
-                if move_date > (self.company_id.period_lock_date or '0000-00-00') and newly_created_move.date != move_date:
+                if (not self.company_id.period_lock_date or move_date > self.company_id.period_lock_date) and newly_created_move.date != move_date:
                     # The move date should be the maximum date between payment and invoice (in case
                     # of payment in advance). However, we should make sure the move date is not
                     # recorded before the period lock date as the tax statement for this period is

@@ -46,7 +46,7 @@ class BusPresence(models.Model):
             values['last_presence'] = last_presence.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
             self.create(values)
         else:  # update the last_presence if necessary, and write values
-            if datetime.datetime.strptime(presence.last_presence, DEFAULT_SERVER_DATETIME_FORMAT) < last_presence:
+            if presence.last_presence < last_presence:
                 values['last_presence'] = last_presence.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
             # Hide transaction serialization errors, which can be ignored, the presence update is not essential
             with tools.mute_logger('odoo.sql_db'):

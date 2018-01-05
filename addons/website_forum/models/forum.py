@@ -312,7 +312,7 @@ class Post(models.Model):
     @api.depends('vote_count', 'forum_id.relevancy_post_vote', 'forum_id.relevancy_time_decay')
     def _compute_relevancy(self):
         if self.create_date:
-            days = (datetime.today() - datetime.strptime(self.create_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)).days
+            days = (datetime.today() - self.create_date).days
             self.relevancy = math.copysign(1, self.vote_count) * (abs(self.vote_count - 1) ** self.forum_id.relevancy_post_vote / (days + 2) ** self.forum_id.relevancy_time_decay)
         else:
             self.relevancy = 0
@@ -665,7 +665,7 @@ class Post(models.Model):
         """ Bump a question: trigger a write_date by writing on a dummy bump_date
         field. One cannot bump a question more than once every 10 days. """
         self.ensure_one()
-        if self.forum_id.allow_bump and not self.child_ids and (datetime.today() - datetime.strptime(self.write_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)).days > 9:
+        if self.forum_id.allow_bump and not self.child_ids and (datetime.today() - self.write_date).days > 9:
             # write through super to bypass karma; sudo to allow public user to bump any post
             return self.sudo().write({'bump_date': fields.Datetime.now()})
         return False

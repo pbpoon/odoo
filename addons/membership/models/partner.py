@@ -108,7 +108,7 @@ class Partner(models.Model):
             s = 4
             if partner.member_lines:
                 for mline in partner.member_lines:
-                    if (mline.date_to or '0000-00-00') >= today and (mline.date_from or '0000-00-00') <= today:
+                    if mline.date_to and mline.date_to >= today and (not mline.date_from or mline.date_from <= today):
                         if mline.account_invoice_line.invoice_id:
                             mstate = mline.account_invoice_line.invoice_id.state
                             if mstate == 'paid':

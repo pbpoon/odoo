@@ -1037,7 +1037,7 @@ class Lead(models.Model):
         meetings = self.env['calendar.event'].search(meetings_domain)
         for meeting in meetings:
             if meeting['start']:
-                start = datetime.strptime(meeting['start'], tools.DEFAULT_SERVER_DATETIME_FORMAT).date()
+                start = meeting['start']
                 if start == date.today():
                     result['meeting']['today'] += 1
                 if date.today() <= start <= date.today() + timedelta(days=7):
