@@ -7,6 +7,7 @@ from . import appdirs
 from . import pdf
 from .config import config
 from .misc import *
+from .datetime import *
 from .convert import *
 from .translate import *
 from .graph import graph
