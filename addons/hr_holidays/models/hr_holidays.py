@@ -64,24 +64,24 @@ class HolidaysType(models.Model):
         help="When selected, the Allocation/Leave Requests for this type require a second validation to be approved.")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
 
-    validation_type = fields.Selection([('manager', 'Department manager'),
-                                      ('hr', 'Human resource responsible'),
+    validation_type = fields.Selection([('manager', 'Department Manager'),
+                                      ('hr', 'Human Resource Responsible'),
                                       ('both', 'Both')],
                                      default='hr',
-                                     string='Validation by')
+                                     string='Validation By')
 
     sequence = fields.Integer(default=100,
                               help='The type with the smallest sequence is the default value in leave request')
 
-    employee_visibility = fields.Selection([('both', 'Leaves as well as on Allocation'),
-                                            ('lr', 'Only on Leaves'),
-                                            ('ar', 'Only on Allocation')],
-                                           default='both', string='Available for section in :',
+    employee_visibility = fields.Selection([('both', 'Leave As Well As On Allocation'),
+                                            ('lr', 'Only On Leave'),
+                                            ('ar', 'Only On Allocation')],
+                                           default='both', string='Available For Selection In :',
                                            help='This leave type will be available on Leave / Allocation request based on selected value')
 
     # Adding validity to types of leaves so that it cannot be selected outside
     # this time period
-    validity_start = fields.Date(string='Start Date')
+    validity_start = fields.Date(string='Start Date', default=fields.Date.today())
     validity_stop = fields.Date(string='End Date')
 
     valid = fields.Boolean(compute='_compute_valid', search='_search_valid')
@@ -105,7 +105,7 @@ class HolidaysType(models.Model):
 
     def _search_valid(self, operator, value):
         today = fields.Date.today()
-        signs = ['>', '<'] if operator == '=' else ['<', '>']
+        signs = ['>=', '<='] if operator == '=' else ['<=', '>=']
 
         return ['|', ('limit', operator, value), '&',
                 ('validity_stop', signs[0] if value else signs[1], today),
@@ -418,7 +418,7 @@ class Holidays(models.Model):
                 dto    = fields.Datetime.from_string(values.get('date_to', False))
 
                 if dfrom and dto and (dfrom < vstart or dto > vstop):
-                    raise UserError('You can take a {} only between {} and {}'.format(holiday_status.display_name, \
+                    raise UserError('You can take {} only between {} and {}'.format(holiday_status.display_name, \
                                                                                   holiday_status.validity_start, holiday_status.validity_stop))
 
     @api.model
@@ -517,6 +517,14 @@ class Holidays(models.Model):
         current_employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
         if any(holiday.state != 'confirm' for holiday in self):
             raise UserError(_('Leave request must be confirmed ("To Approve") in order to approve it.'))
+
+        for holiday in self:
+            validation_type = holiday.holiday_status_id.validation_type
+            department = holiday.employee_id.department_id
+            if (holiday.holiday_status_id.double_validation or validation_type == 'manager') and department.manager_id != current_employee:
+                raise ValidationError('You must be {} manager to approve this leave'.format(department.name))
+            elif validation_type == 'hr' and not self.env.user.has_group('hr_holidays.group_hr_holidays_manager'):
+                raise ValidationError('You must be a Human Resource Manager to approve this Leave')
 
         self.filtered(lambda hol: hol.double_validation).write({'state': 'validate1', 'first_approver_id': current_employee.id})
         self.filtered(lambda hol: not hol.double_validation).action_validate()

@@ -601,7 +601,7 @@
                                 <field name="company_id" groups="base.group_multi_company"/>
                             </group>
                             <group name="validity" string="Validity" attrs="{'invisible': [('employee_visibility', '=', 'ar')]}">
-                                <field name="validity_start" eval="time.strftime('%Y-%m-%d')"/>
+                                <field name="validity_start"/>
                                 <field name="validity_stop"/>
                             </group>
                         </group>
