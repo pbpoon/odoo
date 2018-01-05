@@ -175,13 +175,15 @@ function make_message (data) {
         is_needaction: property_descr("channel_inbox"),
         is_history: property_descr("channel_history"),
     });
-    if (_.contains(data.needaction_partner_ids, session.partner_id) && msg.is_read === false) {
+    if (_.contains(data.needaction_partner_ids, session.partner_id)) {
+        console.log("in inbox");
         msg.is_needaction = true;
     }
     if (_.contains(data.starred_partner_ids, session.partner_id)) {
         msg.is_starred = true;
     }
-    if (msg.is_read) {
+    else {
+        console.log("in history");
         msg.is_history = true;
     }
     if (msg.model === 'mail.channel') {
@@ -905,6 +907,7 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     mark_as_read: function (message_ids) {
         var ids = _.filter(message_ids, function (id) {
+            console.log('>>>>>>>>>>>>', message_ids)
             var message = _.findWhere(messages, {id: id});
             message.is_history = true;
             add_to_cache(message, []);

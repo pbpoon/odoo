@@ -107,7 +107,6 @@ class Message(models.Model):
     message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
     reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
     mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
-    is_read = fields.Boolean('Is Read')
 
     @api.multi
     def _get_needaction(self):
@@ -204,7 +203,7 @@ class Message(models.Model):
         """ Remove the needaction from messages for the current partner. """
         partner_id = self.env.user.partner_id
         delete_mode = not self.env.user.share  # delete employee notifs, keep customer ones
-
+        print ('self.env.user', self.env.user)
         notifications = self.env['mail.notification'].sudo().search([
             ('mail_message_id', 'in', self.ids),
             ('res_partner_id', '=', partner_id.id),
@@ -370,8 +369,10 @@ class Message(models.Model):
 
     @api.model
     def history_fetch(self, domain, limit=20):
-        res = self.search(domain, limit=limit)
-        notifications = self.env['mail.notification'].search([('mail_message_id', 'in', res.ids), ('is_history', '=', True)])
+        self.invalidate_cache()
+        res = self.search([])
+        notifications = self.env['mail.notification'].search([('mail_message_id', 'in', res.ids), ('is_read', '=', True), ('res_partner_id', '=', self.env.user.partner_id.id)])
+        print ('------------------', res, notifications.mapped('mail_message_id'))
         return notifications.mapped('mail_message_id').message_format()
 
     @api.multi
