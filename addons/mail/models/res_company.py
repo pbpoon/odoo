@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, models, fields
-
+from odoo.exceptions import UserError
 
 class Company(models.Model):
 
@@ -14,7 +14,11 @@ class Company(models.Model):
     @api.multi
     def _compute_catchall(self):
         ConfigParameter = self.env['ir.config_parameter'].sudo()
-        self.catchall = (
-                ConfigParameter.get_param('mail.catchall.alias') + "@"
-                + ConfigParameter.get_param('mail.catchall.domain')
-            )
+        alias = ConfigParameter.get_param('mail.catchall.alias')
+        domain = ConfigParameter.get_param('mail.catchall.domain')
+        if alias and domain:
+            for company in self:
+                company.catchall = (alias + "@" + domain)
+        else:
+            for company in self:
+                company.catchall = False

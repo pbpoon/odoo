@@ -137,7 +137,7 @@
         <record id="mail_template_moderator_notification_email" model="mail.template">
             <field name="name">Partner/User: Messages to Moderate</field>
             <field name="model_id" ref="base.model_res_partner"/>
-            <field name="email_from">${object.company_id.catchall}</field>
+            <field name="email_from">${object.company_id.catchall or object.company_id.email}</field>
             <field name="email_to">${object.email|safe}</field>
             <field name="subject">Messages are pending moderation</field>
             <field name="body_html" type="xml">
@@ -156,7 +156,7 @@
         <record id="mail_template_guidelines_notification_email" model="mail.template">
             <field name="name">Partner: Guidelines</field>
             <field name="model_id" ref="base.model_res_partner"/>
-            <field name="email_from">${object.company_id.catchall}</field>
+            <field name="email_from">${object.company_id.catchall or object.company_id.email}</field>
             <field name="email_to">${object.email|safe}</field>
             <field name="subject">Guidelines of channel ${ctx['channel'].name}</field>
             <field name="body_html" type="xml">
