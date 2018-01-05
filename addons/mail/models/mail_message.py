@@ -881,16 +881,16 @@ class Message(models.Model):
         """
         # For now, his method is called on a singleton when decision is 'ban' or 'allow'
         if decision == 'accept':
-            self.accept_message()
+            self._accept_message()
         elif decision in ['reject', 'discard']:
-            self.notify_deletion_and_unlink()
+            self._notify_deletion_and_unlink()
         else:
             channel = self.env['mail.channel'].browse(self.res_id)
-            channel._add_to_moderated_email_list([self.email_from], decision)
-            self.accept_message(True) if decision == 'allow' else self.notify_deletion_and_unlink(True)
+            channel._add_to_moderation_email([self.email_from], decision)
+            self._accept_message(True) if decision == 'allow' else self.notify_deletion_and_unlink(True)
         return True
 
-    def accept_message(self, allow=False):
+    def _accept_message(self, allow=False):
         messages_to_notify = self
         if allow:
             for message in self:
@@ -904,7 +904,7 @@ class Message(models.Model):
         for message in messages_to_notify:
             message._notify()
 
-    def notify_deletion_and_unlink(self, ban=False):
+    def _notify_deletion_and_unlink(self, ban=False):
         """ Notify deletion of messages to their moderators and authors and then delete them.
         """
         messages_to_delete = self

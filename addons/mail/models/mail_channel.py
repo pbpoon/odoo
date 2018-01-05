@@ -177,7 +177,7 @@ class Channel(models.Model):
             template.with_context(lang=partner.lang, channel=self).send_mail(partner.id, raise_exception=True)
 
     @api.multi
-    def _add_to_moderated_email_list(self, emails, status):
+    def _add_to_moderation_email(self, emails, status):
         """ This method will add emails addresses into either white list of 
             emails or ban list of emails according to the status given by the moderator.
             Although made possible, if the emails already exist in the list, 
@@ -185,13 +185,13 @@ class Channel(models.Model):
             For now, this method is only called on a list of one email but it is designed to allow more emails.
         """
         #Put emails in the appropriate format
-        def right_format(email):
+        def _right_format(email):
             email_split = tools.email_split(email)
             if email_split:
                 return email_split[0]
             else:
                 email
-        emails = [right_format(email) for email in emails]
+        emails = [_right_format(email) for email in emails]
         already_moderated_email_ids = self.moderation_email_ids.search([('email', 'in', emails)])
         not_moderated_emails = [email for email in emails if email not in already_moderated_email_ids.mapped('email')]
         cmds = set()
@@ -288,7 +288,7 @@ class Channel(models.Model):
                             ('res_id', 'in', self.ids)
                         ]
                 )
-            MessagesToAccept.accept_message()
+            MessagesToAccept._accept_message()
 
         return result
 
