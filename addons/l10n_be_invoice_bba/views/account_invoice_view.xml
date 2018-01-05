@@ -8,7 +8,6 @@
       <field name="arch" type="xml">
         <field name="date_due" position="after">
               <field name="reference_type" invisible="1"/>
-              <field name="reference" attrs="{'readonly':[('state','!=','draft')], 'invisible': [('reference_type','=','bba')]}"/>
               <field name="reference" string="BBA Structured Communication" attrs="{'readonly':[('state','!=','draft')], 'invisible': [('reference_type','=','none')]}"/>
         </field>
       </field>
