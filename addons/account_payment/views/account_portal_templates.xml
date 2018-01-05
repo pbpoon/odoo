@@ -14,7 +14,7 @@
 
     <template id="portal_invoice_page_inherit_payment" name="Payment on My Invoices" inherit_id="account.portal_invoice_page">
         <xpath expr="//div[@id='o_portal_account_actions']/a" position="before">
-            <t t-set="tx_ids" t-value="invoice.sudo().get_portal_transactions()"/>
+            <t t-set="tx_ids" t-value="invoice.get_portal_transactions()"/>
             <a t-if="not tx_ids and invoice.state == 'open' and invoice.amount_total"
                     class="btn btn-primary pull-right ml8" href="#portal_pay">
                 <i class="fa fa-arrow-circle-right"/> Pay Now
@@ -51,7 +51,7 @@
 
     <template id="portal_invoice_report" name="Invoice portal page inherit payment" inherit_id="account.portal_invoice_report">
         <xpath expr="//div[@name='customer_address']" position="after">
-            <t t-set="tx_ids" t-value="invoice.sudo().get_portal_transactions()"/>
+            <t t-set="tx_ids" t-value="invoice.get_portal_transactions()"/>
             <t t-if="tx_ids">
                 <div>
                     <strong>Transactions</strong>
@@ -87,7 +87,7 @@
 
             <t t-if="error == 'pay_invoice_tx_fail'">
                 There was an error processing your payment: transaction failed.<br />
-                <t t-set="tx_id" t-value="invoice.sudo().payment_tx_id"/>
+                <t t-set="tx_id" t-value="invoice.get_portal_last_transaction()"/>
                 <t t-if="tx_id and tx_id.state_message">
                     <t t-esc="tx_id.state_message"/>
                 </t>

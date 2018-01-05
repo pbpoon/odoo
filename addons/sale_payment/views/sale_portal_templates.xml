@@ -35,7 +35,7 @@
             </div>
         </xpath>
         <xpath expr="//t[@t-if='invoices']" position="before">
-            <t t-set="tx_ids" t-value="order.sudo().get_portal_transactions()"/>
+            <t t-set="tx_ids" t-value="order.get_portal_transactions()"/>
             <t t-if="tx_ids">
                 <div>
                     <strong>Transactions</strong>
@@ -62,7 +62,7 @@
     <template id="portal_order_error" name="Order error display: payment errors"
             inherit_id="sale.portal_order_error">
         <xpath expr="//t[@name='generic']" position="after">
-            <t t-set="tx_id" t-value="order.sudo().payment_tx_id"/>
+            <t t-set="tx_id" t-value="order.get_portal_last_transaction()"/>
             <t t-if="error == 'pay_sale_invalid_doc'">
                 There was an error processing your payment: invalid order.
             </t>

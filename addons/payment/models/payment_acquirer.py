@@ -623,11 +623,11 @@ class PaymentTransaction(models.Model):
             'acquirer_id': self.acquirer_id.id,
             'type': self.type,
             'partner_id': self.partner_id.id,
-            'payment_id': self.payment_id.refund().id,
+            'payment_id': self.payment_id.create_refund().id,
         }
 
     @api.multi
-    def refund(self):
+    def create_refund(self):
         '''Refund the selected posted transactions.
         :return: A list of draft transactions to refund them.
         '''
@@ -1008,7 +1008,7 @@ class PaymentToken(models.Model):
         except:
             _logger.error('Error while validating a payment method')
         finally:
-            tx.refund().s2s_do_refund()
+            tx.create_refund().s2s_do_refund()
         return tx
 
     @api.multi

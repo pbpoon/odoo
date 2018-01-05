@@ -53,7 +53,7 @@ class AccountPayment(models.Model):
             (pay.move_line_ids + pay.refund_payment_id.move_line_ids).reconcile()
 
     @api.multi
-    def refund(self):
+    def create_refund(self):
         '''Refund the selected posted payments.
         :return: A list of draft payments to refund them.
         '''

@@ -20,8 +20,12 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def get_portal_transactions(self):
-        return self.mapped('payment_ids.payment_transaction_ids')\
+        return self.sudo().mapped('payment_ids.payment_transaction_ids')\
             .filtered(lambda trans: trans.state == 'posted' or (trans.state == 'draft' and trans.pending))
+
+    @api.multi
+    def get_portal_last_transaction(self):
+        return self.sudo().payment_tx_id
 
     def action_view_payments(self):
         action = {

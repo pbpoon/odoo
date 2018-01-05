@@ -308,7 +308,7 @@ class PaymentTxOgone(models.Model):
             self.execute_callback()
             # if this transaction is a validation one, then we refund the money we just withdrawn
             if self.type == 'validation':
-                self.refund().s2s_do_refund()
+                self.create_refund().s2s_do_refund()
 
             return True
         elif status in self._ogone_cancel_tx_status:

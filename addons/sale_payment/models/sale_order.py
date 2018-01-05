@@ -28,6 +28,10 @@ class SaleOrder(models.Model):
             .filtered(lambda trans: trans.state == 'posted' or (trans.state == 'draft' and trans.pending))
 
     @api.multi
+    def get_portal_last_transaction(self):
+        return self.sudo().payment_tx_id
+
+    @api.multi
     def _log_transaction_so_message(self, old_state, transaction):
         self.ensure_one()
         message = _('This sale order has been updated automatically by the transaction %s:') % transaction._get_oe_log_html()
