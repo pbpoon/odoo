@@ -14,14 +14,14 @@
         </xpath>
   </template>
 
- <template id="portal_my_home_menu_sale" name="Portal layout : sales menu entries" inherit_id="portal.portal_layout" priority="20">
+<!--  <template id="portal_my_home_menu_sale" name="Portal layout : sales menu entries" inherit_id="portal.portal_layout" priority="20">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <li t-if="quotation">
                 <a t-attf-href="/my/quotes?{{ keep_query() }}">Quotations</a>
                 <li><t t-esc="quotation.name"/></li>
             </li>
         </xpath>
-  </template>
+  </template> -->
 
   <template id="pricing" name="Price">
       <section id="quote">

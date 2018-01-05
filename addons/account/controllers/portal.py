@@ -140,8 +140,6 @@ class PortalAccount(CustomerPortal):
         except AccessError:
             return request.redirect('/my')
 
-        # print report as sudo, since it require access to taxes, payment term, ... and portal
-        # does not have those access rights.
         pdf = request.env.ref('account.account_invoices').sudo().render_qweb_pdf([invoice_sudo.id])[0]
         pdfhttpheaders = [
             ('Content-Type', 'application/pdf'),

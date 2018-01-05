@@ -122,5 +122,41 @@
         </t>
     </template>
 
+<!-- generic payment modal -->
+    <template id="payment_modal" name="Payment method modal">
+        <div class="modal fade" id="modalpayment" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-content" id="payment-modal-dialog">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
+                    <h4 class="modal-title">Payment Methods</h4>
+                </div>
+                <div class="modal-body" id="payment-body-dialog">
+                <!-- use xpath to extend -->
+                </div>
+                <div class="modal-footer" id="payment-modal_footer">
+                <!-- use xpath to extend -->
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- generic signature modal dialog -->
+    <template id="signature_dialog" name="Sign Dialog">
+        <div class="modal fade" id="modalaccept" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-content" id="sign-modal-dialog">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
+                    <h4 class="modal-title">Accept &amp; Sign</h4>
+                </div>
+                <div class="modal-body" id="sign-body-dialog">
+                <!-- use xpath to extend -->
+                </div>
+                <div class="modal-footer" id="sign-modal_footer">
+                <!-- use xpath to extend -->
+                </div>
+            </div>
+        </div>
+    </template>
+
     </data>
 </odoo>
