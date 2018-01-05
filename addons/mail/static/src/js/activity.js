@@ -86,7 +86,7 @@ var AbstractActivityField = AbstractField.extend({
             self.activities = _.sortBy(self.activities, 'date_deadline');
         });
     },
-    _scheduleActivity: function (id, previous_activity_type_id, callback) {
+    _scheduleActivity: function (id, previous_activity_type_id, context, callback) {
         var action = {
             type: 'ir.actions.act_window',
             res_model: 'mail.activity',
@@ -94,11 +94,11 @@ var AbstractActivityField = AbstractField.extend({
             view_type: 'form',
             views: [[false, 'form']],
             target: 'new',
-            context: {
+            context: _.extend({
                 default_res_id: this.res_id,
                 default_res_model: this.model,
                 default_previous_activity_type_id: previous_activity_type_id,
-            },
+            }, context),
             res_id: id || false,
         };
         return this.do_action(action, { on_close: callback });
@@ -156,7 +156,11 @@ var Activity = AbstractActivityField.extend({
     // public
     scheduleActivity: function (previous_activity_type_id) {
         var callback = this._reload.bind(this, {activity: true, thread: true});
-        return this._scheduleActivity(false, previous_activity_type_id, callback);
+        return this._scheduleActivity(false, previous_activity_type_id, {}, callback);
+    },
+    draftActivity: function (context) {
+        var callback = this._reload.bind(this, {activity: true, thread: true});
+        return this._scheduleActivity(false, false, context, callback);
     },
     // private
     _reload: function (fieldsToReload) {
@@ -324,7 +328,7 @@ var KanbanActivity = AbstractActivityField.extend({
     },
     _onScheduleActivity: function (event) {
         var activity_id = $(event.currentTarget).data('activity-id') || false;
-        return this._scheduleActivity(activity_id, false, this._reload.bind(this));
+        return this._scheduleActivity(activity_id, false, {}, this._reload.bind(this));
     },
 });
 

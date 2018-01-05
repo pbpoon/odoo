@@ -92,6 +92,7 @@ var Chatter = Widget.extend(chat_mixin, {
         if (this.record.res_id !== record.res_id) {
             this._closeComposer(true);
         }
+        self._closeActivityComposer();
 
         // update the state
         this._setState(record);
@@ -179,9 +180,15 @@ var Chatter = Widget.extend(chat_mixin, {
             self.$('.o_chatter_button_log_note').toggleClass('o_active', self.composer.options.is_log);
         });
     },
+    _closeActivityComposer: function (){
+        if (this.activity_form) {
+            this.clear_active_btns();
+            this.activity_form.controller.destroy();
+        }
+    },
     _openScheduleActivity() {
         var self = this;
-        var form_id = this.activity_chatter_form_id
+        var form_id = this.activity_chatter_form_id;
         this.loadViews('mail.activity', {}, [[form_id, 'form']], {}).then(function (view_info) {
             self.activity_form = new FormView(view_info.form, {
                 auto_search: false,
@@ -205,14 +212,22 @@ var Chatter = Widget.extend(chat_mixin, {
             });
             self._closeComposer(true);
             self.activity_form.Controller = FormController.extend({
-               _onButtonClicked: function (event) {
-                   this._super.apply(this, arguments).then(function (){
-                       self.trigger_up('reload');
-                       self.clear_active_btns();
-                       self.activity_form.controller.destroy();
-                   });
-               }
-           });
+                _onButtonClicked: function (event) {
+                    if (event.data.attrs.draft_activity) {
+                        event.stopPropagation();
+                        var context = {};
+                        var dirtyFields = this.model.getDirtyValues(this.handle);
+                        _.each(dirtyFields, function (value, field){
+                            context['default_' + field] = value;
+                        });
+                        return self.fields.activity.draftActivity(context);
+                    } else {
+                        this._super.apply(this, arguments).then(function (){
+                            self.trigger_up('reload_mail_fields', {activity: true, thread: true});
+                        });
+                    }
+                },
+            });
             self.activity_form.getController(self).then(function (controller) {
                 self.activity_form.controller = controller;
                 controller.insertAfter(self.$('.o_chatter_topbar'));

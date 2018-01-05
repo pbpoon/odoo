@@ -491,6 +491,57 @@ var BasicModel = AbstractModel.extend({
         return _t("New");
     },
     /**
+     * replace all relational fields client datapoint with it's original/db value
+     *
+     * @param {Object} record
+     * @returns {Object}  object {field: value} with real data
+     */
+    getRealDataPoint: function (record, data) {
+        var relDataPoint;
+        var readData = {};
+        for (var fieldName in data) {
+            var field = record.fields[fieldName];
+            if (!field) {
+                continue;
+            }
+            if (field.type === 'many2one') {
+                relDataPoint = this.localData[data[fieldName]];
+                readData[fieldName] = relDataPoint ? relDataPoint.res_id : false;
+            } else if (field.type === 'reference') {
+                relDataPoint = this.localData[data[fieldName]];
+                readData[fieldName] = relDataPoint ?
+                    relDataPoint.model + ',' + relDataPoint.res_id :
+                    false;
+            } else if (field.type === 'one2many' || field.type === 'many2many') {
+                relDataPoint = this.localData[data[fieldName]];
+                relDataPoint = this._applyX2ManyOperations(relDataPoint);
+                readData[fieldName] = relDataPoint.res_ids;
+            } else if (field.type === 'date' || field.type === 'datetime') {
+                readData[fieldName] = JSON.parse(JSON.stringify(data[fieldName]));
+            } else {
+                var newValue = data[fieldName] === null ? false : data[fieldName];
+                readData[fieldName] = newValue;
+            }
+        }
+        return readData;
+    },
+    /**
+     * Returns field value which has been changed after savepoint.
+     *
+     * @param {string} id - the local resource id
+     * @returns {Object}
+     */
+    getDirtyValues: function (id){
+        var record = this.localData[id];
+        var savePointData = this.getRealDataPoint(record, record._savePoint);
+        var changeData = this.getRealDataPoint(record, record._changes);
+
+        var dirtyFields = _.omit(changeData, function (value, key, object) {
+            return _.isEqual(savePointData[key], value);
+        });
+        return dirtyFields;
+    },
+    /**
      * Returns true if a record is dirty. A record is considered dirty if it has
      * some unsaved changes, marked by the _isDirty property on the record or
      * one of its subrecords.
