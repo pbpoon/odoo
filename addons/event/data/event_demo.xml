@@ -243,5 +243,47 @@
         <field name="partner_id" ref="base.res_partner_12"/>
     </record>
 
+    <record id="reg_2_1" model="event.registration">
+        <field name="name">China Export</field>
+        <field name="email">chinaexport@yourcompany.example.com</field>
+        <field name="phone">+86 21 6484 5671</field>
+        <field name="event_id" ref="event_2"/>
+        <field name="partner_id" ref="base.res_partner_3"/>
+    </record>
+
+    <record id="reg_3_0" model="event.registration">
+        <field name="name">Delta PC</field>
+        <field name="email">deltapc@yourcompany.example.com</field>
+        <field name="phone">+1 510 340 2385</field>
+        <field name="event_id" ref="event_3"/>
+        <field name="partner_id" ref="base.res_partner_4"/>
+    </record>
+
+    <record id="reg_3_1" model="event.registration">
+        <field name="name">ASUSTeK</field>
+        <field name="email">asusteK@yourcompany.example.com</field>
+        <field name="phone">(+886) (02) 4162 2023</field>
+        <field name="event_id" ref="event_3"/>
+        <field name="partner_id" ref="base.res_partner_1"/>
+    </record>
+
+    <record id="reg_4_0" model="event.registration">
+        <field name="name">The Jackson Group</field>
+        <field name="email">jackson@yourcompany.example.com</field>
+        <field name="phone">+1 786 525 0724</field>
+        <field name="event_id" ref="event_3"/>
+        <field name="partner_id" ref="base.res_partner_10"/>
+    </record>
+
+    <!-- event scheduler -->
+    <record id="event_scheduler_1" model="event.mail">
+        <field name="event_id" ref="event_3"/>
+        <field name="template_id" ref="event.event_reminder"/>
+    </record>
+        <record id="event_scheduler_2" model="event.mail">
+        <field name="event_id" ref="event_1"/>
+        <field name="template_id" ref="event.event_registration_mail_template_badge"/>
+    </record>
+
     </data>
 </odoo>
