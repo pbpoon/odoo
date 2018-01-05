@@ -1,5 +1,9 @@
-from odoo import models, api
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
 from threading import Thread
+
+from odoo import models, api
 from odoo.http import request
 from odoo.modules.registry import Registry
 
@@ -9,16 +13,15 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _dispatch(cls):
-        res = super(IrHttp, cls)._dispatch()
-
-        if 'reveal' not in request.session and request.is_frontend and request.httprequest.method == 'GET' and request._request_type == 'http' and not request.session.uid:
+        result = super(IrHttp, cls)._dispatch()
+        if not request.session.get('reveal') and request.is_frontend and request.httprequest.method == 'GET' and request._request_type == 'http' and not request.session.uid:
+            request.session['reveal'] = True  # Mark session for reveal
             args = (request.env.cr.dbname, request.env.uid, request.httprequest.path, request.httprequest.remote_addr)
-            Thread(target=cls.process_reveal_request, args=args).start()
-            request.session['reveal'] = True
-        return res
+            Thread(target=cls.handle_reveal_request, args=args).start()
+        return result
 
-    def process_reveal_request(dbname, uid, path, ip):
+    def handle_reveal_request(dbname, uid, path, ip):
         with api.Environment.manage():
             with Registry(dbname).cursor() as cr:
                 env = api.Environment(cr, uid, {})
-                env['crm.lead.rule'].sudo().test_rule(path, ip)
+                env['reveal.lead.rule'].sudo().process_reveal_request(path, ip)

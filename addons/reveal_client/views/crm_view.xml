@@ -5,11 +5,10 @@
         <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="after">
-                <field name="generated_by_reveal" invisible="True"/>
-                <div class="label label-primary pull-right ml4 mr4" attrs="{'invisible': [('generated_by_reveal', '=', False)]}">Reveal</div>
+                <div class="label label-primary pull-right ml4 mr4" attrs="{'invisible': [('reveal_ip', '=', False)]}">Odoo Reveal</div>
             </xpath>
             <xpath expr="//field[@name='tag_ids']" position="after">
-                <field name="reveal_ip" groups="base.group_no_one" attrs="{'invisible': [('generated_by_reveal', '=', False)]}"/>
+                <field name="reveal_ip" groups="base.group_no_one" attrs="{'invisible': [('reveal_ip', '=', False)]}"/>
             </xpath>
         </field>
     </record>
@@ -20,11 +19,10 @@
         <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="after">
-                <field name="generated_by_reveal" invisible="True"/>
-                <div class="label label-primary pull-right ml4 mr4" attrs="{'invisible': [('generated_by_reveal', '=', False)]}">Reveal</div>
+                <div class="label label-primary pull-right ml4 mr4" attrs="{'invisible': [('reveal_ip', '=', False)]}">Odoo Reveal</div>
             </xpath>
             <xpath expr="//field[@name='tag_ids']" position="after">
-                <field name="reveal_ip" groups="base.group_no_one" attrs="{'invisible': [('generated_by_reveal', '=', False)]}"/>
+                <field name="reveal_ip" groups="base.group_no_one" attrs="{'invisible': [('reveal_ip', '=', False)]}"/>
             </xpath>
         </field>
     </record>

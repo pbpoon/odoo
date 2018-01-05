@@ -1,98 +1,101 @@
 <odoo>
-  <record model="ir.ui.view" id="lead_acquisition_rule_form">
-    <field name="name">lead.acquisition.rule.form</field>
-    <field name="model">crm.lead.rule</field>
-    <field name="arch" type="xml">
-      <form>
-        <sheet>
-          <div class="oe_button_box" name="button_box">
-              <button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button" icon="fa-archive">
-                <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
-              </button>
-          </div>
-          <div class="oe_title">
-              <h1 class="o_row">
-                  <field name="name"/>
-              </h1>
-          </div>
-          <group>
-            <group>
-              <field name="country_ids" widget="many2many_tags"/>
-              <field name="url"/>
-            </group>
-          </group>
-          <notebook>
-            <page name="company_data_page" string="Company Filter">
-              <group>
-                <group>
-                  <field name="company_size_min"/>
-                  <field name="company_size_max"/>
-                </group>
-                <group>
-                  <field name="industry_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                </group>
-              </group>
-              <div class="oe_clear"/>
-            </page>
-            <page name="people_data_page" string="People Filter">
-              <group>
-                <field name="preferred_role_id"/>
-                <field name="other_role_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                <field name="seniority_id"/>
-              </group>
-              <div class="oe_clear"/>
-            </page>
-            <page name="lead_opportunity_data_page" string="Lead / Opportunity">
-              <group>
-                <group>
-                  <field name="lead_type" groups="crm.group_use_lead"/>
-                  <field name="lead_for"/>
-                  <field name="team_id"/>
-                  <field name="user_id"/>
-                </group>
-                <group>
-                  <field name="stage_id"/>
-                  <field name="tag_ids" widget="many2many_tags"/>
-                  <field name="priority" widget="priority"/>
-                </group>
-              </group>
-              <field name="lead_ids"/>
-              <div class="oe_clear"/>
-            </page>
-          </notebook>
-        </sheet>
-      </form>
-    </field>
-  </record>
+	<record model="ir.ui.view" id="lead_acquisition_rule_form">
+		<field name="name">lead.acquisition.rule.form</field>
+		<field name="model">reveal.lead.rule</field>
+		<field name="arch" type="xml">
+			<form>
+				<header>
+					<button name="test_rule" string="Test Rule" type="object"/>
+				</header>
+				<sheet>
+					<div class="oe_button_box" name="button_box">
+						<button name="action_get_lead_tree_view" class="oe_stat_button" type="object" icon="fa-handshake-o">
+							<div class="o_stat_info">
+								<field name="leads_count"/>
+								<span class="o_stat_text"> Lead(s)</span>
+							</div>
+						</button>
+						<button name="toggle_active" type="object" groups="base.group_user" class="oe_stat_button" icon="fa-archive">
+							<field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+						</button>
+					</div>
+					<div class="oe_title">
+						<h1 class="o_row">
+							<field name="name"/>
+						</h1>
+					</div>
+					<group>
+						<group>
+							<field name="lead_for"/>
+							<field name="country_ids" widget="many2many_tags"/>
+							<field name="regex_url"/>
+						</group>
+					</group>
+					<notebook>
+						<page name="filter_page" string="Filters">
+							<group>
+								<group>
+									<h2>Company Filter</h2>
+									<field name="industry_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+									<field name="company_size_min"/>
+									<field name="company_size_max"/>
+								</group>
+								<group attrs="{'invisible': [('lead_for', '!=', 'people')]}">
+									<h2>People Filter</h2>
+									<field name="preferred_role_id"/>
+									<field name="other_role_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+									<field name="seniority_id"/>
+								</group>
+							</group>
+						</page>
+						<page name="lead_opportunity_data_page" string="Lead / Opportunity Data">
+							<group>
+								<group>
+									<field name="lead_type" groups="crm.group_use_lead"/>
+									<field name="team_id"/>
+									<field name="user_id"/>
+								</group>
+								<group>
+									<field name="stage_id"/>
+									<field name="tag_ids" widget="many2many_tags"/>
+									<field name="priority" widget="priority"/>
+								</group>
+							</group>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
 
-  <record model="ir.ui.view" id="lead_acquisition_rule_list">
-    <field name="name">lead.acquisition.rule.list</field>
-    <field name="model">crm.lead.rule</field>
-    <field name="arch" type="xml">
-      <tree>
-        <field name="name"/>
-        <field name="lead_type"/>
-      </tree>
-    </field>
-  </record>
+	<record model="ir.ui.view" id="lead_acquisition_rule_list">
+		<field name="name">lead.acquisition.rule.list</field>
+		<field name="model">reveal.lead.rule</field>
+		<field name="arch" type="xml">
+			<tree>
+				<field name="name"/>
+				<field name="lead_type"/>
+			</tree>
+		</field>
+	</record>
 
-  <record model="ir.actions.act_window" id="lead_acquisition_rule">
-    <field name="name">Acquisition Rules</field>
-    <field name="res_model">crm.lead.rule</field>
-    <field name="view_mode">tree,form</field>
-  </record>
+	<record model="ir.actions.act_window" id="lead_acquisition_rule">
+		<field name="name">Acquisition Rules</field>
+		<field name="res_model">reveal.lead.rule</field>
+		<field name="view_mode">tree,form</field>
+	</record>
 
-  <!-- This menu is display in CRM app when reveal_clent is installed-->
-  <menuitem
-      id="lead_generation_menu_crm"
-      name="Lead Generation"
-      parent="crm.crm_menu_config"
-      sequence="10"/>
+	<!-- This menu is display in CRM app when reveal_clent is installed-->
+	<menuitem
+		id="lead_generation_menu_crm"
+		name="Lead Generation"
+		parent="crm.crm_menu_config"
+		sequence="10"/>
 
-  <menuitem
-    action="lead_acquisition_rule"
-    id="menu_lead_acquisition_rule"
-    parent="lead_generation_menu_crm"
-    sequence="1"/>
+	<menuitem
+		action="lead_acquisition_rule"
+		id="menu_lead_acquisition_rule"
+		parent="lead_generation_menu_crm"
+		sequence="1"/>
 
 </odoo>
