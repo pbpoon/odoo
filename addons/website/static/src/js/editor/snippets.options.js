@@ -325,6 +325,70 @@ options.registry['margin-x'] = options.registry.marginAndResize.extend({
     },
 });
 
+options.registry['clone-column'] = options.Class.extend({
+
+    start: function () {
+        var self = this;
+        var children = this.$target.children();
+        var addColumn = this.$overlay.find('.oe_handle.oe_add_column');
+        var removeColumn = this.$overlay.find('.oe_handle.oe_remove_column')
+
+        if (children.length < 6) {
+            addColumn.removeClass('readonly');
+        }
+        if (children.length > 1) {
+            removeColumn.removeClass('readonly');
+        }
+        addColumn.on('click', function (event) {
+            self._addColumnSnippet();
+        })
+        removeColumn.on('click', function (event) {
+            self._removeColumnSnippet();
+        })
+
+        return this._super.apply(this, arguments);
+    },
+
+    _addColumnSnippet: function () {
+        this.trigger_up('request_history_undo_record', {$target: this.$target});
+        var children = this.$target.children();
+        var $clone = $(children.last()).clone();
+        $(children.last()).after($clone);
+        children.push($clone);
+        this.onClone(children);
+        if (children.length >= 6) {
+            this.$overlay.find('.oe_handle.oe_add_column').addClass('readonly');
+        } else if (children.length > 1) {
+            this.$overlay.find('.oe_handle.oe_remove_column').removeClass('readonly');
+        }
+    },
+
+    _removeColumnSnippet: function () {
+        this.trigger_up('request_history_undo_record', {$target: this.$target});
+        var children = this.$target.children();
+        children.last().remove();
+        children.splice(-1);
+        this.onClone(children);
+        if (children.length <= 1) {
+            this.$overlay.find('.oe_handle.oe_remove_column').addClass('readonly');
+        } else if (children.length < 6) {
+            this.$overlay.find('.oe_handle.oe_add_column').removeClass('readonly');
+        }
+    },
+
+    onClone: function ($el) {
+        var colSize = 12 % $el.length === 0 ? 12 / $el.length : 2;
+        _.each($el, function (child) {
+            var className = $(child).attr('class').replace(/\s*(col-md-|col-md-offset-)([0-9-]+)/g, '');
+            $(child).attr('class', className + ' col-md-' + colSize);
+        })
+        if ($el.length === 5) {
+            $($el.first()).addClass('col-md-offset-1');
+        }
+        this.trigger_up('cover_update');
+    }
+})
+
 options.registry.parallax = options.Class.extend({
     /**
      * @override

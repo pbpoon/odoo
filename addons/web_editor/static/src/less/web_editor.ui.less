@@ -620,20 +620,20 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
                 &.s:after, &.n:after {
                     content: "\f07d";
                 }
+                &.oe_remove_column:after {
+                    font-size: 2em;
+                    content: "\f056";
+                }
+                &.oe_add_column:after {
+                    font-size: 2em;
+                    content: "\f055";
+                }
 
                 &.oe_add_column:after, &.oe_remove_column:after {
                     cursor: pointer;
                     width: @o-handle-btn-size + 9;
                     height: @o-handle-btn-size + 9;
                     line-height: @o-handle-btn-size + 7;
-                }
-                &.oe_remove_column:after {
-                    font-size: 2em;
-                    content: "\f056" !important;
-                }
-                &.oe_add_column:after {
-                    font-size: 2em;
-                    content: "\f055" !important;
                 }
 
                 &.w, &.oe_remove_column {
