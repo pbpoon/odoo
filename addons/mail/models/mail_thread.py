@@ -372,6 +372,24 @@ class MailThread(models.AbstractModel):
             res['arch'] = etree.tostring(doc, encoding='unicode')
         return res
 
+    @tools.ormcache('self._uid')
+    def _get_mail_parameters(self):
+        ICP = self.env['ir.config_parameter'].sudo()
+        mail_domain, mail_catchall, mail_bounce = False, False, False
+        params = ICP.search_read([('key', 'in', ['mail.catchall.domain', 'mail.catchall.alias', 'mail.bounce.alias'])], fields=['key', 'value'])
+        for param in params:
+            if param['key'] == 'mail.catchall.domain':
+                mail_domain = param['value']
+            if param['key'] == 'mail.catchall.alias':
+                mail_catchall = param['value']
+            if param['key'] == 'mail.bounce.alias':
+                mail_bounce = param['value']
+        return {
+            'domain': mail_domain,
+            'catchall': mail_catchall,
+            'bounce': mail_bounce,
+        }
+
     @api.model
     def _garbage_collect_attachments(self):
         """ Garbage collect lost mail attachments. Those are attachments
@@ -745,7 +763,8 @@ class MailThread(models.AbstractModel):
         alias of the document, if it exists. Override this method to implement
         a custom behavior about reply-to for generated emails. """
         model_name = self.env.context.get('thread_model') or self._name
-        alias_domain = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.domain")
+        mail_params = self._get_mail_parameters()
+        alias_domain, catchall = mail_params['domain'], mail_params['catchall']
         res = dict.fromkeys(res_ids, False)
 
         # alias domain: check for aliases and catchall
@@ -768,9 +787,8 @@ class MailThread(models.AbstractModel):
             # left ids: use catchall
             left_ids = set(res_ids).difference(set(aliases))
             if left_ids:
-                catchall_alias = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.alias")
-                if catchall_alias:
-                    aliases.update(dict((res_id, '%s@%s' % (catchall_alias, alias_domain)) for res_id in left_ids))
+                if catchall:
+                    aliases.update(dict((res_id, '%s@%s' % (catchall, alias_domain)) for res_id in left_ids))
             # compute name of reply-to
             company_name = self.env.user.company_id.name
             for res_id in aliases:
