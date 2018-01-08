@@ -96,7 +96,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('basic grouped rendering', function (assert) {
-        assert.expect(13);
+        assert.expect(11);
 
         var kanban = createView({
             View: KanbanView,
@@ -130,10 +130,6 @@ QUnit.module('Views', {
         // check available actions in kanban header's config dropdown
         assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_kanban_toggle_fold').length,
                         "should be able to fold the column");
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
-                        "should be not able to archive the records");
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
-                        "should be not able to restore the records");
         assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_edit').length,
                         "should not be able to edit the column");
         assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_delete').length,
@@ -174,19 +170,10 @@ QUnit.module('Views', {
             },
         });
 
-        // check available actions in kanban header's config dropdown
-        // assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
-        //                "should be able to archive the records");
-        // assert.ok(kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
-        //                "should be able to restore the records");
-
         // archive the records of the first column
         assert.strictEqual(kanban.$('.o_kanban_group:last .o_kanban_record').length, 3,
             "last column should contain 3 records");
         envIDs = [4];
-        // kanban.$('.o_kanban_group:last .o_column_archive').click(); // click on 'Archive'
-        // assert.strictEqual(kanban.$('.o_kanban_group:last .o_kanban_record').length, 0,
-        //    "last column should contain no record");
         kanban.destroy();
     });
 
@@ -1016,7 +1003,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('delete a column in grouped on m2o', function (assert) {
-        assert.expect(32);
+        assert.expect(22);
 
         testUtils.patch(KanbanRenderer, {
             _renderGrouped: function () {
@@ -1073,10 +1060,6 @@ QUnit.module('Views', {
                         "should be able to edit the column");
         assert.ok(kanban.$('.o_kanban_group:first .o_column_delete').length,
                         "should be able to delete the column");
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
-                        "should not be able to archive the records");
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
-                        "should not be able to restore the records");
 
         // delete second column (first cancel the confirm request, then confirm)
         kanban.$('.o_kanban_group:last .o_column_delete').click(); // click on delete
@@ -1099,10 +1082,6 @@ QUnit.module('Views', {
             'Undefined column could not be deleted');
         assert.ok(!kanban.$('.o_kanban_group:first .o_column_edit').length,
             'Undefined column could not be edited');
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_archive').length,
-                        "should not be able to archive the records");
-        assert.ok(!kanban.$('.o_kanban_header:first .o_kanban_config .o_column_unarchive').length,
-                        "should not be able to restore the records");
         assert.verifySteps(['read_group', 'unlink', 'read_group']);
         assert.strictEqual(kanban.renderer.widgets.length, 2,
             "the old widgets should have been correctly deleted");
@@ -1722,14 +1701,6 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
         });
-
-        // var $first_column = kanban.$('.o_kanban_group:first()');
-        // assert.strictEqual($first_column.find('.o_kanban_record').length, 2,
-        //    "there should be 2 partners in first column");
-        // $first_column.find('.o_column_archive').click();
-        // assert.ok(writeOnActive, "should write on the active field");
-        // assert.strictEqual($first_column.find('.o_kanban_record').length, 0,
-        //    "there should not be partners anymore");
 
         kanban.destroy();
     });

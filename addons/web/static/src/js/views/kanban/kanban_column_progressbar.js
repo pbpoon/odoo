@@ -131,12 +131,12 @@ var KanbanColumnProgressBar = Widget.extend({
                 }
             },
         });
-        if (this.progressBarHelp && _.every(this.subgroupCounts, function(val) {return val == 0;})) {
+        if (this.progressBarHelp && _.every(this.subgroupCounts, function (val) { return val == 0; })) {
             this.$el.tooltip({
                 delay: '0',
                 trigger:'hover',
                 placement: 'top',
-                title: this.progressBarHelp
+                title: this.progressBarHelp,
             });
         }
 
@@ -176,7 +176,7 @@ var KanbanColumnProgressBar = Widget.extend({
         var end = this.totalCounterValue;
 
         if (this.activeFilter) {
-            if(this.sumField){
+            if (this.sumField) {
                 end = 0;
                 _.each(self.columnState.data, function (record) {
                     var recordData = record.data;
