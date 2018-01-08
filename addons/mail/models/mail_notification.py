@@ -15,7 +15,6 @@ class Notification(models.Model):
     res_partner_id = fields.Many2one(
         'res.partner', 'Needaction Recipient', index=True, ondelete='cascade', required=True)
     is_read = fields.Boolean('Is Read', index=True)
-    # is_history = fields.Boolean('History')
     is_email = fields.Boolean('Sent by Email', index=True)
     email_status = fields.Selection([
         ('ready', 'Ready to Send'),

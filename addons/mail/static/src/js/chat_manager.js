@@ -121,7 +121,6 @@ function add_message (data, options) {
 }
 
 function make_message (data) {
-
     var msg = {
         id: data.id,
         author_id: data.author_id,
@@ -175,15 +174,14 @@ function make_message (data) {
         is_needaction: property_descr("channel_inbox"),
         is_history: property_descr("channel_history"),
     });
+
     if (_.contains(data.needaction_partner_ids, session.partner_id)) {
-        console.log("in inbox");
         msg.is_needaction = true;
     }
     if (_.contains(data.starred_partner_ids, session.partner_id)) {
         msg.is_starred = true;
     }
-    else {
-        console.log("in history");
+    if (data.is_read === true) {
         msg.is_history = true;
     }
     if (msg.model === 'mail.channel') {
@@ -708,9 +706,9 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     _fetchFromChannel: function (channel, options) {
         options = options || {};
         var domain =
-            (channel.id === "channel_inbox") ? [['needaction', '=', true]] :
+            (channel.id === "channel_inbox") ? [['needaction', '=', true], ['is_read', '=', false]] :
             (channel.id === "channel_starred") ? [['starred', '=', true]] : 
-            (channel.id === "channel_history") ? [] :
+            (channel.id === "channel_history") ? [['is_read', '=', true]] :
                                                 [['channel_ids', 'in', channel.id]];
         var cache = get_channel_cache(channel, options.domain);
 
@@ -725,10 +723,9 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         if (channel.id === "channel_history") {
             LIMIT = 40;
         }
-        var method = channel.id === "channel_history" ? 'history_fetch' : 'message_fetch';
         return this._rpc({
                 model: 'mail.message',
-                method: method,
+                method: 'message_fetch',
                 args: [domain],
                 kwargs: {limit: LIMIT, context: session.user_context},
             })
@@ -907,7 +904,6 @@ var ChatManager =  Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
     },
     mark_as_read: function (message_ids) {
         var ids = _.filter(message_ids, function (id) {
-            console.log('>>>>>>>>>>>>', message_ids)
             var message = _.findWhere(messages, {id: id});
             message.is_history = true;
             add_to_cache(message, []);
