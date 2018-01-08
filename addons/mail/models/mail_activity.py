@@ -285,12 +285,13 @@ class MailActivity(models.Model):
         self.write({'reminder_open': False})
 
     @api.model
-    def activity_create_reminder(self, remember):
+    def activity_create_reminder(self, remember, reminder_date_to_set=False):
         record = self.sudo().create({
             'summary': remember,
             'note': remember,
             'reminder_open': True,
-            'user_id': self.env.uid
+            'user_id': self.env.uid,
+            'date_deadline': reminder_date_to_set or fields.Date.today()
         })
         return record.id
 

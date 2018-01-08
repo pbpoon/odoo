@@ -404,7 +404,7 @@
         .o_channel_title {
             .o-flex-display();
             .o_channel_name {
-                .o-flex(0, 1, auto);
+                .o-flex(1, 1, auto);
                 .o-text-overflow();
             }
             .o_channel_counter {
@@ -446,6 +446,20 @@
         background-color: white;
         .o_new_reminder_input {
             border: none;
+        }
+        .o_reminder_datetime {
+            .o_datepicker {
+                .o_datepicker_input {
+                    float: right;
+                    text-align: right;
+                    border: none;
+                    font-size: 11px;
+                    width: 50%;
+                }
+                .o_datepicker_button {
+                    display: none;
+                }
+            }
         }
     }
 }

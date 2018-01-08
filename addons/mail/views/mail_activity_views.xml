@@ -198,6 +198,9 @@
                         <label for="summary" class="oe_edit_only"/>
                         <h1><field name="summary"/></h1>
                     </div>
+                    <group>
+                        <field name="date_deadline" string="Reminder Date"/>
+                    </group>
                     <field name="note"/>
                 </sheet>
             </form>

@@ -3,6 +3,7 @@ odoo.define('mail.systray', function (require) {
 
 var config = require('web.config');
 var core = require('web.core');
+var datepicker = require('web.datepicker');
 var framework = require('web.framework');
 var session = require('web.session');
 var SystrayMenu = require('web.SystrayMenu');
@@ -157,6 +158,7 @@ var ActivityMenu = Widget.extend({
         'click .o_reminder_preview': '_onReminderPreviewClick',
         'click .o_add_reminder': '_onAddReminderClick',
         'click .o_new_reminder_save': '_onReminderSaveClick',
+        'click .o_new_reminder_set_datetime': '_onReminderDateTimeSet',
         'keydown input.o_new_reminder_input': '_onReminderInputKeyDown',
         'click .o_new_reminder': '_onNewReminderClick',
     },
@@ -292,6 +294,10 @@ var ActivityMenu = Widget.extend({
         this.$(".o_new_reminder").toggleClass("hidden");
         this.$(".o_new_reminder_input").focus();
         this.$(".o_new_reminder_input").val("");
+        this.reminderDateTimeWidget = new datepicker.DateWidget(this, {
+            useCurrent: true
+        });
+        this.reminderDateTimeWidget.appendTo(this.$(".o_reminder_datetime"));
     },
     /**
      * When focusing on input for new quick reminder systerm tray must be open.
@@ -304,6 +310,17 @@ var ActivityMenu = Widget.extend({
         event.stopPropagation();
     },
     /**
+     * Set reminder date/time
+     *
+     * @private
+     * $param {MouseEvent} event
+     */
+    _onReminderDateTimeSet: function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.reminderDateTimeWidget.$input.click();
+    },
+    /**
      * Saving reminder (quick create) and updating activity preview
      *
      * @private
@@ -312,13 +329,14 @@ var ActivityMenu = Widget.extend({
     _onReminderSaveClick: function (event) {
         var self = this;
         var val = this.$(".o_new_reminder_input").val();
+        var reminderDateTime = this.reminderDateTimeWidget.getValue() || false;
         if (val != "") {
             this.$(".o_add_reminder").removeClass("hidden");
             this.$(".o_new_reminder").addClass("hidden");
             this._rpc({
                 model: 'mail.activity',
                 method: 'activity_create_reminder',
-                args: [val]
+                args: [val, reminderDateTime]
             }).then(function (result) {
                 self._updateActivityPreview();
             });

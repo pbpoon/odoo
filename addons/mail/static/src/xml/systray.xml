@@ -111,8 +111,14 @@
             <div class="o_channel_info">
                 <div class="o_channel_title">
                     <span class="o_channel_name"><strong>Set a reminder</strong></span>
-                    <span class="ml16">
-                        <a href="#" class="o_new_reminder_save"><span class="fa fa-check"/></a>
+                    <div class="o_reminder_datetime"/>
+                    <span class="ml4">
+                        <a href="#" class="o_new_reminder_set_datetime">
+                            <span class="fa fa-clock-o"/>
+                        </a>
+                    </span>
+                    <span class="ml8 mr8">
+                        <a href="#" class="o_new_reminder_save">SAVE</a>
                     </span>
                 </div>
                 <p><input class="o_new_reminder_input" type="text" placeholder="Remember..." /></p>
