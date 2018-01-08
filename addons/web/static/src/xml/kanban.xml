@@ -64,7 +64,7 @@
                 <button class="btn btn-sm btn-primary o_kanban_add" type="button">Add Column</button>
               </span>
             </div>
-            <t t-if="widget.stageTag">
+            <t t-if="widget.stageHelpTag">
                 <span class="btn-link exampleDialog">See Examples</span>
                 <span class="pull-right text-muted">or Esc to cancel</span>
             </t>
@@ -149,17 +149,17 @@
             <div class="tab-content">
                 <t t-foreach="data.exampleStages" t-as="stage">
                     <div t-attf-id="stage_#{stage_index}" t-attf-class="tab-pane fade #{stage_index == 0 and 'active in' or ''}">
+                        <p class="footnote mt16"><t t-raw="stage.footnote"/></p>
                         <div class="o-guided-help-kanban">
                             <t t-foreach="stage.stages" t-as="cloumn">
                                 <div class="o-guided-help-col">
-                                    <h6><b><t t-esc="cloumn"/></b><i class="fa fa-plus pull-right"></i></h6>
+                                    <h6><b><t t-esc="cloumn"/></b></h6>
                                     <t t-foreach="_.random(2,5)">
                                         <t t-call="KanbanColumn.RecordGhost"/>
                                     </t>
                                 </div>
                             </t>
                         </div>
-                        <p class="footnote mt16 text-center"><t t-esc="stage.footnote"/></p>
                     </div>
                 </t>
             </div>

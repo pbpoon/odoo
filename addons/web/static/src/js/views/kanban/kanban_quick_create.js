@@ -10,6 +10,7 @@ var Widget = require('web.Widget');
 var Dialog = require('web.Dialog');
 var Registry = require('web.KanbanView_registry');
 var core = require('web.core');
+var _t = core._t;
 var QWeb = core.qweb;
 
 var AbstractQuickCreate = Widget.extend({
@@ -307,12 +308,14 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
             size: "large",
             buttons: false,
             $content: QWeb.render('KanbanColumn.KananGuideDialog', {data: this.stepData}),
+            buttons: [
+                {
+                    text: _t('GOT IT'),
+                    classes: 'btn-primary pull-right',
+                    close: true,
+                },
+            ],
         }).open();
-
-        // Hide the footer
-        dialog.opened(function () {
-            dialog.$footer.remove();
-        });
     },
     /**
      * Updates the rendering according to the current state
