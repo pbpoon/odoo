@@ -35,11 +35,27 @@ class TestHrHolidaysBase(common.TransactionCase):
         }).id
 
         # Hr Data
+        self.hr_dept = self.env['hr.department'].create({
+            'name': 'Human Resources',
+        })
+        self.rd_dept = self.env['hr.department'].create({
+            'name': 'Research and devlopment',
+        })
+
         self.employee_emp_id = self.env['hr.employee'].create({
             'name': 'David Employee',
             'user_id': self.user_employee_id,
+            'department_id': self.rd_dept.id,
         }).id
         self.employee_hruser_id = self.env['hr.employee'].create({
             'name': 'Armande HrUser',
             'user_id': self.user_hruser_id,
+            'department_id': self.rd_dept.id,
         }).id
+        self.employee_hrmanager_id = self.env['hr.employee'].create({
+            'name': 'Bastien HrManager',
+            'user_id': self.user_hrmanager_id,
+            'department_id': self.hr_dept.id,
+        }).id
+
+        self.rd_dept.write({'manager_id': self.employee_hruser_id})
