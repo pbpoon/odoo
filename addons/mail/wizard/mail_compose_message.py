@@ -456,7 +456,7 @@ class MailComposer(models.TransientModel):
         for res_id in res_ids:
             results[res_id] = {
                 'subject': subjects[res_id],
-                'body': bodies[res_id],
+                'body': tools.html_sanitize(bodies[res_id], sanitize_attributes=True, sanitize_style=True, strip_classes=True),
                 'email_from': emails_from[res_id],
                 'reply_to': replies_to[res_id],
             }

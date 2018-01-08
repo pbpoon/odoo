@@ -501,7 +501,7 @@ class MailTemplate(models.Model):
                     if signature:
                         values['body_html'] = tools.append_content_to_html(values['body_html'], signature, plaintext=False)
                 if values.get('body_html'):
-                    values['body'] = tools.html_sanitize(values['body_html'])
+                    values['body'] = tools.html_sanitize(values['body_html'], sanitize_attributes=True, sanitize_style=True, strip_classes=True)
                 # technical settings
                 values.update(
                     mail_server_id=template.mail_server_id.id or False,
