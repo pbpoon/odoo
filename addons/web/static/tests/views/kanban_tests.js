@@ -1003,7 +1003,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('delete a column in grouped on m2o', function (assert) {
-        assert.expect(22);
+        assert.expect(28);
 
         testUtils.patch(KanbanRenderer, {
             _renderGrouped: function () {

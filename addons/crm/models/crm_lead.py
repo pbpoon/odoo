@@ -909,13 +909,19 @@ class Lead(models.Model):
     @api.model
     def get_empty_list_help(self, help):
         if help:
+            help_title = ""
             if self._context.get('default_type') == 'lead':
-                alias_record = self.env.ref("crm.mail_alias_lead_info", raise_if_not_found=False)
-                help_title = ""
+                alias_record = self.env['mail.alias'].search([
+                    ('alias_name', '!=', False),
+                    ('alias_model_id.model', '=', 'crm.lead'),
+                    ('alias_parent_model_id.model', '=', 'crm.team'),
+                ], limit=1)
                 if alias_record and alias_record.alias_domain and alias_record.alias_name:
                     email = '%s@%s' % (alias_record.alias_name, alias_record.alias_domain)
                     email_link = "<a href='mailto:%s'>%s</a>" % (email, email)
                     help_title = _('Create a new lead or send an email to %s') % (email_link)
+                else:
+                    help_title = _('Click here to add new Leads')
             else:
                 help_title = _('Create a new opportunity to add it to your pipeline')
             return '<p class="oe_view_nocontent_create">%s</p><p>%s</p>' % (help_title, help)
