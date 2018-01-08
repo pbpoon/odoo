@@ -39,6 +39,10 @@ class ResConfigSettings(models.TransientModel):
     group_stock_multi_locations = fields.Boolean('Storage Locations', implied_group='stock.group_stock_multi_locations',
         help="Store products in specific locations of your warehouse (e.g. bins, racks) and to track inventory accordingly.")
     group_stock_multi_warehouses = fields.Boolean('Multi-Warehouses', implied_group='stock.group_stock_multi_warehouses')
+    product_weight_in_lbs = fields.Selection([
+        ('0', 'Kilogram'),
+        ('1', 'Pound'),
+        ], 'Product Weight')
 
     @api.onchange('use_propagation_minimum_delta')
     def _onchange_use_propagation_minimum_delta(self):
@@ -65,7 +69,8 @@ class ResConfigSettings(models.TransientModel):
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
         res.update(
-            use_propagation_minimum_delta=self.env['ir.config_parameter'].sudo().get_param('stock.use_propagation_minimum_delta')
+            use_propagation_minimum_delta=self.env['ir.config_parameter'].sudo().get_param('stock.use_propagation_minimum_delta'),
+            product_weight_in_lbs=self.env['ir.config_parameter'].sudo().get_param('stock.product_weight_in_lbs', '0'),
         )
         return res
 
@@ -86,3 +91,4 @@ class ResConfigSettings(models.TransientModel):
                 ('delivery_steps', '=', 'ship_only')])
             active = False
         warehouses.mapped('int_type_id').write({'active': active})
+        self.env['ir.config_parameter'].sudo().set_param('stock.product_weight_in_lbs', self.product_weight_in_lbs)

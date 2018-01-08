@@ -418,6 +418,7 @@ class ProductTemplate(models.Model):
     route_from_categ_ids = fields.Many2many(
         relation="stock.location.route", string="Category Routes",
         related='categ_id.total_route_ids')
+    weight_uom_id = fields.Many2one('product.uom', compute='_compute_weight_uom')
 
     def _is_cost_method_standard(self):
         return True
@@ -432,6 +433,13 @@ class ProductTemplate(models.Model):
 
     def _product_available(self, name, arg):
         return self._compute_quantities_dict()
+
+
+    def _compute_weight_uom(self):
+        weight_uom = self.env.ref('product.product_uom_lb') if self.env['ir.config_parameter'].sudo().get_param('stock.product_weight_in_lbs', '0') == '1'\
+            else self.env.ref('product.product_uom_kgm')
+        for p in self:
+            p.weight_uom_id = weight_uom
 
     def _compute_quantities_dict(self):
         # TDE FIXME: why not using directly the function fields ?

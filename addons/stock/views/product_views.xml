@@ -101,7 +101,7 @@
                         <label for="weight"/>
                         <div class="o_row" name="weight">
                             <field name="weight"/>
-                            <span>kg</span>
+                            <span><field name="weight_uom_id"/></span>
                         </div>
                         <label for="volume"/>
                         <div class="o_row" name="volume">
