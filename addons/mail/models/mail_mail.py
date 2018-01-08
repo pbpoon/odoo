@@ -263,9 +263,9 @@ class MailMail(models.Model):
                 # specific behavior to customize the send email for notified partners
                 email_list = []
                 if mail.email_to:
-                    email_list.append(mail.send_get_email_dict())
+                    email_list.append(mail._send_prepare_values())
                 for partner in mail.recipient_ids:
-                    email_list.append(mail.send_get_email_dict(partner=partner))
+                    email_list.append(mail._send_prepare_values(partner=partner))
 
                 # headers
                 headers = {}
