@@ -11,7 +11,19 @@ class TestAccountEntry(TestExpenseCommon):
 
     def setUp(self):
         super(TestAccountEntry, self).setUp()
-        self.product_deliver_cost.write({'supplier_taxes_id': [(6, 0, [self.tax.id])]})
+
+        self.setUpAdditionalAccounts()
+
+        self.product_expense = self.env['product.product'].create({
+            'name': "Delivered at cost",
+            'standard_price': 700,
+            'list_price': 700,
+            'type': 'consu',
+            'supplier_taxes_id': [(6, 0, [self.tax.id])],
+            'default_code': 'CONSU-DELI-COST',
+            'taxes_id': False,
+            'property_account_expense_id': self.account_expense.id,
+        })
 
     def test_account_entry(self):
         """ Checking accounting move entries and analytic entries when submitting expense """
@@ -22,7 +34,7 @@ class TestAccountEntry(TestExpenseCommon):
         expense_line = self.env['hr.expense'].create({
             'name': 'Car Travel Expenses',
             'employee_id': self.employee.id,
-            'product_id': self.product_deliver_cost.id,
+            'product_id': self.product_expense.id,
             'unit_amount': 700.00,
             'tax_ids': [(6, 0, [self.tax.id])],
             'sheet_id': expense.id,
@@ -50,7 +62,7 @@ class TestAccountEntry(TestExpenseCommon):
                 if not line.tax_line_id == self.tax:
                     self.assertAlmostEquals(line.debit, 636.36)
                     self.assertEquals(len(line.analytic_line_ids), 1, "The debit move line should have 1 analytic lines")
-                    self.assertEquals(line.product_id, self.product_deliver_cost, "Product of debit move line should be the one from the expense")
+                    self.assertEquals(line.product_id, self.product_expense, "Product of debit move line should be the one from the expense")
                 else:
                     self.assertAlmostEquals(line.debit, 63.64)
                     self.assertEquals(len(line.analytic_line_ids), 0, "The tax move line should not have analytic lines")
@@ -59,4 +71,4 @@ class TestAccountEntry(TestExpenseCommon):
         self.assertEquals(self.analytic_account.line_ids, expense.account_move_id.mapped('line_ids.analytic_line_ids'))
         self.assertEquals(len(self.analytic_account.line_ids), 1, "Analytic Account should have only one line")
         self.assertAlmostEquals(self.analytic_account.line_ids[0].amount, -636.36, "Amount on the only AAL is wrong")
-        self.assertEquals(self.analytic_account.line_ids[0].product_id, self.product_deliver_cost, "Product of AAL should be the one from the expense")
+        self.assertEquals(self.analytic_account.line_ids[0].product_id, self.product_expense, "Product of AAL should be the one from the expense")
