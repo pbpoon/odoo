@@ -132,7 +132,8 @@ class MailComposer(models.TransientModel):
     @api.depends('template_id')
     def _compute_is_default_template(self):
         for compose in self:
-            template_id = self.env['ir.default'].sudo().get('mail.compose.message', 'template_id', condition='mail_compose_act_btn=' + (self.env.context.get('mail_compose_act_btn') or '') + '&' + 'model=' + (compose.model or ''))
+            condition = 'mail_compose_act_btn=' + (self.env.context.get('mail_compose_act_btn') or '') + '&' + 'model=' + (compose.model or '')
+            template_id = self.env['ir.default'].sudo().get('mail.compose.message', 'template_id', condition=condition)
             if template_id == compose.template_id.id or (not template_id and self.env.context.get('default_template_id') == compose.template_id.id) or not self.env.context.get('mail_compose_act_btn'):
                 compose.is_default_template = True
 
@@ -349,7 +350,8 @@ class MailComposer(models.TransientModel):
     def mark_template_as_default(self):
         self.ensure_one()
         if self.template_id and self.env.context.get('mail_compose_act_btn'):
-            self.env['ir.default'].sudo().set('mail.compose.message', "template_id", self.template_id.id, condition="mail_compose_act_btn=" + (self.env.context.get('mail_compose_act_btn')) + '&' + 'model=' + (self.model or ''))
+            condition = "mail_compose_act_btn=" + (self.env.context.get('mail_compose_act_btn')) + '&' + 'model=' + (self.model or '')
+            self.env['ir.default'].sudo().set('mail.compose.message', "template_id", self.template_id.id, condition=condition)
         return _reopen(self, self.id, self.model, context=self.env.context)
     #------------------------------------------------------
     # Template methods

@@ -250,7 +250,7 @@ class TestHeavyMailPerformance(TransactionCase):
         record = self.umbrella.sudo(self.env.user)
         template_id = self.env.ref('test_mail.mail_test_tpl').id
 
-        with self.assertQueryCount(admin=192, emp=239):  # com runbot 190 - 237 // test_mail only: 182 - 227
+        with self.assertQueryCount(admin=193, emp=240):  # com runbot 190 - 237 // test_mail only: 182 - 227
             record.message_post_with_template(template_id, message_type='comment', composition_mode='comment')
 
         self.assertEqual(record.message_ids[0].body, '<p>Adding stuff on %s</p>' % record.name)
@@ -266,7 +266,7 @@ class TestHeavyMailPerformance(TransactionCase):
         customer_id = self.customer.id
         user_id = self.user_portal.id
 
-        with self.assertQueryCount(admin=355, emp=428):  # test_mail only: 337 - 407
+        with self.assertQueryCount(admin=356, emp=429):  # test_mail only: 337 - 407
             rec = self.env['mail.test.full'].create({
                 'name': 'Test',
                 'umbrella_id': umbrella_id,
