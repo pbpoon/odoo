@@ -175,7 +175,7 @@ function make_message (data) {
         is_history: property_descr("channel_history"),
     });
 
-    if (_.contains(data.needaction_partner_ids, session.partner_id)) {
+    if (_.contains(data.needaction_partner_ids, session.partner_id) && data.is_read === false) {
         msg.is_needaction = true;
     }
     if (_.contains(data.starred_partner_ids, session.partner_id)) {
