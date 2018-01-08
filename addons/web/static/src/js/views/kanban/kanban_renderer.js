@@ -141,11 +141,13 @@ var KanbanRenderer = BasicRenderer.extend({
      *
      * @param {string} localID the column id
      * @param {Object} columnState
+     * @param {Object} [columnOptions={}] additional column options
      *
      * @returns {Deferred}
      */
-    updateColumn: function (localID, columnState) {
-        var newColumn = new KanbanColumn(this, columnState, this.columnOptions, this.recordOptions);
+    updateColumn: function (localID, columnState, columnOptions) {
+        columnOptions = _.extend({}, this.columnOptions, columnOptions);
+        var newColumn = new KanbanColumn(this, columnState, columnOptions, this.recordOptions);
         var index = _.findIndex(this.widgets, {db_id: localID});
         var column = this.widgets[index];
         this.widgets[index] = newColumn;

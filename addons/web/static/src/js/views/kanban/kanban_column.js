@@ -33,6 +33,9 @@ var KanbanColumn = Widget.extend({
     },
     /**
      * @override
+     * @param {Object} options
+     * @param {boolean} [options.openQuickCreate=false] if true, directly open
+     *   the quick create widget on the top of the column
      */
     init: function (parent, data, options, recordOptions) {
         this._super(parent);
@@ -58,6 +61,7 @@ var KanbanColumn = Widget.extend({
         this.relation = options.relation;
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
+        this.openQuickCreate = options.openQuickCreate;
 
         if (options.hasProgressBar) {
             this.barOptions = {
@@ -154,6 +158,11 @@ var KanbanColumn = Widget.extend({
             this.$('.o_kanban_load_more').remove();
         } else {
             this.$('.o_kanban_load_more').html(QWeb.render('KanbanView.LoadMore', {widget: this}));
+        }
+
+        // render and insert the quick create widget if requested
+        if (this.openQuickCreate) {
+            defs.push(this.addQuickCreate());
         }
 
         return $.when.apply($, defs);
