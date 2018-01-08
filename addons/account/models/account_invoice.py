@@ -808,6 +808,10 @@ class AccountInvoice(models.Model):
             raise UserError(_("Invoice must be in draft state in order to validate it."))
         if to_open_invoices.filtered(lambda inv: inv.amount_total < 0):
             raise UserError(_("You cannot validate an invoice with a negative total amount. You should create a credit note instead."))
+        if to_open_invoices.filtered(lambda inv: not inv.partner_id):
+            for inv in self:
+                inv_type = dict(inv.fields_get(['type'])['type']['selection'])[inv.type]
+                raise UserError(_("Please define %s to validate the %s." % ('Costomer' if inv.type in ('out_invoice', 'out_refund') else 'Vendor', inv_type)))
         to_open_invoices.action_date_assign()
         to_open_invoices.action_move_create()
         return to_open_invoices.invoice_validate()
