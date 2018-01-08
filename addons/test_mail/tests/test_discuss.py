@@ -96,7 +96,7 @@ class TestNotifications(BaseFunctionalTest, MockEmails):
                 partner_ids=[self.user_employee.partner_id.id])
 
     def test_set_message_done_user(self):
-        with self.assertNotifications(partner_employee=(0, '', '')):
+        with self.assertNotifications(partner_employee=(1, 'inbox', 'read')):
             message = self.test_record.message_post(
                 body='Test', message_type='comment', subtype='mail.mt_comment',
                 partner_ids=[self.user_employee.partner_id.id])
