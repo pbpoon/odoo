@@ -161,7 +161,6 @@ ActionManager.include({
             className: 'o_act_window', // used to remove the padding in dialogs
             jsID: controllerID,
             viewType: viewType,
-            widget: controller,
         };
         Object.defineProperty(controller, 'title', {
             get: function () {
