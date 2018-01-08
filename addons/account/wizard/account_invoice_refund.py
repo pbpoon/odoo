@@ -60,8 +60,14 @@ class AccountInvoiceRefund(models.TransientModel):
                 refund = inv.refund(form.date_invoice, date, description, inv.journal_id.id)
 
                 for refund_invoice in refund.invoice_line_ids:
-                    if (refund_invoice.product_id.categ_id.property_account_income_categ_id != refund_invoice.product_id.categ_id.property_account_income_refund_categ_id) or (refund_invoice.product_id.property_account_income_id != refund_invoice.product_id.property_account_income_refund_id):
-                        refund_invoice.account_id = refund_invoice.product_id.property_account_income_refund_id.id or refund_invoice.product_id.categ_id.property_account_income_refund_categ_id.id
+                    proerty_income_id = refund_invoice.product_id.property_account_income_id.id
+                    proerty_income_categ_id = refund_invoice.product_id.categ_id.property_account_income_categ_id.id
+                    proerty_income_refund_id = refund_invoice.product_id.property_account_income_refund_id.id
+                    proerty_income_refund_categ_id = refund_invoice.product_id.categ_id.property_account_income_refund_categ_id.id
+
+                    if (proerty_income_refund_id or proerty_income_refund_categ_id) and ((proerty_income_id != proerty_income_refund_id) or (proerty_income_categ_id != proerty_income_refund_categ_id)):
+                        refund_invoice.account_id = proerty_income_refund_id or proerty_income_refund_categ_id
+
                 created_inv.append(refund.id)
                 if mode in ('cancel', 'modify'):
                     movelines = inv.move_id.line_ids

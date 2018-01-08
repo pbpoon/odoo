@@ -1545,7 +1545,7 @@ class AccountInvoiceLine(models.Model):
     @api.v8
     def get_invoice_line_account(self, type, product, fpos, company):
         accounts = product.product_tmpl_id.get_product_accounts(fpos)
-        if type == 'out_invoice' or type == 'out_refund' and accounts['income_refund'] == accounts['income']:
+        if type == 'out_invoice'  or not accounts['income_refund'] or type == 'out_refund' and accounts['income_refund'] == accounts['income']:
             return accounts['income']
         if type == 'out_refund' and accounts['income_refund'] != accounts['income']:
             return accounts['income_refund']
