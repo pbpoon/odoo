@@ -496,6 +496,7 @@ var SnippetEditor = Widget.extend({
         ev.preventDefault();
         this.trigger_up('request_history_undo_record', {$target: this.$target});
         this._removeSnippet();
+        $('.oe_structure.oe_empty:empty, [data-oe-type="html"]:empty').attr('data-editor-message', _t('DRAG BUILDING BLOCKS HERE'));
     },
 });
 

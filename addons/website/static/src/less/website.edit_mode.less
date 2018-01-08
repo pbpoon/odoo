@@ -44,14 +44,14 @@
 
     &.oe_structure.oe_empty, &[data-oe-type=html] {
         &:empty {
-            border: 2px dashed lighten(@gray-light, 20%);
+            border: 2px dashed @gray-lighter-darker;
             margin: 20px;
             padding: 112px 0px;
             text-align: center;
             &:before {
-                content: 'DRAG BUILDING BLOCKS HERE';
+                content: attr(data-editor-message);
                 font-size: 20px;
-                color: lighten(@gray-light, 20%);
+                color: @gray-lighter-darker;
             }
         }
         > p:empty:only-child {
