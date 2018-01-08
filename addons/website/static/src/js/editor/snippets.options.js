@@ -329,7 +329,8 @@ options.registry['clone-column'] = options.Class.extend({
 
     start: function () {
         var self = this;
-        var children = this.$target.children();
+        var children = this.$target.find('.container > .row').children();
+
         var addColumn = this.$overlay.find('.oe_handle.oe_add_column');
         var removeColumn = this.$overlay.find('.oe_handle.oe_remove_column')
 
@@ -351,29 +352,21 @@ options.registry['clone-column'] = options.Class.extend({
 
     _addColumnSnippet: function () {
         this.trigger_up('request_history_undo_record', {$target: this.$target});
-        var children = this.$target.children();
+        var children = this.$target.find('.container > .row').children();
         var $clone = $(children.last()).clone();
         $(children.last()).after($clone);
         children.push($clone);
         this.onClone(children);
-        if (children.length >= 6) {
-            this.$overlay.find('.oe_handle.oe_add_column').addClass('readonly');
-        } else if (children.length > 1) {
-            this.$overlay.find('.oe_handle.oe_remove_column').removeClass('readonly');
-        }
+        this._setOption(children);
     },
 
     _removeColumnSnippet: function () {
         this.trigger_up('request_history_undo_record', {$target: this.$target});
-        var children = this.$target.children();
+        var children = this.$target.find('.container > .row').children();
         children.last().remove();
         children.splice(-1);
         this.onClone(children);
-        if (children.length <= 1) {
-            this.$overlay.find('.oe_handle.oe_remove_column').addClass('readonly');
-        } else if (children.length < 6) {
-            this.$overlay.find('.oe_handle.oe_add_column').removeClass('readonly');
-        }
+        this._setOption(children);
     },
 
     onClone: function ($el) {
@@ -386,7 +379,19 @@ options.registry['clone-column'] = options.Class.extend({
             $($el.first()).addClass('col-md-offset-1');
         }
         this.trigger_up('cover_update');
-    }
+    },
+
+    _setOption: function (children) {
+        if (children.length >= 6) {
+            this.$overlay.find('.oe_handle.oe_add_column').addClass('readonly');
+            this.$overlay.find('.oe_handle.oe_remove_column').removeClass('readonly');
+        } else if (children.length > 1) {
+            this.$overlay.find('.oe_handle.oe_add_column, .oe_handle.oe_remove_column').removeClass('readonly');
+        } else {
+            this.$overlay.find('.oe_handle.oe_remove_column').addClass('readonly');
+            this.$overlay.find('.oe_handle.oe_add_column').removeClass('readonly');
+        }
+    },
 })
 
 options.registry.parallax = options.Class.extend({
