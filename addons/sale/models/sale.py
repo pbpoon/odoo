@@ -662,21 +662,34 @@ class SaleOrder(models.Model):
 
     @api.multi
     def action_view_sale_advance_payment_inv(self):
-        # dp = self.order_line.filtered(lambda x: x.is_downpayment)
-        # downpayment = sum(dp.mapped('price_unit'))
-        # invoiced = sum(self.invoice_ids.mapped('amount_total'))
-        # undelivered_product = self.order_line.filtered(lambda line: line.product_id.invoice_policy == 'delivery')
-        # undeliver = sum((rec.product_uom_qty - rec.qty_delivered) * rec.price_unit for rec in undelivered_product)
+        dp = self.order_line.filtered(lambda x: x.is_downpayment)
+        downpayment = sum(dp.mapped('price_unit'))
+        vals = self.order_line.filtered(lambda x: x.invoice_status == 'to invoice' and not x.is_downpayment)
+        ready = sum(vals.mapped('price_unit'))
+        invoiced = sum(self.invoice_ids.mapped('amount_total'))
+        undelivered_product = self.order_line.filtered(lambda line: line.product_id.invoice_policy == 'delivery')
+        undeliver = sum((rec.product_uom_qty - rec.qty_delivered) * rec.price_unit for rec in undelivered_product)
         # ready_to_invoice = (self.amount_total - (invoiced + undeliver)) if (self.amount_total - (invoiced + undeliver)) > 0.0 else 0.0
-        # ctx = dict(
-        #     default_order_total=self.amount_total,
-        #     default_total_to_invoice=self.amount_total,
-        #     default_downpayment_total=downpayment,
-        #     default_already_invoiced=invoiced,
-        #     default_unbilled_total=(self.amount_total - invoiced),
-        #     default_undelivered_products=undeliver,
-        #     default_ready_to_invoice=ready_to_invoice,
-        # )
+        options = ['percentage', 'fixed']
+        if self.invoice_status in ['to invoice', 'upselling']:
+            options = ['delivered']
+        else:
+            options = ['unbilled']
+        if self.order_line.filtered(lambda x: x.is_downpayment):
+            options.append('all')
+
+        visible = ', '.join(options)
+        ctx = self.env.context.copy()
+        ctx.update({
+            'default_order_total': self.amount_total,
+            'default_total_to_invoice': self.amount_total,
+            'default_downpayment_total': downpayment,
+            'default_already_invoiced': invoiced,
+            'default_unbilled_total': (self.amount_total - invoiced),
+            'default_undelivered_products': undeliver,
+            'default_ready_to_invoice': ready,
+            'visibility': visible,
+        })
         return {
             'name': _('Create Invoice'),
             'type': 'ir.actions.act_window',
@@ -686,7 +699,7 @@ class SaleOrder(models.Model):
             'view_id': self.env.ref('sale.view_sale_advance_payment_inv').id,
             'target': 'new',
             'groups_id': [(4, self.env.ref('sales_team.group_sale_salesman'))],
-            'context': dict(),
+            'context': ctx,
         }
 
 

@@ -12,7 +12,7 @@
                     <group>
                         <group>
                             <field name="count" invisible="[('count','=',1)]" readonly="True"/>
-                            <field name="advance_payment_method" class="oe_inline" widget="radio" visibility='context.get()' attrs="{'invisible': [('count','&gt;',1)]}"/>
+                            <field name="advance_payment_method" class="oe_inline" widget="radio" visibility="context.get('visibility')" attrs="{'invisible': [('count','&gt;',1)]}"/>
                             <field name="product_id"
                             context="{'search_default_services': 1, 'default_type': 'service', 'default_invoice_policy': 'order'}" class="oe_inline"
                             invisible="1"/>
