@@ -75,5 +75,34 @@
             <field eval="5.0" name="quantity"/>
         </record>
 
+        <record id="refused_report_1" model="hr.expense.sheet">
+            <field name="name">Trip to New Jersey</field>
+            <field name="state">cancel</field>
+        </record>
+
+        <record id="refused_report_2" model="hr.expense.sheet">
+            <field name="name">Trip to France</field>
+        </record>
+
+        <record id="hotel_bill_expense_NJ" model="hr.expense">
+            <field name="name">NJ Hotel Expenses</field>
+            <field name="analytic_account_id" ref="analytic.analytic_nebula"/>
+            <field name="product_id" ref="hotel_rent"/>
+            <field eval="500.0" name="unit_amount"/>
+            <field name="product_uom_id" ref="product.product_uom_day"/>
+            <field eval="3.0" name="quantity"/>
+            <field name="sheet_id" ref="refused_report_1"/>
+        </record>
+
+        <record id="travel_by_air_expense_to_ND" model="hr.expense">
+            <field name="name">Travel by Air to ND</field>
+            <field name="analytic_account_id" ref="analytic.analytic_our_super_product"/>
+            <field name="product_id" ref="air_ticket"/>
+            <field eval="800.0" name="unit_amount"/>
+            <field name="product_uom_id" ref="product.product_uom_unit"/>
+            <field eval="1.0" name="quantity"/>
+            <field name="sheet_id" ref="refused_report_2"/>
+        </record>
+
     </data>
 </odoo>
