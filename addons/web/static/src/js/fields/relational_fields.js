@@ -2196,7 +2196,9 @@ var FieldRadio = FieldSelection.extend({
     _setValues: function () {
         var selection = this.field.selection;
         if (this.field.type === 'selection' && this.attrs.visibility) {
-            var restriction = this.attrs.visibility.split(",");
+            // FixMe, evaluate context based on attrs context value
+            var visibility = this.record.context.visibility || this.attrs.visibility
+            var restriction = visibility.split(",");
             this.values = _.filter(selection, function (val) {
                 return _.contains(restriction, val[0]) || val[0] === self.value;
             });
