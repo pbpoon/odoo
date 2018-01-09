@@ -266,7 +266,11 @@ var KanbanColumn = Widget.extend({
      * @private
      * @param {MouseEvent} ev
      */
-    _onAddQuickCreate: function () {
+    _onAddQuickCreate: function (ev) {
+        // stop the propagation of the click event to prevent the quick create
+        // from closing itself immediately, when being notified of the click
+        // (triggered on core.bus)
+        ev.stopPropagation();
         this.addQuickCreate();
     },
     /**

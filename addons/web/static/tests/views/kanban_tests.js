@@ -380,7 +380,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('quick create in grouped mode', function (assert) {
-        assert.expect(8);
+        assert.expect(9);
 
         var nbRecords = 4;
         var kanban = createView({
@@ -407,26 +407,34 @@ QUnit.module('Views', {
         var $quickCreate = kanban.$('.o_kanban_quick_create');
         assert.strictEqual($quickCreate.length, 1, "should have a quick create element");
 
-        $quickCreate.find('input').trigger($.Event('keydown', {keyCode: $.ui.keyCode.ESCAPE}));
+        $quickCreate.find('input').trigger($.Event('keydown', {
+            keyCode: $.ui.keyCode.ESCAPE,
+            which: $.ui.keyCode.ESCAPE,
+        }));
         assert.strictEqual(kanban.$('.o_kanban_quick_create').length, 0,
             "should have destroyed the quick create element");
 
-        //click to add and element and focus out the blank input, should cancel the quick creation
+        // click to add and element and click outside, should cancel the quick creation
         kanban.$('.o_kanban_header .o_kanban_quick_add i').first().click();
-        $quickCreate = kanban.$('.o_kanban_quick_create');
-        $quickCreate.find('input').blur();
+        kanban.$('.o_kanban_group .o_kanban_record:first').click();
         assert.strictEqual(kanban.$('.o_kanban_quick_create').length, 0,
-            "Blur should have destroyed the quick create element");
+            "the quick create should be destroyed when the user clicks outside");
 
         // click to really add an element
         kanban.$('.o_kanban_header .o_kanban_quick_add i').first().click();
         $quickCreate = kanban.$('.o_kanban_quick_create');
-        $quickCreate.find('input').val('new partner');
-        $quickCreate.find('input').blur();
+        $quickCreate.find('input').val('new partner').trigger('input');
 
-        // When focus out the input containing value, should not delete the Quick Creation
+        // clicking outside should no longer destroy the quick create as it is dirty
+        kanban.$('.o_kanban_group .o_kanban_record:first').click();
+        assert.strictEqual($('.modal').length, 1,
+            "a confirm dialog should be displayed");
+
+        // click on 'Cancel' on the confirm dialog
+        $('.modal .modal-footer .btn-default').click();
         assert.strictEqual(kanban.$('.o_kanban_quick_create').length, 1,
-            "Blur should not have destroyed the quick create element");
+            "the quick create should not have been destroyed");
+
         nbRecords = 5;
         $quickCreate.find('button.o_kanban_add').click();
 
@@ -478,7 +486,7 @@ QUnit.module('Views', {
         var $quickCreate = kanban.$('.o_kanban_quick_create');
         kanban.$('.o_kanban_header .o_kanban_quick_add i').first().click();
         $quickCreate = kanban.$('.o_kanban_quick_create');
-        $quickCreate.find('input').val('new partner');
+        $quickCreate.find('input').val('new partner').trigger('input');
         $quickCreate.find('button.o_kanban_edit').click();
 
         assert.strictEqual(this.data.partner.records.length, 5,
@@ -517,7 +525,8 @@ QUnit.module('Views', {
 
         kanban.$('.o_kanban_quick_create input')
             .val('new partner 1')
-            .trigger($.Event('keypress', {
+            .trigger('input')
+            .trigger($.Event('keydown', {
                 which: $.ui.keyCode.ENTER,
                 keyCode: $.ui.keyCode.ENTER,
             }));
@@ -530,7 +539,8 @@ QUnit.module('Views', {
         // create a second element in a row
         kanban.$('.o_kanban_quick_create input')
             .val('new partner 2')
-            .trigger($.Event('keypress', {
+            .trigger('input')
+            .trigger($.Event('keydown', {
                 which: $.ui.keyCode.ENTER,
                 keyCode: $.ui.keyCode.ENTER,
             }));
@@ -585,7 +595,11 @@ QUnit.module('Views', {
 
         kanban.$('.o_kanban_quick_create input')
             .val('test')
-            .trigger($.Event('keypress', {keyCode: $.ui.keyCode.ENTER}));
+            .trigger('input')
+            .trigger($.Event('keydown', {
+                keyCode: $.ui.keyCode.ENTER,
+                which: $.ui.keyCode.ENTER,
+            }));
 
         assert.strictEqual($('.modal .o_form_view.o_form_editable').length, 1,
             "a form view dialog should have been opened (in edit)");
@@ -1051,7 +1065,7 @@ QUnit.module('Views', {
         });
         kanban.$('.o_kanban_group:first .o_kanban_quick_add').click();
         var $quickCreate = kanban.$('.o_kanban_quick_create');
-        $quickCreate.find('input').val('new partner');
+        $quickCreate.find('input').val('new partner').trigger('input');
         $quickCreate.find('button.o_kanban_add').click();
         assert.strictEqual(this.data.partner.records.length, 5,
             "should have created a partner");
@@ -2042,7 +2056,7 @@ QUnit.module('Views', {
 
         kanban.$('.o_kanban_group:eq(1) .o_kanban_quick_add i').click();
         var $quickCreate = kanban.$('.o_kanban_group:eq(1) .o_kanban_quick_create');
-        $quickCreate.find('input').val('new partner');
+        $quickCreate.find('input').val('new partner').trigger('input');
         $quickCreate.find('button.o_kanban_add').click();
 
         assert.strictEqual(kanban.$('.o_kanban_group:eq(0) .o_kanban_record').length, 0,
@@ -2102,12 +2116,12 @@ QUnit.module('Views', {
 
         kanban.$('.o_kanban_group:eq(0) .o_kanban_quick_add i').click();
         var $quickCreate = kanban.$('.o_kanban_group:eq(0) .o_kanban_quick_create');
-        $quickCreate.find('input').val('record1');
+        $quickCreate.find('input').val('record1').trigger('input');
         $quickCreate.find('button.o_kanban_add').click();
 
         kanban.$('.o_kanban_group:eq(0) .o_kanban_quick_add i').click();
         $quickCreate = kanban.$('.o_kanban_group:eq(0) .o_kanban_quick_create');
-        $quickCreate.find('input').val('record2');
+        $quickCreate.find('input').val('record2').trigger('input');
         $quickCreate.find('button.o_kanban_add').click();
 
         assert.strictEqual(kanban.$('.o_kanban_group:eq(0) .o_kanban_record').length, 2,
@@ -2159,7 +2173,7 @@ QUnit.module('Views', {
         // add a new column
         kanban.$('.o_kanban_group:first .o_kanban_quick_add').click();
         var $quickCreate = kanban.$('.o_kanban_quick_create');
-        $quickCreate.find('input').val('new partner');
+        $quickCreate.find('input').val('new partner').trigger('input');
         $quickCreate.find('button.o_kanban_add').click();
         assert.strictEqual(this.data.partner.records.length, 5,
             "should have created a 'new partner' column");
@@ -2284,11 +2298,11 @@ QUnit.module('Views', {
             groupBy: ['bar'],
         });
 
-        var initialCount = parseInt(kanban.$('.o_kanban_counter_side').eq(1).text());
-        kanban.$('.o_kanban_quick_add').eq(1).click();
-        kanban.$('.o_input').val('Test');
+        var initialCount = parseInt(kanban.$('.o_kanban_counter_side:first').text());
+        kanban.$('.o_kanban_quick_add:first').click();
+        kanban.$('.o_kanban_quick_create input').val('Test').trigger('input');
         kanban.$('.o_kanban_add').click();
-        var lastCount = parseInt(kanban.$('.o_kanban_counter_side').eq(1).text());
+        var lastCount = parseInt(kanban.$('.o_kanban_counter_side:first').text());
         assert.strictEqual(lastCount, initialCount + 1,
             "kanban counters should have updated on quick create");
 

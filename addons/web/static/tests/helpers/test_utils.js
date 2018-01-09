@@ -14,6 +14,7 @@ var ajax = require('web.ajax');
 var basic_fields = require('web.basic_fields');
 var config = require('web.config');
 var core = require('web.core');
+var data_manager = require('web.data_manager');
 var dom = require('web.dom');
 var session = require('web.session');
 var MockServer = require('web.MockServer');
@@ -353,6 +354,11 @@ function addMockEnvironment(widget, params) {
             });
             event.data.on_success(views);
         });
+    });
+
+    intercept(widget, "process_fields_views", function (event) {
+        var result = data_manager.processFieldsViews(event.data.fieldsViews, event.data.fields);
+        event.data.on_success(result);
     });
 
     intercept(widget, "get_session", function (event) {

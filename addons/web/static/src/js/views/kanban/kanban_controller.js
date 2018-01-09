@@ -238,9 +238,13 @@ var KanbanController = BasicController.extend({
     /**
      * @private
      */
-    _onButtonNew: function () {
+    _onButtonNew: function (ev) {
         var data = this.model.get(this.handle, {raw: true});
         if (data.groupedBy.length > 0 && data.count > 0 && this.on_create === 'quick_create') {
+            // stop the propagation of the click event to prevent the quick create
+            // from closing itself immediately, when being notified of the click
+            // (triggered on core.bus)
+            ev.stopPropagation();
             // Activate the quick create in the first column
             this.renderer.addQuickCreate();
         } else if (this.on_create && this.on_create !== 'quick_create') {
