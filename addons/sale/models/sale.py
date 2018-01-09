@@ -672,13 +672,12 @@ class SaleOrder(models.Model):
         # ready_to_invoice = (self.amount_total - (invoiced + undeliver)) if (self.amount_total - (invoiced + undeliver)) > 0.0 else 0.0
         options = ['percentage', 'fixed']
         if self.invoice_status in ['to invoice', 'upselling']:
-            options = ['delivered']
+            options.append('delivered')
         else:
-            options = ['unbilled']
+            options.append('unbilled')
         if self.order_line.filtered(lambda x: x.is_downpayment):
             options.append('all')
-
-        visible = ', '.join(options)
+        visible = ','.join(options)
         ctx = self.env.context.copy()
         ctx.update({
             'default_order_total': self.amount_total,
