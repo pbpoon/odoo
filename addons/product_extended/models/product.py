@@ -45,21 +45,23 @@ class ProductProduct(models.Model):
             if product.bom_count > 0:
                 bom = self.env['mrp.bom']._bom_find(product=product)
                 product.standard_price = self.compute_hierarchy(bom.bom_line_ids)
-                # print("\n>>>>>>>>>>>>>>>>>>>>>>>>>.total", product.standard_price)
 
     def compute_hierarchy(self, bom_line_ids):
         total = 0
+        bom_ids = []
+        bom_id = [b.bom_id for b in bom_line_ids][0]
         for line in bom_line_ids:
             if line.child_line_ids:
                 total += self.compute_hierarchy(line.child_line_ids) * line.product_qty
             else:
                 total += line.product_id.uom_id._compute_price(line.product_id.standard_price, line.product_uom_id) * line.product_qty
-                if line.bom_id.routing_id:
+                if line.bom_id.routing_id and line.bom_id not in bom_ids:
+                    bom_ids.append(line.bom_id)
                     total_cost = 0.0
                     for order in line.bom_id.routing_id.operation_ids:
                         total_cost += (order.time_cycle/60) * order.workcenter_id.costs_hour
                     total += line.bom_id.product_uom_id._compute_price(total_cost, line.bom_id.product_id.uom_id)
-        return total
+        return bom_id.product_uom_id._compute_price(total / bom_id.product_qty, self.uom_id)
 
     def _calc_price(self, bom):
         price = 0.0
