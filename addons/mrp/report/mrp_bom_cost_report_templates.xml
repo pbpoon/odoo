@@ -24,14 +24,6 @@
                                 </strong>
                             </span>
                         </h4>
-                        <table>
-                            <tbody>
-                                <tr t-foreach="line['attributes']" t-as="attrib">
-                                    <td><span t-esc="attrib[0]"/>:</td>
-                                    <td><span class="ml8" t-esc="attrib[1]"/></td>
-                                </tr>
-                            </tbody>
-                        </table>
                         <table class="table table-condensed">
                             <thead>
                                 <tr>
@@ -48,7 +40,7 @@
                                         t-att-data-id="bom_line['id']"
                                         t-att-data-parent-id="bom_line['parent_id']"
                                         t-attf-class="#{'tr_expandable' if bom_line['has_child'] else ''}#{' hidden' if bom_line['level'] and print_mode == 'html' else ''}"
-                                        t-attf-style="#{'cursor:pointer' if bom_line['has_child'] else ''}#{';font-size:90%' if bom_line['level'] else ''}">
+                                        t-attf-style="#{'cursor:pointer' if bom_line['has_child'] else ''}">
                                         <td colspan="3">
                                             <span style="color: white;" t-esc="'... '*(bom_line['level'])"/>
                                             <t t-if="bom_line['has_child'] and print_mode == 'html'">
