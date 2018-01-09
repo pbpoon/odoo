@@ -238,17 +238,23 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
     /**
      * @override
      */
-    init: function (parent, stageHelpTag, state) {
+    init: function (parent, stageHelpTag) {
         this._super.apply(this, arguments);
         this.folded = true;
-        this.state = state;
         this.stageHelpTag = stageHelpTag;
         this.isGuidedStepEnable = this.stageHelpTag;
+        var self = this;
+        this.trigger_up('is_guided_step_enable', {
+            callback: function (isGuidedStepEnable, stateData) {
+                self.isGuidedStepEnable = self.isGuidedStepEnable && isGuidedStepEnable;
+                self.stateData = stateData;
+            },
+        });
         if (this.isGuidedStepEnable) {
             this.stepData = Registry.get(stageHelpTag);
-            if (this.stepData.helpStages.length > state.data.length) {
-                this.placeholder = this.stepData.helpStages[state.data.length].placeholder;
-                this.recordNumbers = this.stepData.helpStages[state.data.length].records;
+            if (this.stepData.helpStages.length > this.stateData.length) {
+                this.placeholder = this.stepData.helpStages[this.stateData.length].placeholder;
+                this.recordNumbers = this.stepData.helpStages[this.stateData.length].records;
             } else {
                 this.isGuidedStepEnable = false;
             }
@@ -261,7 +267,7 @@ var ColumnQuickCreate = AbstractQuickCreate.extend({
         this.$header = this.$('.o_column_header');
         this.$quick_create = this.$('.o_kanban_quick_create');
         this.$input = this.$('input');
-        if (this.isGuidedStepEnable && this.state.data.length == 0) {
+        if (this.isGuidedStepEnable && this.stateData.length == 0) {
             this.toggleFold();
         }
         return this._super.apply(this, arguments);

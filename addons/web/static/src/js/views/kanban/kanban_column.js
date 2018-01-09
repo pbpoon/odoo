@@ -58,8 +58,21 @@ var KanbanColumn = Widget.extend({
         this.relation = options.relation;
         this.offset = 0;
         this.remaining = data.count - this.data_records.length;
-        this.isGuidedStepEnable = options.stageHelp && options.isGuidedStepEnable && this.data.count == 0;
         this.stepData = options.stepData;
+        this.isGuidedStepEnable = this.data.count == 0;
+
+        if(!this.isGuidedStepEnable) {
+            this.trigger_up('set_guided_step_enable', {
+                isGuidedStepEnable: this.isGuidedStepEnable,
+            });
+        }
+        var self = this;
+        this.trigger_up('is_guided_step_enable', {
+            callback: function (isGuidedStepEnable) {
+                self.isGuidedStepEnable = self.isGuidedStepEnable && isGuidedStepEnable;
+            },
+        });
+
         this.cloumnIndex = options.index;
 
         if (options.hasProgressBar) {

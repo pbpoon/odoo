@@ -86,6 +86,8 @@ var KanbanRenderer = BasicRenderer.extend({
     className: 'o_kanban_view',
     custom_events: _.extend({}, BasicRenderer.prototype.custom_events || {}, {
         'set_progress_bar_state': '_onSetProgressBarState',
+        'is_guided_step_enable': '_onIsGuidedStepEnable',
+        'set_guided_step_enable': '_onSetGuidedStepEnable',
     }),
 
     /**
@@ -100,7 +102,11 @@ var KanbanRenderer = BasicRenderer.extend({
         transformQwebTemplate(templates, state.fields);
         this.qweb.add_template(utils.json_node_to_xml(templates));
         this.stageHelpTag = this.arch.attrs.stage_help_tag;
-
+        this.isGuidedStepEnable = this.state.count == 0;
+        console.log(this.state.count);
+        if (this.stageHelpTag) {
+            this.stepData = Registry.get(this.stageHelpTag);
+        }
         this.recordOptions = _.extend({}, params.record_options, {
             qweb: this.qweb,
             viewType: 'kanban',
@@ -108,8 +114,8 @@ var KanbanRenderer = BasicRenderer.extend({
         this.columnOptions = _.extend({}, params.column_options, { 
             qweb: this.qweb,
             stageHelp: this.stageHelpTag,
-            isGuidedStepEnable: this.state.count == 0 ? true:false,
-            stepData: this.stageHelpTag ? Registry.get(this.stageHelpTag) : ''
+            isGuidedStepEnable: this.isGuidedStepEnable,
+            stepData: this.stepData,
         });
         if (this.columnOptions.hasProgressBar) {
             this.columnOptions.progressBarStates = {};
@@ -373,6 +379,14 @@ var KanbanRenderer = BasicRenderer.extend({
         }
         _.extend(this.columnOptions.progressBarStates[ev.data.columnID], ev.data.values);
     },
+
+    _onIsGuidedStepEnable: function (ev) {
+        this.isGuidedStepEnable = this.isGuidedStepEnable && this.stepData.helpStages.length >= this.state.data.length;
+        ev.data.callback(this.isGuidedStepEnable, this.state.data);
+    },
+    _onSetGuidedStepEnable: function (ev) {
+        this.isGuidedStepEnable = ev.data.isGuidedStepEnable;
+    }
 });
 
 return KanbanRenderer;
