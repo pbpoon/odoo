@@ -39,9 +39,11 @@ var KanbanModel = BasicModel.extend({
         this.localData[group.parentID].count++;
         this._updateParentResIDs(group);
 
-        return this._fetchRecord(new_record).then(function (result) {
-            return result.id;
-        });
+        var def = this._fetchRecord(new_record);
+        return this._reloadProgressBarGroupFromRecord(new_record.id, def)
+            .then(function (result) {
+                return result.id;
+            });
     },
     /**
      * Creates a new group from a name (performs a name_create).
