@@ -671,12 +671,13 @@ class SaleOrder(models.Model):
         undeliver = sum((rec.product_uom_qty - rec.qty_delivered) * rec.price_unit for rec in undelivered_product)
         # ready_to_invoice = (self.amount_total - (invoiced + undeliver)) if (self.amount_total - (invoiced + undeliver)) > 0.0 else 0.0
         options = ['percentage', 'fixed']
-        if self.invoice_status in ['to invoice', 'upselling']:
+        if self.invoice_status != 'no':
             options.append('delivered')
-        else:
+            if self.order_line.filtered(lambda x: x.is_downpayment):
+                options.append('all')
+        if ready != (self.amount_total - invoiced) and (self.amount_total - invoiced) > 0.0:
             options.append('unbilled')
-        if self.order_line.filtered(lambda x: x.is_downpayment):
-            options.append('all')
+
         visible = ','.join(options)
         ctx = self.env.context.copy()
         ctx.update({
