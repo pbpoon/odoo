@@ -18,7 +18,7 @@ class CustomerPortal(CustomerPortal):
         except exceptions.AccessError:
             pass
         else:
-            if order_sudo.template_id and order_sudo.template_id.active:
+            if order_sudo.template_id and order_sudo.template_id.active and order_sudo.state not in ('sale'):
                 return request.redirect('/quote/%s/%s' % (order, access_token or ''))
         return super(CustomerPortal, self).portal_order_page(order=order, access_token=access_token, **kw)
 
