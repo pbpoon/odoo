@@ -42,7 +42,7 @@ QUnit.module('gdrive_integration', {
 }, function () {
     QUnit.module('Google Drive Sidebar');
 
-    QUnit.test('test rendering of the google drive attachments in Sidebar', function(assert) {
+    QUnit.test('rendering of the google drive attachments in Sidebar', function (assert) {
         assert.expect(3);
 
         var form = createView({
@@ -50,7 +50,7 @@ QUnit.module('gdrive_integration', {
             model: 'partner',
             data: this.data,
             arch: '<form string="Partners">' +
-                    '<field name="display_name" />' +
+                    '<field name="display_name"/>' +
                 '</form>',
             res_id: 1,
             viewOptions: {sidebar: true},
@@ -61,7 +61,7 @@ QUnit.module('gdrive_integration', {
                     return $.when([{id: 27, name: 'Cyberdyne Systems'}]);
                 }
                 if (route === '/web/dataset/call_kw/google.drive.config/search_read'){
-                    return $.when([{google_drive_resource_id: "T1000", 
+                    return $.when([{google_drive_resource_id: "T1000",
                                     google_drive_client_id: "cyberdyne.org",
                                     id: 1}]);
                 }
