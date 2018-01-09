@@ -216,7 +216,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         }
         var params = {
             model: this.dataset.model,
-            context: this.dataset.get_context(),
+            context: this.dataset.get_context().eval(),
             views_descr: views,
         };
         return data_manager.load_views(params, options).then(function (fields_views) {
