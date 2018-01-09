@@ -50,7 +50,6 @@ class Task(models.Model):
 
     _constraints = [(models.BaseModel._check_recursion, 'Circular references are not permitted between tasks and sub-tasks', ['parent_id'])]
 
-
     @api.model
     def create(self, vals):
         context = dict(self.env.context)
@@ -59,3 +58,13 @@ class Task(models.Model):
             vals['parent_id'] = context.pop('default_parent_id', None)
         task = super(Task, self.with_context(context)).create(vals)
         return task
+
+    @api.multi
+    def write(self, values):
+        result = super(Task, self).write(values)
+        # reassign project_id on related timesheet lines
+        if 'project_id' in values:
+            self.sudo().mapped('timesheet_ids').write({
+                'project_id': values['project_id']
+            })
+        return result
