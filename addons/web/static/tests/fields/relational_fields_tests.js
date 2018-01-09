@@ -6892,6 +6892,7 @@ QUnit.module('relational_fields', {
                     assert.deepEqual(args.kwargs.context, {
                         key: 'yop',
                         active_field: 2,
+                        bin_size: true,
                         someKey: 'some value',
                     }, "sent context should be correct");
                 }
@@ -9179,7 +9180,7 @@ QUnit.module('relational_fields', {
                 '</tree>',
             mockRPC: function (route, args) {
                 if (args.method === 'read' && args.model === 'partner_type') {
-                    assert.deepEqual(args.kwargs.context, {take: 'five'},
+                    assert.deepEqual(args.kwargs.context.take, 'five',
                         'The context should be passed to the RPC');
                 }
             return this._super.apply(this, arguments);
